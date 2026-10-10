@@ -114,18 +114,34 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .w b { font-size: 1.1rem; }
   .pop { right: 8px; }
 }
-/* Laptop, desktop, tablet landscape, and short landscape phones: two columns. Video and controls on the left, transcript on the right. */
-@media (min-width: 900px), (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
-  .app { max-width: 1280px; display: grid; grid-template-columns: clamp(300px, 38%, 480px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(16px, 2.4vw, 36px); row-gap: 12px; }
-  .top { grid-column: 1 / -1; }
-  .side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; grid-column: 1; grid-row: 2; scrollbar-width: thin; padding-bottom: 2px; }
-  .side > * { flex: none; }
-  .list { grid-column: 2; grid-row: 2; }
-  .ytbox { width: min(100%, max(220px, calc((100vh - 230px) * 16 / 9))); }
+/* Tablet portrait: a larger video, still one column. */
+@media (min-width: 600px) {
+  .ytbox { width: min(100%, calc(clamp(200px, 36vh, 560px) * 16 / 9)); }
+}
+/* Laptop and desktop (also phones in desktop mode): one column. Large video on top, transcript under it, controls in one row pinned to the bottom edge. */
+@media (min-width: 900px) {
+  .app { max-width: 1120px; overflow-y: auto; scrollbar-width: thin; }
+  .ytbox { width: min(100%, calc(clamp(240px, calc(100vh - 370px), 680px) * 16 / 9)); }
+  .list { flex: 1 1 auto; min-height: 200px; }
+  .dock { position: sticky; bottom: 0; z-index: 3; flex-direction: row; align-items: center; gap: 20px; padding: 8px 16px; }
+  .seek { flex: 1 1 auto; min-width: 0; }
+  .btns { flex: none; gap: 4px; }
+  .tool { flex: none; min-width: 66px; min-height: 48px; padding-inline: 6px; }
+  .play { height: 48px; }
+  .pop { right: 100px; }
   .line { padding: 14px 16px; }
   .line .tm { width: 52px; font-size: 0.78rem; }
 }
-@media (min-width: 1500px) { .app { max-width: 1440px; } }
+/* Short landscape phones: two columns so the controls still fit. */
+@media (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
+  .app { max-width: 1280px; overflow: visible; display: grid; grid-template-columns: clamp(300px, 38%, 480px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(16px, 2.4vw, 36px); row-gap: 12px; }
+  .top { grid-column: 1 / -1; }
+  .side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; grid-column: 1; grid-row: 2; scrollbar-width: thin; padding-bottom: 2px; }
+  .side > * { flex: none; }
+  .list { grid-column: 2; grid-row: 2; min-height: 0; }
+  .dock { position: static; }
+  .ytbox { width: min(100%, max(220px, calc((100vh - 230px) * 16 / 9))); }
+}
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
 </style>
 </head>
