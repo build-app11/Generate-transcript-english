@@ -1,0 +1,1545 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shadowing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>
+/* Layout: one-screen practice app. Player/timer strip on top, transcript scrolls in the middle, control dock pinned at the bottom. Active line is tinted, its time chip turns red like a Tube line marker. */
+:root {
+  --bg: #EDEFF2;
+  --surface: #FFFFFF;
+  --ink: #0E1626;
+  --muted: #5A6577;
+  --rule: #D9DEE6;
+  --accent: #D8281F;
+  --accent-ink: #FFFFFF;
+  --tint: #FCEAE8;
+  --ipa: #1F5FB8;
+  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
+  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.35; overflow: hidden; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { height: 100%; max-width: 760px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 12px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.side { display: contents; }
+.stage { order: 1; }
+.list { order: 2; }
+.dock { order: 3; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.top .sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
+.chips { display: flex; gap: 8px; align-items: center; }
+.chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mode { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+/* stage */
+.stage { flex: none; }
+.ytbox { aspect-ratio: 16 / 9; width: min(100%, calc(clamp(110px, 22vh, 300px) * 16 / 9)); margin-inline: auto; background: #000; border-radius: 12px; overflow: hidden; }
+.ytbox iframe { width: 100%; height: 100%; display: block; }
+.timerbox { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+.timerbox .big { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.timerbox p { margin: 0; flex: 1 1 200px; min-width: 0; font-size: 0.82rem; color: var(--muted); }
+.timerbox a { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+
+/* transcript */
+.list { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-block: 2px 24px; scrollbar-width: thin; }
+.line { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 14px; cursor: pointer; }
+.line:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line .body { flex: 1; min-width: 0; }
+.ws { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.w { display: flex; flex-direction: column; }
+.w b { font-weight: 600; font-size: clamp(1.1rem, 1rem + 0.35vw, 1.4rem); letter-spacing: -0.005em; }
+.w i { font-family: var(--font-ipa); font-style: normal; font-size: clamp(0.95rem, 0.88rem + 0.25vw, 1.15rem); color: var(--ipa); line-height: 1.25; }
+.line.music .w b { font-weight: 400; font-style: italic; color: var(--muted); }
+.line.music { opacity: 0.7; }
+.pinb { flex: none; width: 36px; height: 36px; margin: -4px -4px 0 0; display: grid; place-items: center; color: var(--muted); opacity: 0; border-radius: 10px; }
+.line:hover .pinb, .line.pinned .pinb { opacity: 1; }
+@media (hover: none) { .pinb { opacity: 0.45; } .line.pinned .pinb { opacity: 1; } }
+.line.pinned .pinb { color: var(--accent); }
+.line.pinned .pinb svg { fill: currentColor; }
+.line.active { background: var(--tint); }
+.line.active .tm { background: var(--accent); color: var(--accent-ink); }
+.line.looping { box-shadow: inset 0 0 0 2px var(--accent); }
+.line.looping .tm::after { content: ' ↻'; }
+.noipa .w i { display: none; }
+.only-pinned .line:not(.pinned) { display: none; }
+.empty { padding: 28px 12px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+.empty[hidden] { display: none; }
+
+/* dock */
+.dock { position: relative; flex: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 22px; padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek input { flex: 1; min-width: 0; accent-color: var(--accent); height: 24px; }
+.btns { display: flex; align-items: center; gap: 2px; }
+.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
+.tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }
+.tool[aria-pressed="true"] { color: var(--accent); }
+.play { flex: none; width: 62px; height: 52px; margin-left: 4px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.play svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }
+.pop { position: absolute; right: 78px; bottom: calc(100% - 6px); display: flex; gap: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }
+.pop[hidden] { display: none; }
+.pop button { min-width: 48px; min-height: 40px; padding: 0 8px; border-radius: 10px; font-family: var(--font-mono); font-size: 0.82rem; border: 1px solid var(--rule); }
+.pop button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 420px) {
+  .w b { font-size: 1.1rem; }
+  .pop { right: 8px; }
+}
+/* Laptop, desktop, tablet landscape, and short landscape phones: two columns. Video and controls on the left, transcript on the right. */
+@media (min-width: 900px), (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
+  .app { max-width: 1280px; display: grid; grid-template-columns: clamp(300px, 38%, 480px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(16px, 2.4vw, 36px); row-gap: 12px; }
+  .top { grid-column: 1 / -1; }
+  .side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; grid-column: 1; grid-row: 2; scrollbar-width: thin; padding-bottom: 2px; }
+  .side > * { flex: none; }
+  .list { grid-column: 2; grid-row: 2; }
+  .ytbox { width: min(100%, max(220px, calc((100vh - 230px) * 16 / 9))); }
+  .line { padding: 14px 16px; }
+  .line .tm { width: 52px; font-size: 0.78rem; }
+}
+@media (min-width: 1500px) { .app { max-width: 1440px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<script>
+/* =====================================================================
+   TEMPLAT SHADOWING: ISI HANYA 3 BAGIAN DI BAWAH INI, LALU SIMPAN.
+   Bagian lain di file ini tidak perlu disentuh.
+   ===================================================================== */
+
+/* 1) Kode video YouTube: bagian setelah youtu.be/ atau setelah v=
+      Contoh: https://youtu.be/0-O869Sqvhg  ->  0-O869Sqvhg            */
+const VIDEO_ID = '0-O869Sqvhg';
+
+/* 2) Judul yang tampil di bagian atas halaman                         */
+const JUDUL = 'Shadowing';
+
+/* 3) Transkrip + fonetik. Tempel hasil ekspor toPhonetics apa adanya,
+      di antara dua tanda ` (backtick) di bawah. Setiap baris diawali
+      [jam:menit:detik]; baris pertama teks Inggris, baris kedua IPA.   */
+const TRANSKRIP = `
+toPhonetics.com
+
+[00:00:00]  So here is it and uh uh we are not
+[00:00:00]  səʊ hɪər ɪz ɪt ænd ʌ ʌ wiː ɑː nɒt
+
+[00:00:04]  thinking to cross it because uh it might
+[00:00:04]  ˈθɪŋkɪŋ tuː krɒs ɪt bɪˈkɒz ʌ ɪt maɪt
+
+[00:00:06]  attack us .  So do you think Ryan we
+[00:00:06]  əˈtæk ʌs .  səʊ duː juː θɪŋk ˈraɪən wiː
+
+[00:00:09]  should go ?  I think Omar is catching fish
+[00:00:09]  ʃʊd ɡəʊ ?  aɪ θɪŋk ˈəʊmɑːr ɪz ˈkæʧɪŋ fɪʃ
+
+[00:00:12]  maybe .
+[00:00:12]  ˈmeɪbi .
+
+[00:00:14]  Stay away .  Stay away .  Let me try to go
+[00:00:14]  steɪ əˈweɪ .  steɪ əˈweɪ .  lɛt miː traɪ tuː ɡəʊ
+
+[00:00:16]  close to him .
+[00:00:16]  kləʊz tuː hɪm .
+
+[00:00:19]  Okay ,  it is still standing .  Hi everyone .
+[00:00:19]  ˌəʊˈkeɪ ,  ɪt ɪz stɪl ˈstændɪŋ .  haɪ ˈɛvriwʌn .
+
+[00:00:22]  I hope you are doing great .  Today in
+[00:00:22]  aɪ həʊp juː ɑː ˈduːɪŋ ɡreɪt .  təˈdeɪ ɪn
+
+[00:00:25]  this vlog I will show you where I shoot
+[00:00:25]  ðɪs vlog aɪ wɪl ʃəʊ juː weər aɪ ʃuːt
+
+[00:00:27]  my videos and while I show you my setup
+[00:00:27]  maɪ ˈvɪdiəʊz ænd waɪl aɪ ʃəʊ juː maɪ ˈsɛtʌp
+
+[00:00:30]  uh I would say a natural setup I'll be
+[00:00:30]  ʌ aɪ wʊd seɪ ə ˈnæʧᵊrᵊl ˈsɛtʌp aɪl biː
+
+[00:00:32]  speaking slow and natural English uh it
+[00:00:32]  ˈspiːkɪŋ sləʊ ænd ˈnæʧᵊrᵊl ˈɪŋɡlɪʃ ʌ ɪt
+
+[00:00:35]  is considered as comprehensible input so
+[00:00:35]  ɪz kənˈsɪdəd æz ˌkɒmprɪˈhɛnsəbᵊl ˈɪnpʊt səʊ
+
+[00:00:37]  that you can understand everything that
+[00:00:37]  ðæt juː kæn ˌʌndəˈstænd ˈɛvriθɪŋ ðæt
+
+[00:00:39]  I speak in the video uh through the
+[00:00:39]  aɪ spiːk ɪn ðə ˈvɪdiəʊ ʌ θruː ðiː
+
+[00:00:41]  visuals and uh uh through my slow
+[00:00:41]  ˈvɪʒuəlz ænd ʌ ʌ θruː maɪ sləʊ
+
+[00:00:44]  English and also uh I want you to repeat
+[00:00:44]  ˈɪŋɡlɪʃ ænd ˈɔːlsəʊ ʌ aɪ wɒnt juː tuː rɪˈpiːt
+
+[00:00:48]  whatever I'm saying just try to shadow
+[00:00:48]  wɒtˈɛvər aɪm ˈseɪɪŋ ʤʌst traɪ tuː ˈʃædəʊ
+
+
+
+[00:00:49]  me so that you can improve your
+[00:00:49]  miː səʊ ðæt juː kæn ɪmˈpruːv jɔː
+
+[00:00:51]  pronunciation and you can say or or you
+[00:00:51]  prəˌnʌnsiˈeɪʃᵊn ænd juː kæn seɪ ɔːr ɔː juː
+
+[00:00:54]  can learn just some natural ways to uh
+[00:00:54]  kæn lɜːn ʤʌst sʌm ˈnæʧᵊrᵊl weɪz tuː ʌ
+
+[00:00:56]  express your ideas and uh let me also
+[00:00:56]  ɪkˈsprɛs jɔːr aɪˈdɪəz ænd ʌ lɛt miː ˈɔːlsəʊ
+
+[00:00:58]  tell you we have come here we also have
+[00:00:58]  tɛl juː wiː hæv kʌm hɪə wiː ˈɔːlsəʊ hæv
+
+[00:01:01]  Omar and Rian uh in this vlog so let's
+[00:01:01]  ˈəʊmɑːr ænd Rian ʌ ɪn ðɪs vlog səʊ lɛts
+
+[00:01:05]  start the vlog .
+[00:01:05]  stɑːt ðə vlog .
+
+[00:01:19]  So as you can see uh Ryan is wearing a
+[00:01:19]  səʊ æz juː kæn siː ʌ ˈraɪən ɪz ˈweərɪŋ eɪ
+
+[00:01:22]  t-shirt and Omar is wearing a shirt and
+[00:01:22]  ˈtiːʃɜːt ænd ˈəʊmɑːr ɪz ˈweərɪŋ ə ʃɜːt ænd
+
+[00:01:25]  he is holding a power bank .  So he is
+[00:01:25]  hiː ɪz ˈhəʊldɪŋ ə ˈpaʊə bæŋk .  səʊ hiː ɪz
+
+[00:01:28]  holding a power bank .  So now Ryan and
+[00:01:28]  ˈhəʊldɪŋ ə ˈpaʊə bæŋk .  səʊ naʊ ˈraɪən ænd
+
+[00:01:31]  Omar they are going to go over this .
+[00:01:31]  ˈəʊmɑː ðeɪ ɑː ˈɡəʊɪŋ tuː ɡəʊ ˈəʊvə ðɪs .
+
+[00:01:35]  It's kind of a
+[00:01:35]  ɪts kaɪnd ɒv eɪ
+
+[00:01:37]  a natural river .  It's not a river .  I
+[00:01:37]  ə ˈnæʧᵊrᵊl ˈrɪvə .  ɪts nɒt ə ˈrɪvə .  aɪ
+
+[00:01:41]  think it's just a passage of water from
+[00:01:41]  θɪŋk ɪts ʤʌst ə ˈpæsɪʤ ɒv ˈwɔːtə frɒm
+
+[00:01:43]  that pond .  This is a pond and this is a
+[00:01:43]  ðæt pɒnd .  ðɪs ɪz ə pɒnd ænd ðɪs ɪz eɪ
+
+[00:01:46]  mango garden .  So here you will find
+[00:01:46]  ˈmæŋɡəʊ ˈɡɑːdᵊn .  səʊ hɪə juː wɪl faɪnd
+
+[00:01:49]  mangoes .  However ,  this is not a mango
+[00:01:49]  ˈmæŋɡəʊz .  haʊˈɛvə ,  ðɪs ɪz nɒt ə ˈmæŋɡəʊ
+
+[00:01:51]  season .  So uh this is a water passage .
+[00:01:51]  ˈsiːzᵊn .  səʊ ʌ ðɪs ɪz ə ˈwɔːtə ˈpæsɪʤ .
+
+[00:01:55]  So now they are going over this .  So go
+[00:01:55]  səʊ naʊ ðeɪ ɑː ˈɡəʊɪŋ ˈəʊvə ðɪs .  səʊ ɡəʊ
+
+[00:01:59]  and uh let me show you .  There are some
+[00:01:59]  ænd ʌ lɛt miː ʃəʊ juː .  ðeər ɑː sʌm
+
+
+
+[00:02:02]  uh small fish in it .  Uh I don't know if
+[00:02:02]  ʌ smɔːl fɪʃ ɪn ɪt .  ʌ aɪ dəʊnt nəʊ ɪf
+
+[00:02:06]  you are able to see it or not .  There are
+[00:02:06]  juː ɑːr ˈeɪbᵊl tuː siː ɪt ɔː nɒt .  ðeər ɑː
+
+[00:02:08]  some small fish in it .  And this is
+[00:02:08]  sʌm smɔːl fɪʃ ɪn ɪt .  ænd ðɪs ɪz
+
+[00:02:11]  grass .  Okay .  So let's continue our walk .
+[00:02:11]  ɡrɑːs .  ˌəʊˈkeɪ .  səʊ lɛts kənˈtɪnjuː ˈaʊə wɔːk .
+
+[00:02:16]  Over here is a tree .  I don't know the
+[00:02:16]  ˈəʊvə hɪər ɪz ə triː .  aɪ dəʊnt nəʊ ðiː
+
+[00:02:18]  name of this tree but in Hindi it is
+[00:02:18]  neɪm ɒv ðɪs triː bʌt ɪn ˈhɪndi ɪt ɪz
+
+[00:02:22]  called s uh sorry uh surro sero or
+[00:02:22]  kɔːld ɛs ʌ ˈsɒri ʌ surro sero ɔː
+
+[00:02:25]  something like that .  And uh here we have
+[00:02:25]  ˈsʌmθɪŋ laɪk ðæt .  ænd ʌ hɪə wiː hæv
+
+[00:02:29]  a mango tree .  This is a mango tree .
+[00:02:29]  ə ˈmæŋɡəʊ triː .  ðɪs ɪz ə ˈmæŋɡəʊ triː .
+
+[00:02:43]  As you can see ,  this is a field .  And
+[00:02:43]  æz juː kæn siː ,  ðɪs ɪz ə fiːld .  ænd
+
+[00:02:46]  this is also a field .
+[00:02:46]  ðɪs ɪz ˈɔːlsəʊ ə fiːld .
+
+[00:02:49]  I don't know if you can see or not .  Or
+[00:02:49]  aɪ dəʊnt nəʊ ɪf juː kæn siː ɔː nɒt .  ɔː
+
+[00:02:52]  there is the railway station ,  not
+[00:02:52]  ðeər ɪz ðə ˈreɪlweɪ ˈsteɪʃᵊn ,  nɒt
+
+[00:02:55]  railway station ,  railway track from
+[00:02:55]  ˈreɪlweɪ ˈsteɪʃᵊn ,  ˈreɪlweɪ træk frɒm
+
+[00:02:57]  where the train passes .  Uh if any train
+[00:02:57]  weə ðə treɪn ˈpɑːsɪz .  ʌ ɪf ˈɛni treɪn
+
+[00:03:00]  comes after a certain period of time
+[00:03:00]  kʌmz ˈɑːftər ə ˈsɜːtᵊn ˈpɪəriəd ɒv taɪm
+
+[00:03:02]  like uh while I'm shooting the video ,  I
+[00:03:02]  laɪk ʌ waɪl aɪm ˈʃuːtɪŋ ðə ˈvɪdiəʊ ,  aɪ
+
+[00:03:05]  will definitely uh show you .
+[00:03:05]  wɪl ˈdɛfɪnətli ʌ ʃəʊ juː .
+
+[00:03:08]  And this is a road where we are walking .
+[00:03:08]  ænd ðɪs ɪz ə rəʊd weə wiː ɑː ˈwɔːkɪŋ .
+
+[00:03:11]  and Ryan and Omar also .
+[00:03:11]  ænd ˈraɪən ænd ˈəʊmɑːr ˈɔːlsəʊ .
+
+[00:03:17]  So from my home uh let me show you my
+[00:03:17]  səʊ frɒm maɪ həʊm ʌ lɛt miː ʃəʊ juː maɪ
+
+
+
+[00:03:20]  village .  So over there is my village uh
+[00:03:20]  ˈvɪlɪʤ .  səʊ ˈəʊvə ðeər ɪz maɪ ˈvɪlɪʤ ʌ
+
+[00:03:23]  around
+[00:03:23]  əˈraʊnd
+
+[00:03:26] 200  m and uh yeah maybe  200  or  300  m and
+[00:03:26] 200  ɛm ænd ʌ jeə ˈmeɪbi  200  ɔː  300  ɛm ænd
+
+[00:03:31]  over there is the place where I shoot my
+[00:03:31]  ˈəʊvə ðeər ɪz ðə pleɪs weər aɪ ʃuːt maɪ
+
+[00:03:34]  videos .  So every day like whenever we go
+[00:03:34]  ˈvɪdiəʊz .  səʊ ˈɛvri deɪ laɪk wɛˈnɛvə wiː ɡəʊ
+
+[00:03:39]  there we take that route like uh from my
+[00:03:39]  ðeə wiː teɪk ðæt ruːt laɪk ʌ frɒm maɪ
+
+[00:03:43]  village and there is a road so we go
+[00:03:43]  ˈvɪlɪʤ ænd ðeər ɪz ə rəʊd səʊ wiː ɡəʊ
+
+[00:03:46]  that way but today as we are going on
+[00:03:46]  ðæt weɪ bʌt təˈdeɪ æz wiː ɑː ˈɡəʊɪŋ ɒn
+
+[00:03:49]  food uh we are going this way because uh
+[00:03:49]  fuːd ʌ wiː ɑː ˈɡəʊɪŋ ðɪs weɪ bɪˈkɒz ʌ
+
+[00:03:53]  riding bike on this way is uh quite
+[00:03:53]  ˈraɪdɪŋ baɪk ɒn ðɪs weɪ ɪz ʌ kwaɪt
+
+[00:03:57]  hard .  So I think from here uh to reach
+[00:03:57]  hɑːd .  səʊ aɪ θɪŋk frɒm hɪər ʌ tuː riːʧ
+
+[00:04:00]  that location where I shoot my video uh
+[00:04:00]  ðæt ləʊˈkeɪʃᵊn weər aɪ ʃuːt maɪ ˈvɪdiəʊ ʌ
+
+[00:04:02]  would take around three or five minutes
+[00:04:02]  wʊd teɪk əˈraʊnd θriː ɔː faɪv ˈmɪnɪts
+
+[00:04:05]  more .  While I uh walk to that place ,  let
+[00:04:05]  mɔː .  waɪl aɪ ʌ wɔːk tuː ðæt pleɪs ,  lɛt
+
+[00:04:09]  me show you some natural uh surrounding
+[00:04:09]  miː ʃəʊ juː sʌm ˈnæʧᵊrᵊl ʌ səˈraʊndɪŋ
+
+[00:04:12]  around me .
+[00:04:12]  əˈraʊnd miː .
+
+[00:04:14]  You can see everywhere is green and
+[00:04:14]  juː kæn siː ˈɛvriweər ɪz ɡriːn ænd
+
+[00:04:17]  that's that's the only reason I love
+[00:04:17]  ðæts ðæts ði ˈəʊnli ˈriːzᵊn aɪ lʌv
+
+[00:04:19]  village .  I have been to uh like I have
+[00:04:19]  ˈvɪlɪʤ .  aɪ hæv biːn tuː ʌ laɪk aɪ hæv
+
+[00:04:22]  lived in a city
+[00:04:22]  lɪvd ɪn ə ˈsɪti
+
+[00:04:24]  and this is what I always missed uh in
+[00:04:24]  ænd ðɪs ɪz wɒt aɪ ˈɔːlweɪz mɪst ʌ ɪn
+
+
+
+[00:04:27]  city .  In city you might uh find malls ,
+[00:04:27]  ˈsɪti .  ɪn ˈsɪti juː maɪt ʌ faɪnd mɔːlz ,
+
+[00:04:31]  you might find the uh better job and
+[00:04:31]  juː maɪt faɪnd ði ʌ ˈbɛtə ʤɒb ænd
+
+[00:04:34]  everything but here in village you're
+[00:04:34]  ˈɛvriθɪŋ bʌt hɪər ɪn ˈvɪlɪʤ jɔː
+
+[00:04:37]  going to get the peace and for me uh
+[00:04:37]  ˈɡəʊɪŋ tuː ɡɛt ðə piːs ænd fɔː miː ʌ
+
+[00:04:40]  peace matters a lot .  Yeah .  So
+[00:04:40]  piːs ˈmætəz ə lɒt .  jeə .  səʊ
+
+[00:04:45]  you might be able to see the sky and uh
+[00:04:45]  juː maɪt biː ˈeɪbᵊl tuː siː ðə skaɪ ænd ʌ
+
+[00:04:50]  you might see or there is a bird flying .
+[00:04:50]  juː maɪt siː ɔː ðeər ɪz ə bɜːd ˈflaɪɪŋ .
+
+[00:04:54]  I don't know
+[00:04:54]  aɪ dəʊnt nəʊ
+
+[00:04:55]  it's also making some sound .
+[00:04:55]  ɪts ˈɔːlsəʊ ˈmeɪkɪŋ sʌm saʊnd .
+
+[00:05:00]  As you can see ,  Omar and Rian ,  they are
+[00:05:00]  æz juː kæn siː ,  ˈəʊmɑːr ænd Rian ,  ðeɪ ɑː
+
+[00:05:03]  running and I think they are in a hurry
+[00:05:03]  ˈrʌnɪŋ ænd aɪ θɪŋk ðeɪ ɑːr ɪn ə ˈhʌri
+
+[00:05:05]  to get to that location while I'm
+[00:05:05]  tuː ɡɛt tuː ðæt ləʊˈkeɪʃᵊn waɪl aɪm
+
+[00:05:08]  walking cuz I don't feel like running .
+[00:05:08]  ˈwɔːkɪŋ cuz aɪ dəʊnt fiːl laɪk ˈrʌnɪŋ .
+
+[00:05:11]  And also the sun has come out and
+[00:05:11]  ænd ˈɔːlsəʊ ðə sʌn hæz kʌm aʊt ænd
+
+[00:05:16]  like my skin is being exposed to the
+[00:05:16]  laɪk maɪ skɪn ɪz ˈbiːɪŋ ɪkˈspəʊzd tuː ðiː
+
+[00:05:19]  sun .  It's around  200  p . m .
+[00:05:19]  sʌn .  ɪts əˈraʊnd  200  piː . ɛm .
+
+[00:05:22]  So yeah ,  it burns .  However ,  it's not
+[00:05:22]  səʊ jeə ,  ɪt bɜːnz .  haʊˈɛvə ,  ɪts nɒt
+
+[00:05:26]  very hot .  I I think it would be around
+[00:05:26]  ˈvɛri hɒt .  aɪ aɪ θɪŋk ɪt wʊd biː əˈraʊnd
+
+[00:05:29]  uh  35°  as of now .
+[00:05:29]  ʌ  35°  æz ɒv naʊ .
+
+[00:05:32]  Still it's very uh on my face .  I would
+[00:05:32]  stɪl ɪts ˈvɛri ʌ ɒn maɪ feɪs .  aɪ wʊd
+
+[00:05:35]  say the sun is on my face .  So I I'm
+[00:05:35]  seɪ ðə sʌn ɪz ɒn maɪ feɪs .  səʊ aɪ aɪm
+
+
+
+[00:05:39]  slightly sweating and I'm feeling a bit
+[00:05:39]  ˈslaɪtli ˈswɛtɪŋ ænd aɪm ˈfiːlɪŋ ə bɪt
+
+[00:05:42]  hot .
+[00:05:42]  hɒt .
+
+[00:05:46]  Okay .  So why were you running ?  Yeah .  Why
+[00:05:46]  ˌəʊˈkeɪ .  səʊ waɪ wɜː juː ˈrʌnɪŋ ?  jeə .  waɪ
+
+[00:05:50]  were you running ?
+[00:05:50]  wɜː juː ˈrʌnɪŋ ?
+
+[00:05:53]  Do you want to get there like earlier
+[00:05:53]  duː juː wɒnt tuː ɡɛt ðeə laɪk ˈɜːliə
+
+[00:05:55]  than me ?
+[00:05:55]  ðæn miː ?
+
+[00:05:57]  Yeah .
+[00:05:57]  jeə .
+
+[00:05:57] >>  Do you want to speak anything ?
+[00:05:57] >>  duː juː wɒnt tuː spiːk ˈɛniθɪŋ ?
+
+[00:06:01]  Don't you have anything uh to say ,  Ryan ?
+[00:06:01]  dəʊnt juː hæv ˈɛniθɪŋ ʌ tuː seɪ ,  ˈraɪən ?
+
+[00:06:04]  Hi .  Hello .
+[00:06:04]  haɪ .  hɛˈləʊ .
+
+[00:06:05] >>  Hello .
+[00:06:05] >>  hɛˈləʊ .
+
+[00:06:07] >>  Okay .  I think uh Rian is not prepared to
+[00:06:07] >>  ˌəʊˈkeɪ .  aɪ θɪŋk ʌ Rian ɪz nɒt prɪˈpeəd tuː
+
+[00:06:10]  speak .
+[00:06:10]  spiːk .
+
+[00:06:14]  Okay .  So ,  I think uh we are just around
+[00:06:14]  ˌəʊˈkeɪ .  səʊ ,  aɪ θɪŋk ʌ wiː ɑː ʤʌst əˈraʊnd
+
+[00:06:17]  the location where I shoot my videos .  It
+[00:06:17]  ðə ləʊˈkeɪʃᵊn weər aɪ ʃuːt maɪ ˈvɪdiəʊz .  ɪt
+
+[00:06:20]  may take uh  30  or  50  seconds more .
+[00:06:20]  meɪ teɪk ʌ  30  ɔː  50  ˈsɛkᵊndz mɔː .
+
+[00:06:25]  Let's go there .  And yeah guys uh please
+[00:06:25]  lɛts ɡəʊ ðeə .  ænd jeə ɡaɪz ʌ pliːz
+
+[00:06:29]  uh let me know if you want uh more such
+[00:06:29]  ʌ lɛt miː nəʊ ɪf juː wɒnt ʌ mɔː sʌʧ
+
+[00:06:31]  kind of vlogs uh like one or two vlogs
+[00:06:31]  kaɪnd ɒv vlogs ʌ laɪk wʌn ɔː tuː vlogs
+
+[00:06:35]  each week .  So do comment so that I would
+[00:06:35]  iːʧ wiːk .  səʊ duː ˈkɒmɛnt səʊ ðæt aɪ wʊd
+
+[00:06:38]  know that whether to make such kind of
+[00:06:38]  nəʊ ðæt ˈwɛðə tuː meɪk sʌʧ kaɪnd ɒv
+
+
+
+[00:06:40]  vlogs or not .  or uh you can also suggest
+[00:06:40]  vlogs ɔː nɒt .  ɔːr ʌ juː kæn ˈɔːlsəʊ səˈʤɛst
+
+[00:06:43]  to me some ideas that what I can
+[00:06:43]  tuː miː sʌm aɪˈdɪəz ðæt wɒt aɪ kæn
+
+[00:06:45]  implement in these vlogs so that it uh
+[00:06:45]  ˈɪmplɪmənt ɪn ðiːz vlogs səʊ ðæt ɪt ʌ
+
+[00:06:48]  would be beneficial for you because what
+[00:06:48]  wʊd biː ˌbɛnɪˈfɪʃᵊl fɔː juː bɪˈkɒz wɒt
+
+[00:06:50]  I think is that uh watching real English
+[00:06:50]  aɪ θɪŋk ɪz ðæt ʌ ˈwɒʧɪŋ rɪəl ˈɪŋɡlɪʃ
+
+[00:06:54]  uh is more important than uh learning
+[00:06:54]  ʌ ɪz mɔːr ɪmˈpɔːtᵊnt ðæn ʌ ˈlɜːnɪŋ
+
+[00:06:58]  grammar only because uh whenever you see
+[00:06:58]  ˈɡræmər ˈəʊnli bɪˈkɒz ʌ wɛˈnɛvə juː siː
+
+[00:07:01]  people uh speaking real English you will
+[00:07:01]  ˈpiːpᵊl ʌ ˈspiːkɪŋ rɪəl ˈɪŋɡlɪʃ juː wɪl
+
+[00:07:04]  feel the English you will uh see the
+[00:07:04]  fiːl ði ˈɪŋɡlɪʃ juː wɪl ʌ siː ðiː
+
+[00:07:06]  natural way how the people actually
+[00:07:06]  ˈnæʧᵊrᵊl weɪ haʊ ðə ˈpiːpᵊl ˈækʧuəli
+
+[00:07:09]  speaks English because What I have seen
+[00:07:09]  spiːks ˈɪŋɡlɪʃ bɪˈkɒz wɒt aɪ hæv siːn
+
+[00:07:11]  that there are lots of people who know
+[00:07:11]  ðæt ðeər ɑː lɒts ɒv ˈpiːpᵊl huː nəʊ
+
+[00:07:13]  the grammar ,  there are lots of people
+[00:07:13]  ðə ˈɡræmə ,  ðeər ɑː lɒts ɒv ˈpiːpᵊl
+
+[00:07:15]  who know lots of vocabularies but
+[00:07:15]  huː nəʊ lɒts ɒv vəˈkæbjəlᵊriz bʌt
+
+[00:07:17]  whenever they try to speak English they
+[00:07:17]  wɛˈnɛvə ðeɪ traɪ tuː spiːk ˈɪŋɡlɪʃ ðeɪ
+
+[00:07:19]  can't .  And the reason is not surprising .
+[00:07:19]  kɑːnt .  ænd ðə ˈriːzᵊn ɪz nɒt səˈpraɪzɪŋ .
+
+[00:07:21]  It's very obvious if you don't speak uh
+[00:07:21]  ɪts ˈvɛri ˈɒbviəs ɪf juː dəʊnt spiːk ʌ
+
+[00:07:24]  you can't speak it's a language and uh
+[00:07:24]  juː kɑːnt spiːk ɪts ə ˈlæŋɡwɪʤ ænd ʌ
+
+[00:07:26]  just by memorizing the rules just by uh
+[00:07:26]  ʤʌst baɪ ˈmɛməraɪzɪŋ ðə ruːlz ʤʌst baɪ ʌ
+
+[00:07:29]  learning the vocabularies you can't be
+[00:07:29]  ˈlɜːnɪŋ ðə vəˈkæbjəlᵊriz juː kɑːnt biː
+
+[00:07:31]  able to speak it .  So speaking is a
+[00:07:31]  ˈeɪbᵊl tuː spiːk ɪt .  səʊ ˈspiːkɪŋ ɪz eɪ
+
+
+
+[00:07:33]  skill .  So what you need to focus is that
+[00:07:33]  skɪl .  səʊ wɒt juː niːd tuː ˈfəʊkəs ɪz ðæt
+
+[00:07:36]  you need to watch the real English
+[00:07:36]  juː niːd tuː wɒʧ ðə rɪəl ˈɪŋɡlɪʃ
+
+[00:07:38]  alongside uh learning the grammarss .  So
+[00:07:38]  əˌlɒŋˈsaɪd ʌ ˈlɜːnɪŋ ðə grammarss .  səʊ
+
+[00:07:41]  I'm not saying that you you don't need
+[00:07:41]  aɪm nɒt ˈseɪɪŋ ðæt juː juː dəʊnt niːd
+
+[00:07:43]  to learn the grammar .  You need to learn
+[00:07:43]  tuː lɜːn ðə ˈɡræmə .  juː niːd tuː lɜːn
+
+[00:07:44]  the grammar in a situational way and
+[00:07:44]  ðə ˈɡræmər ɪn ə ˌsɪʧuˈeɪʃᵊnᵊl weɪ ænd
+
+[00:07:47]  also uh try to watch English uh vlogs .
+[00:07:47]  ˈɔːlsəʊ ʌ traɪ tuː wɒʧ ˈɪŋɡlɪʃ ʌ vlogs .
+
+[00:07:50]  You can watch my vlogs and also you can
+[00:07:50]  juː kæn wɒʧ maɪ vlogs ænd ˈɔːlsəʊ juː kæn
+
+[00:07:52]  watch someone else's vlogs .  There are
+[00:07:52]  wɒʧ ˈsʌmwʌn ˈɛlsɪz vlogs .  ðeər ɑː
+
+[00:07:54]  lots of people making English vlogs .  So
+[00:07:54]  lɒts ɒv ˈpiːpᵊl ˈmeɪkɪŋ ˈɪŋɡlɪʃ vlogs .  səʊ
+
+[00:07:57]  yeah that's what I would like to suggest
+[00:07:57]  jeə ðæts wɒt aɪ wʊd laɪk tuː səˈʤɛst
+
+[00:07:59]  you .  However ,  uh as we are about to
+[00:07:59]  juː .  haʊˈɛvə ,  ʌ æz wiː ɑːr əˈbaʊt tuː
+
+[00:08:02]  reach to that location where I shoot my
+[00:08:02]  riːʧ tuː ðæt ləʊˈkeɪʃᵊn weər aɪ ʃuːt maɪ
+
+[00:08:03]  videos ,  there is a
+[00:08:03]  ˈvɪdiəʊz ,  ðeər ɪz eɪ
+
+[00:08:07]  what do we call this ?  I don't know what
+[00:08:07]  wɒt duː wiː kɔːl ðɪs ?  aɪ dəʊnt nəʊ wɒt
+
+[00:08:09]  is this ,  Ryan .  Do you know ?
+[00:08:09]  ɪz ðɪs ,  ˈraɪən .  duː juː nəʊ ?
+
+[00:08:12]  Uh what is this ?
+[00:08:12]  ʌ wɒt ɪz ðɪs ?
+
+[00:08:18]  I don't know .  What is this ?  I I knew uh
+[00:08:18]  aɪ dəʊnt nəʊ .  wɒt ɪz ðɪs ?  aɪ aɪ njuː ʌ
+
+[00:08:21]  like it's name .  Let me show you .  S
+[00:08:21]  laɪk ɪts neɪm .  lɛt miː ʃəʊ juː .  ɛs
+
+[00:08:26] >>  What is it ?
+[00:08:26] >>  wɒt ɪz ɪt ?
+
+[00:08:27]  S
+[00:08:27]  ɛs
+
+
+
+[00:08:29] >>  okay so guys in Hindi it is called s but
+[00:08:29] >>  ˌəʊˈkeɪ səʊ ɡaɪz ɪn ˈhɪndi ɪt ɪz kɔːld ɛs bʌt
+
+[00:08:32]  I don't know what it's called in English
+[00:08:32]  aɪ dəʊnt nəʊ wɒt ɪts kɔːld ɪn ˈɪŋɡlɪʃ
+
+[00:08:34]  uh I knew it but I just it's just not
+[00:08:34]  ʌ aɪ njuː ɪt bʌt aɪ ʤʌst ɪts ʤʌst nɒt
+
+[00:08:37]  coming in my mind so here is it and uh
+[00:08:37]  ˈkʌmɪŋ ɪn maɪ maɪnd səʊ hɪər ɪz ɪt ænd ʌ
+
+[00:08:41]  we are not thinking to cross it because
+[00:08:41]  wiː ɑː nɒt ˈθɪŋkɪŋ tuː krɒs ɪt bɪˈkɒz
+
+[00:08:44]  uh it might take us so do you think Ryan
+[00:08:44]  ʌ ɪt maɪt teɪk ʌs səʊ duː juː θɪŋk ˈraɪən
+
+[00:08:47]  uh we should go or we should wait uh
+[00:08:47]  ʌ wiː ʃʊd ɡəʊ ɔː wiː ʃʊd weɪt ʌ
+
+[00:08:50]  until it goes from here
+[00:08:50]  ənˈtɪl ɪt ɡəʊz frɒm hɪə
+
+[00:08:54]  is it good idea huh
+[00:08:54]  ɪz ɪt ɡʊd aɪˈdɪə hʌ
+
+[00:08:56] >>  don
+[00:08:56] >>  dɒn
+
+[00:08:58]  What do you mean by dono ?
+[00:08:58]  wɒt duː juː miːn baɪ dono ?
+
+[00:09:03] [ laughter ]
+[00:09:03] [ ˈlɑːftə ]
+
+[00:09:04] >>  Uh I don't know whether to go or not
+[00:09:04] >>  ʌ aɪ dəʊnt nəʊ ˈwɛðə tuː ɡəʊ ɔː nɒt
+
+[00:09:07]  because
+[00:09:07]  bɪˈkɒz
+
+[00:09:09]  I'm not afraid of like for myself I'm
+[00:09:09]  aɪm nɒt əˈfreɪd ɒv laɪk fɔː maɪˈsɛlf aɪm
+
+[00:09:12]  afraid for them because uh if it chase
+[00:09:12]  əˈfreɪd fɔː ðɛm bɪˈkɒz ʌ ɪf ɪt ʧeɪs
+
+[00:09:16]  us it would be very dangerous .
+[00:09:16]  ʌs ɪt wʊd biː ˈvɛri ˈdeɪnʤᵊrəs .
+
+[00:09:20]  Okay .  So while we are waiting uh to that
+[00:09:20]  ˌəʊˈkeɪ .  səʊ waɪl wiː ɑː ˈweɪtɪŋ ʌ tuː ðæt
+
+[00:09:23]  animal to go from here ,  let me show you
+[00:09:23]  ˈænɪmᵊl tuː ɡəʊ frɒm hɪə ,  lɛt miː ʃəʊ juː
+
+[00:09:25]  the view around this .  I think this is a
+[00:09:25]  ðə vjuː əˈraʊnd ðɪs .  aɪ θɪŋk ðɪs ɪz eɪ
+
+[00:09:28]  petty field and look at the sky or there
+[00:09:28]  ˈpɛti fiːld ænd lʊk æt ðə skaɪ ɔː ðeə
+
+
+
+[00:09:31]  is uh the blue part is sky and this is
+[00:09:31]  ɪz ʌ ðə bluː pɑːt ɪz skaɪ ænd ðɪs ɪz
+
+[00:09:35]  uh these are clouds .  So and we have sun
+[00:09:35]  ʌ ðiːz ɑː klaʊdz .  səʊ ænd wiː hæv sʌn
+
+[00:09:39]  here .  I don't know if you are able to
+[00:09:39]  hɪə .  aɪ dəʊnt nəʊ ɪf juː ɑːr ˈeɪbᵊl tuː
+
+[00:09:40]  see it .  So this is sun and over there
+[00:09:40]  siː ɪt .  səʊ ðɪs ɪz sʌn ænd ˈəʊvə ðeə
+
+[00:09:44]  all of those are trees .
+[00:09:44]  ɔːl ɒv ðəʊz ɑː triːz .
+
+[00:09:47]  I would say uh this is a boundary like
+[00:09:47]  aɪ wʊd seɪ ʌ ðɪs ɪz ə ˈbaʊndᵊri laɪk
+
+[00:09:50]  uh this part belongs to someone else and
+[00:09:50]  ʌ ðɪs pɑːt bɪˈlɒŋz tuː ˈsʌmwʌn ɛls ænd
+
+[00:09:52]  this part belongs to someone else and
+[00:09:52]  ðɪs pɑːt bɪˈlɒŋz tuː ˈsʌmwʌn ɛls ænd
+
+[00:09:54]  this is a road where we could walk .
+[00:09:54]  ðɪs ɪz ə rəʊd weə wiː kʊd wɔːk .
+
+[00:09:56]  Although uh there is a
+[00:09:56]  ɔːlˈðəʊ ʌ ðeər ɪz eɪ
+
+[00:10:00]  Oh my god .
+[00:10:00]  əʊ maɪ ɡɒd .
+
+[00:10:02]  Uh there is a very aggressive animal on
+[00:10:02]  ʌ ðeər ɪz ə ˈvɛri əˈɡrɛsɪv ˈænɪmᵊl ɒn
+
+[00:10:06]  the way .  In the way ,  sorry .  In the way .
+[00:10:06]  ðə weɪ .  ɪn ðə weɪ ,  ˈsɒri .  ɪn ðə weɪ .
+
+[00:10:09]  So I'm not I can't dare to cross it .  It
+[00:10:09]  səʊ aɪm nɒt aɪ kɑːnt deə tuː krɒs ɪt .  ɪt
+
+[00:10:13]  is just looking at me .  It might chase us
+[00:10:13]  ɪz ʤʌst ˈlʊkɪŋ æt miː .  ɪt maɪt ʧeɪs ʌs
+
+[00:10:16]  anytime .  I would want Rian and Omar to
+[00:10:16]  ˈɛnitaɪm .  aɪ wʊd wɒnt Rian ænd ˈəʊmɑː tuː
+
+[00:10:20]  go away from that animal
+[00:10:20]  ɡəʊ əˈweɪ frɒm ðæt ˈænɪmᵊl
+
+[00:10:23]  and let it go somewhere somewhere .
+[00:10:23]  ænd lɛt ɪt ɡəʊ ˈsʌmweə ˈsʌmweə .
+
+[00:10:29]  We might throw some stones at him .
+[00:10:29]  wiː maɪt θrəʊ sʌm stəʊnz æt hɪm .
+
+[00:10:34]  Then uh it might go away .  But what if I
+[00:10:34]  ðɛn ʌ ɪt maɪt ɡəʊ əˈweɪ .  bʌt wɒt ɪf aɪ
+
+[00:10:38]  throw some stones and it chase us ?
+[00:10:38]  θrəʊ sʌm stəʊnz ænd ɪt ʧeɪs ʌs ?
+
+
+
+[00:10:40]  Because uh we can't run anywhere .  uh we
+[00:10:40]  bɪˈkɒz ʌ wiː kɑːnt rʌn ˈɛniweə .  ʌ wiː
+
+[00:10:43]  can't climb on trees .  Uh these uh trees
+[00:10:43]  kɑːnt klaɪm ɒn triːz .  ʌ ðiːz ʌ triːz
+
+[00:10:45]  are very slippery .  So we can't climb on
+[00:10:45]  ɑː ˈvɛri ˈslɪpᵊri .  səʊ wiː kɑːnt klaɪm ɒn
+
+[00:10:47]  that as well .  So even if I can climb on
+[00:10:47]  ðæt æz wɛl .  səʊ ˈiːvᵊn ɪf aɪ kæn klaɪm ɒn
+
+[00:10:50]  those trees ,  they uh will get stuck .
+[00:10:50]  ðəʊz triːz ,  ðeɪ ʌ wɪl ɡɛt stʌk .
+
+[00:10:56]  So I don't know how long uh do we have
+[00:10:56]  səʊ aɪ dəʊnt nəʊ haʊ lɒŋ ʌ duː wiː hæv
+
+[00:10:58]  to wait uh for that .  But still uh let's
+[00:10:58]  tuː weɪt ʌ fɔː ðæt .  bʌt stɪl ʌ lɛts
+
+[00:11:02]  see how
+[00:11:02]  siː haʊ
+
+[00:11:04]  long do I have to wait .  It's making some
+[00:11:04]  lɒŋ duː aɪ hæv tuː weɪt .  ɪts ˈmeɪkɪŋ sʌm
+
+[00:11:07]  noise .  I don't know if you are able to
+[00:11:07]  nɔɪz .  aɪ dəʊnt nəʊ ɪf juː ɑːr ˈeɪbᵊl tuː
+
+[00:11:08]  hear it .  making some noise and also
+[00:11:08]  hɪər ɪt .  ˈmeɪkɪŋ sʌm nɔɪz ænd ˈɔːlsəʊ
+
+[00:11:11]  swinging its tail
+[00:11:11]  ˈswɪŋɪŋ ɪts teɪl
+
+[00:11:15]  and okay so let me show you the sugar
+[00:11:15]  ænd ˌəʊˈkeɪ səʊ lɛt miː ʃəʊ juː ðə ˈʃʊɡə
+
+[00:11:18]  can field one second okay so here we
+[00:11:18]  kæn fiːld wʌn ˈsɛkᵊnd ˌəʊˈkeɪ səʊ hɪə wiː
+
+[00:11:21]  have sugar can field
+[00:11:21]  hæv ˈʃʊɡə kæn fiːld
+
+[00:11:25]  I don't know uh you might only be able
+[00:11:25]  aɪ dəʊnt nəʊ ʌ juː maɪt ˈəʊnli biː ˈeɪbᵊl
+
+[00:11:28]  to see the like uh the upper part of it
+[00:11:28]  tuː siː ðə laɪk ʌ ði ˈʌpə pɑːt ɒv ɪt
+
+[00:11:32]  like the leaves maybe
+[00:11:32]  laɪk ðə liːvz ˈmeɪbi
+
+[00:11:34]  although there are the sugar cane also
+[00:11:34]  ɔːlˈðəʊ ðeər ɑː ðə ˈʃʊɡə keɪn ˈɔːlsəʊ
+
+[00:11:38]  in the bottom area of this
+[00:11:38]  ɪn ðə ˈbɒtᵊm ˈeəriə ɒv ðɪs
+
+[00:11:42]  this there is water in the uh field .
+[00:11:42]  ðɪs ðeər ɪz ˈwɔːtər ɪn ði ʌ fiːld .
+
+
+
+[00:11:47]  I think uh this is wheat or
+[00:11:47]  aɪ θɪŋk ʌ ðɪs ɪz wiːt ɔː
+
+[00:11:51]  is this wheat or what is what is this
+[00:11:51]  ɪz ðɪs wiːt ɔː wɒt ɪz wɒt ɪz ðɪs
+
+[00:11:54]  wheat ?
+[00:11:54]  wiːt ?
+
+[00:11:58]  Do you know
+[00:11:58]  duː juː nəʊ
+
+[00:12:00] >>  what is this ?
+[00:12:00] >>  wɒt ɪz ðɪs ?
+
+[00:12:02] >>  Wait ,  are you sure about it ?
+[00:12:02] >>  weɪt ,  ɑː juː ʃɔːr əˈbaʊt ɪt ?
+
+[00:12:06]  Why are you looking at him ?  I'm asking
+[00:12:06]  waɪ ɑː juː ˈlʊkɪŋ æt hɪm ?  aɪm ˈɑːskɪŋ
+
+[00:12:08]  you .
+[00:12:08]  juː .
+
+[00:12:14]  Let's see if uh if it has gone or not .
+[00:12:14]  lɛts siː ɪf ʌ ɪf ɪt hæz ɡɒn ɔː nɒt .
+
+[00:12:20]  Uh stay away .  Stay away .  Let me try to
+[00:12:20]  ʌ steɪ əˈweɪ .  steɪ əˈweɪ .  lɛt miː traɪ tuː
+
+[00:12:23]  go close to him .
+[00:12:23]  ɡəʊ kləʊz tuː hɪm .
+
+[00:12:26]  Okay ,  it is still standing .  Okay ,  Aran .
+[00:12:26]  ˌəʊˈkeɪ ,  ɪt ɪz stɪl ˈstændɪŋ .  ˌəʊˈkeɪ ,  Aran .
+
+[00:12:29]  Uh Omar ,  just go further away .
+[00:12:29]  ʌ ˈəʊmɑː ,  ʤʌst ɡəʊ ˈfɜːðər əˈweɪ .
+
+[00:12:36]  It's just looking at me in a very
+[00:12:36]  ɪts ʤʌst ˈlʊkɪŋ æt miː ɪn ə ˈvɛri
+
+[00:12:38]  aggressive way and I don't know if I
+[00:12:38]  əˈɡrɛsɪv weɪ ænd aɪ dəʊnt nəʊ ɪf aɪ
+
+[00:12:42]  should even try to dare to go there like
+[00:12:42]  ʃʊd ˈiːvᵊn traɪ tuː deə tuː ɡəʊ ðeə laɪk
+
+[00:12:47]  through that road .
+[00:12:47]  θruː ðæt rəʊd .
+
+[00:12:50]  So ,  I think I uh need to take some
+[00:12:50]  səʊ ,  aɪ θɪŋk aɪ ʌ niːd tuː teɪk sʌm
+
+[00:12:53]  different route or maybe I think it
+[00:12:53]  ˈdɪfᵊrᵊnt ruːt ɔː ˈmeɪbi aɪ θɪŋk ɪt
+
+[00:12:55]  would be better if I show you my setup
+[00:12:55]  wʊd biː ˈbɛtər ɪf aɪ ʃəʊ juː maɪ ˈsɛtʌp
+
+[00:12:57]  in some different vlog because I think
+[00:12:57]  ɪn sʌm ˈdɪfᵊrᵊnt vlog bɪˈkɒz aɪ θɪŋk
+
+
+
+[00:13:00]  uh uh
+[00:13:00]  ʌ ʌ
+
+[00:13:03]  it's not going to go anywhere .  And let
+[00:13:03]  ɪts nɒt ˈɡəʊɪŋ tuː ɡəʊ ˈɛniweə .  ænd lɛt
+
+[00:13:05]  me tell you this is a fence .  Uh fence is
+[00:13:05]  miː tɛl juː ðɪs ɪz ə fɛns .  ʌ fɛns ɪz
+
+[00:13:09]  uh used so that the animals like that
+[00:13:09]  ʌ juːzd səʊ ðæt ði ˈænɪmᵊlz laɪk ðæt
+
+[00:13:12]  animal over there uh he could not go
+[00:13:12]  ˈænɪmᵊl ˈəʊvə ðeər ʌ hiː kʊd nɒt ɡəʊ
+
+[00:13:14]  inside the field and eat the crops .  So
+[00:13:14]  ɪnˈsaɪd ðə fiːld ænd iːt ðə krɒps .  səʊ
+
+[00:13:18]  this is used uh
+[00:13:18]  ðɪs ɪz juːzd ʌ
+
+[00:13:22]  this is a water bottle although it is
+[00:13:22]  ðɪs ɪz ə ˈwɔːtə ˈbɒtᵊl ɔːlˈðəʊ ɪt ɪz
+
+[00:13:26]  completely squeezed .
+[00:13:26]  kəmˈpliːtli skwiːzd .
+
+[00:13:34]  It's a rainy season that's why you can
+[00:13:34]  ɪts ə ˈreɪni ˈsiːzᵊn ðæts waɪ juː kæn
+
+[00:13:38]  see only the green area around me .  And
+[00:13:38]  siː ˈəʊnli ðə ɡriːn ˈeəriə əˈraʊnd miː .  ænd
+
+[00:13:42]  so far
+[00:13:42]  səʊ fɑː
+
+[00:13:44]  no train has passed from the road .
+[00:13:44]  nəʊ treɪn hæz pɑːst frɒm ðə rəʊd .
+
+[00:13:58]  I don't know if you can see it or not .
+[00:13:58]  aɪ dəʊnt nəʊ ɪf juː kæn siː ɪt ɔː nɒt .
+
+[00:14:01]  It is still standing over there .
+[00:14:01]  ɪt ɪz stɪl ˈstændɪŋ ˈəʊvə ðeə .
+
+[00:14:06]  Yeah ,
+[00:14:06]  jeə ,
+
+[00:14:07]  there it is .
+[00:14:07]  ðeər ɪt ɪz .
+
+[00:14:10]  He chose not to move from that place .  I
+[00:14:10]  hiː ʧəʊz nɒt tuː muːv frɒm ðæt pleɪs .  aɪ
+
+[00:14:14]  think he was
+[00:14:14]  θɪŋk hiː wɒz
+
+[00:14:18]  a bad actor .
+[00:14:18]  ə bæd ˈæktə .
+
+[00:14:25]  Let me tell you now ,  I'm feeling very uh
+[00:14:25]  lɛt miː tɛl juː naʊ ,  aɪm ˈfiːlɪŋ ˈvɛri ʌ
+
+
+
+[00:14:27]  fresh as the cold air has started to
+[00:14:27]  frɛʃ æz ðə kəʊld eə hæz ˈstɑːtɪd tuː
+
+[00:14:30]  blow as the sun has been covered by the
+[00:14:30]  bləʊ æz ðə sʌn hæz biːn ˈkʌvəd baɪ ðiː
+
+[00:14:32]  clouds .  So now I'm feeling very
+[00:14:32]  klaʊdz .  səʊ naʊ aɪm ˈfiːlɪŋ ˈvɛri
+
+[00:14:36]  uh like better .  Earlier it was quite hot
+[00:14:36]  ʌ laɪk ˈbɛtə .  ˈɜːliər ɪt wɒz kwaɪt hɒt
+
+[00:14:39]  but now it is way better .
+[00:14:39]  bʌt naʊ ɪt ɪz weɪ ˈbɛtə .
+
+[00:14:46]  I'm really sorry guys I couldn't uh show
+[00:14:46]  aɪm ˈrɪəli ˈsɒri ɡaɪz aɪ ˈkʊdᵊnt ʌ ʃəʊ
+
+[00:14:48]  you the setup in this video .  Definitely
+[00:14:48]  juː ðə ˈsɛtʌp ɪn ðɪs ˈvɪdiəʊ .  ˈdɛfɪnətli
+
+[00:14:51]  I will show you in the upcoming videos
+[00:14:51]  aɪ wɪl ʃəʊ juː ɪn ði ˈʌpˌkʌmɪŋ ˈvɪdiəʊz
+
+[00:14:53]  where I shoot my long form videos .  It's
+[00:14:53]  weər aɪ ʃuːt maɪ lɒŋ fɔːm ˈvɪdiəʊz .  ɪts
+
+[00:14:56]  a very natural setup ,  zero budget setup
+[00:14:56]  ə ˈvɛri ˈnæʧᵊrᵊl ˈsɛtʌp ,  ˈzɪərəʊ ˈbʌʤɪt ˈsɛtʌp
+
+[00:15:00]  and uh I have uh seen many comments on
+[00:15:00]  ænd ʌ aɪ hæv ʌ siːn ˈmɛni ˈkɒmɛnts ɒn
+
+[00:15:04]  that video .  People are loving that
+[00:15:04]  ðæt ˈvɪdiəʊ .  ˈpiːpᵊl ɑː ˈlʌvɪŋ ðæt
+
+[00:15:07]  setup .  It sometimes it feels like AI
+[00:15:07]  ˈsɛtʌp .  ɪt ˈsʌmtaɪmz ɪt fiːlz laɪk eɪ-aɪ
+
+[00:15:10]  generated setup although it is not AI
+[00:15:10]  ˈʤɛnəreɪtɪd ˈsɛtʌp ɔːlˈðəʊ ɪt ɪz nɒt eɪ-aɪ
+
+[00:15:12]  generated .  It is a real setup .  It's very
+[00:15:12]  ˈʤɛnəreɪtɪd .  ɪt ɪz ə rɪəl ˈsɛtʌp .  ɪts ˈvɛri
+
+[00:15:16]  peaceful and uh I don't uh get disturbed
+[00:15:16]  ˈpiːsfᵊl ænd ʌ aɪ dəʊnt ʌ ɡɛt dɪˈstɜːbd
+
+[00:15:20]  while shooting videos there .  There's no
+[00:15:20]  waɪl ˈʃuːtɪŋ ˈvɪdiəʊz ðeə .  ðeəz nəʊ
+
+[00:15:22]  noise .  uh
+[00:15:22]  nɔɪz .  ʌ
+
+[00:15:24]  no noise or any disturbance there while
+[00:15:24]  nəʊ nɔɪz ɔːr ˈɛni dɪˈstɜːbᵊns ðeə waɪl
+
+[00:15:27]  shooting the videos .  However ,  sometimes
+[00:15:27]  ˈʃuːtɪŋ ðə ˈvɪdiəʊz .  haʊˈɛvə ,  ˈsʌmtaɪmz
+
+[00:15:30]  uh the animals or some people uh go
+[00:15:30]  ʌ ði ˈænɪmᵊlz ɔː sʌm ˈpiːpᵊl ʌ ɡəʊ
+
+
+
+[00:15:34]  there so they might disturb me and
+[00:15:34]  ðeə səʊ ðeɪ maɪt dɪˈstɜːb miː ænd
+
+[00:15:37]  that's that's not a big deal .  I can
+[00:15:37]  ðæts ðæts nɒt ə bɪɡ diːl .  aɪ kæn
+
+[00:15:38]  easily deal with those things .
+[00:15:38]  ˈiːzᵊli diːl wɪð ðəʊz θɪŋz .
+
+[00:15:45]  I think Omar is catching fish maybe .
+[00:15:45]  aɪ θɪŋk ˈəʊmɑːr ɪz ˈkæʧɪŋ fɪʃ ˈmeɪbi .
+
+[00:15:50]  So this is a pond .
+[00:15:50]  səʊ ðɪs ɪz ə pɒnd .
+
+[00:15:53]  There are lotus as well .
+[00:15:53]  ðeər ɑː ˈləʊtəs æz wɛl .
+
+[00:15:58]  What are you doing ?  Omar ,
+[00:15:58]  wɒt ɑː juː ˈduːɪŋ ?  ˈəʊmɑː ,
+
+[00:16:05]  Omar ,
+[00:16:05]  ˈəʊmɑː ,
+
+[00:16:07]  what are you doing ?
+[00:16:07]  wɒt ɑː juː ˈduːɪŋ ?
+
+[00:16:10]  So here we have Ri Baba .  He's grazing
+[00:16:10]  səʊ hɪə wiː hæv Ri ˈbɑːbɑː .  hiːz ˈɡreɪzɪŋ
+
+[00:16:12]  his goats .  So these are goats .  These are
+[00:16:12]  hɪz ɡəʊts .  səʊ ðiːz ɑː ɡəʊts .  ðiːz ɑː
+
+[00:16:14]  goats .  And here we also have Matloop .
+[00:16:14]  ɡəʊts .  ænd hɪə wiː ˈɔːlsəʊ hæv Matloop .
+
+[00:16:20]  I think uh Omar is trying to get the
+[00:16:20]  aɪ θɪŋk ʌ ˈəʊmɑːr ɪz ˈtraɪɪŋ tuː ɡɛt ðiː
+
+[00:16:23]  lotus .
+[00:16:23]  ˈləʊtəs .
+
+[00:16:48]  Okay .  So ,  let me show you my tripod .
+[00:16:48]  ˌəʊˈkeɪ .  səʊ ,  lɛt miː ʃəʊ juː maɪ ˈtraɪpɒd .
+
+[00:16:50]  This is my tripod .
+[00:16:50]  ðɪs ɪz maɪ ˈtraɪpɒd .
+
+[00:16:52]  Here I hold my phone and
+[00:16:52]  hɪər aɪ həʊld maɪ fəʊn ænd
+
+[00:16:56]  like this is very useful and also very
+[00:16:56]  laɪk ðɪs ɪz ˈvɛri ˈjuːsfᵊl ænd ˈɔːlsəʊ ˈvɛri
+
+[00:16:59]  cheap .  I would say you can get it at the
+[00:16:59]  ʧiːp .  aɪ wʊd seɪ juː kæn ɡɛt ɪt æt ðiː
+
+[00:17:02]  price of  400.
+[00:17:02]  praɪs ɒv  400.
+
+[00:17:05]  So ,  this is my tripod .  I was planning to
+[00:17:05]  səʊ ,  ðɪs ɪz maɪ ˈtraɪpɒd .  aɪ wɒz ˈplænɪŋ tuː
+
+
+
+[00:17:07]  shoot some videos there but I couldn't
+[00:17:07]  ʃuːt sʌm ˈvɪdiəʊz ðeə bʌt aɪ ˈkʊdᵊnt
+
+[00:17:10]  as there is an animal in the way so I
+[00:17:10]  æz ðeər ɪz ən ˈænɪmᵊl ɪn ðə weɪ səʊ aɪ
+
+[00:17:13]  could not shoot the video .
+[00:17:13]  kʊd nɒt ʃuːt ðə ˈvɪdiəʊ .
+
+[00:17:17]  Here is a kind of room I would say .
+[00:17:17]  hɪər ɪz ə kaɪnd ɒv ruːm aɪ wʊd seɪ .
+
+[00:17:21]  Here you can stay at night to take care
+[00:17:21]  hɪə juː kæn steɪ æt naɪt tuː teɪk keə
+
+[00:17:23]  of your fields .
+[00:17:23]  ɒv jɔː fiːldz .
+
+[00:17:27]  There is a door also .
+[00:17:27]  ðeər ɪz ə dɔːr ˈɔːlsəʊ .
+
+[00:17:29]  And
+[00:17:29]  ænd
+
+[00:17:33]  yeah ,  and here is fence as well .  So that
+[00:17:33]  jeə ,  ænd hɪər ɪz fɛns æz wɛl .  səʊ ðæt
+
+[00:17:38]  animals couldn't go inside .
+[00:17:38]  ˈænɪmᵊlz ˈkʊdᵊnt ɡəʊ ɪnˈsaɪd .
+
+[00:17:44]  I don't know if you're able to see the
+[00:17:44]  aɪ dəʊnt nəʊ ɪf jɔːr ˈeɪbᵊl tuː siː ðiː
+
+[00:17:46]  birds sound like birds are chirping in
+[00:17:46]  bɜːdz saʊnd laɪk bɜːdz ɑː ˈʧɜːpɪŋ ɪn
+
+[00:17:49]  the background .
+[00:17:49]  ðə ˈbækɡraʊnd .
+
+[00:18:21]  They are chasing .  uh the dog and the dog
+[00:18:21]  ðeɪ ɑː ˈʧeɪsɪŋ .  ʌ ðə dɒɡ ænd ðə dɒɡ
+
+[00:18:24]  was barking .
+[00:18:24]  wɒz ˈbɑːkɪŋ .
+
+[00:18:31]  I hope you are able to see the dog
+[00:18:31]  aɪ həʊp juː ɑːr ˈeɪbᵊl tuː siː ðə dɒɡ
+
+[00:18:34]  barking .  So ,  it is barking .
+[00:18:34]  ˈbɑːkɪŋ .  səʊ ,  ɪt ɪz ˈbɑːkɪŋ .
+
+[00:18:41]  I'm going to chase the dog .
+[00:18:41]  aɪm ˈɡəʊɪŋ tuː ʧeɪs ðə dɒɡ .
+
+[00:18:50]  I think he's obsessed obsessed with the
+[00:18:50]  aɪ θɪŋk hiːz əbˈsɛst əbˈsɛst wɪð ðiː
+
+[00:18:52]  lotus .
+[00:18:52]  ˈləʊtəs .
+
+[00:18:54]  So ,  he's trying to
+[00:18:54]  səʊ ,  hiːz ˈtraɪɪŋ tuː
+
+
+
+[00:18:56]  get the lotus .
+[00:18:56]  ɡɛt ðə ˈləʊtəs .
+
+[00:18:58]  So ,  he plucked it .  Okay ,  he's plucking
+[00:18:58]  səʊ ,  hiː plʌkt ɪt .  ˌəʊˈkeɪ ,  hiːz ˈplʌkɪŋ
+
+[00:19:00]  it .  He just plucked it .  Now ,  he just
+[00:19:00]  ɪt .  hiː ʤʌst plʌkt ɪt .  naʊ ,  hiː ʤʌst
+
+[00:19:04]  handed it to Omar .
+[00:19:04]  ˈhændɪd ɪt tuː ˈəʊmɑː .
+
+[00:19:06]  And now Omar is holding  [ snorts ]
+[00:19:06]  ænd naʊ ˈəʊmɑːr ɪz ˈhəʊldɪŋ  [ snɔːts ]
+
+[00:19:09]  and doing unboxing of the Lotus .
+[00:19:09]  ænd ˈduːɪŋ ˌʌnˈbɒksɪŋ ɒv ðə ˈləʊtəs .
+
+[00:19:16]  Can we eat it ?
+[00:19:16]  kæn wiː iːt ɪt ?
+
+[00:19:22]  Look at the clouds .
+[00:19:22]  lʊk æt ðə klaʊdz .
+
+[00:19:27]  I hope you like this vlog and do comment
+[00:19:27]  aɪ həʊp juː laɪk ðɪs vlog ænd duː ˈkɒmɛnt
+
+[00:19:29]  if you want more such kind of vlogs .
+[00:19:29]  ɪf juː wɒnt mɔː sʌʧ kaɪnd ɒv vlogs .
+`;
+/* ================= SELESAI. JANGAN UBAH DI BAWAH INI ================= */
+</script>
+
+<div class="app" id="app">
+  <header class="top">
+    <div>
+      <h1 id="ttl">Shadowing</h1>
+      <p class="sub"><span id="count">204</span> baris · transkrip + fonetik · <span class="mode" id="modeLbl">mode timer</span></p>
+    </div>
+    <div class="chips">
+      <button class="chip" id="bOnlyPins" aria-pressed="false">Tersimpan <span id="pinCount">0</span></button>
+    </div>
+  </header>
+
+  <div class="side">
+  <section class="stage" id="stage">
+    <div class="ytbox" id="ytbox" hidden><div id="ytplayer"></div></div>
+    <div class="timerbox" id="timerbox">
+      <div class="big" id="bigtime">0:00</div>
+      <p>Video YouTube tidak bisa diputar di halaman ini, jadi transkrip berjalan dengan timer. Mulai video di YouTube pada detik yang sama, lalu tekan Play di sini.</p>
+      <a id="ytlink" target="_blank" rel="noopener" href="https://youtu.be/0-O869Sqvhg">Buka video di 0:00</a>
+    </div>
+  </section>
+
+  <footer class="dock" id="dock">
+    <div class="pop" id="pop" hidden></div>
+    <div class="seek">
+      <span id="tcur">0:00</span>
+      <input type="range" id="seek" min="0" max="625" step="0.1" value="0" aria-label="Posisi video">
+      <span id="tdur">10:25</span>
+    </div>
+    <div class="btns">
+      <button class="tool" id="bPin" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/></svg><span>Pin</span></button>
+      <button class="tool" id="bIpa" aria-pressed="true"><span class="glyph">ə</span><span>Fonetik</span></button>
+      <button class="tool" id="bLoop" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 01-4 4H4"/></svg><span id="loopLbl">Ulang</span></button>
+      <button class="tool" id="bSpeed" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0M12 14l4-5"/></svg><span id="speedLbl">Speed 1×</span></button>
+      <button class="play" id="bPlay" aria-label="Play"></button>
+    </div>
+  </footer>
+  </div>
+
+  <main class="list" id="list" aria-label="Transkrip"></main>
+</div>
+
+<script>
+
+function parseTranskrip(raw) {
+  const ent = [];
+  raw.split(/\r?\n/).forEach((l) => {
+    let m = l.match(/^\s*\[(\d{1,2}):(\d{2}):(\d{2})\]\s*(.*)$/);
+    if (m) { ent.push([+m[1] * 3600 + +m[2] * 60 + +m[3], m[4].trim()]); return; }
+    m = l.match(/^\s*\[(\d{1,3}):(\d{2})\]\s*(.*)$/);
+    if (m) ent.push([+m[1] * 60 + +m[2], m[3].trim()]);
+  });
+  const tidy = (s) => s.replace(/"\s+(\S)/g, '"$1').replace(/\s+([.,?!])/g, '$1').replace(/ - /g, '-').replace(/\s+/g, ' ').trim();
+  const out = [];
+  let prev = -1, i = 0;
+  while (i < ent.length - 1) {
+    if (ent[i][0] !== ent[i + 1][0]) { i += 1; continue; }
+    let t = ent[i][0];
+    const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);
+    i += 2;
+    if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;
+    prev = t;
+    const a = en.split(' '), b = ip.split(' ');
+    const d = { t, en, ip };
+    if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);
+    if (/^\[\s*music\s*\]/i.test(en)) d.m = 1;
+    out.push(d);
+  }
+  return out;
+}
+const DATA = parseTranskrip(TRANSKRIP);
+document.title = JUDUL;
+const titleEl = document.getElementById('ttl');
+if (titleEl) titleEl.textContent = JUDUL;
+if (!DATA.length) {
+  document.getElementById('list').innerHTML = '<div class="empty">Transkrip kosong atau formatnya tidak dikenali. Pastikan setiap baris diawali [00:00:17] dan berpasangan: teks Inggris lalu IPA.</div>';
+  throw new Error('Transkrip kosong');
+}
+const RATES = [0.5, 0.75, 1, 1.25, 1.5];
+const $ = (s) => document.querySelector(s);
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/* segment ends: highlight runs until the next line, a loop stops a little after the speech ends */
+DATA.forEach((d, i) => {
+  const next = i < DATA.length - 1 ? DATA[i + 1].t : d.t + 5;
+  const words = d.w ? d.w.length : 3;
+  d.s = d.t;
+  d.le = Math.min(next, d.t + Math.max(2.2, words * 0.55 + 1.3));
+});
+const DUR_DEFAULT = Math.ceil(DATA[DATA.length - 1].t + 8);
+
+const list = $('#list'), seekEl = $('#seek'), tcur = $('#tcur'), tdur = $('#tdur');
+const app = $('#app'), pop = $('#pop');
+const playSvg = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseSvg = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+const pinSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/></svg>';
+
+let mode = 'timer', yt = null, ytOk = false;
+const clock = { t: 0, playing: false, last: 0 };
+let rate = 1, loopIdx = null, activeIdx = -1, dragging = false;
+let userScrollUntil = 0, lastLoopSeek = 0, holdUntil = 0, shownPlaying = null, lastLinkSec = -1;
+let pins = new Set();
+try { pins = new Set(JSON.parse(localStorage.getItem('uk-pins') || '[]')); } catch (e) {}
+try { if (localStorage.getItem('uk-ipa') === '0') { app.classList.add('noipa'); $('#bIpa').setAttribute('aria-pressed', 'false'); } } catch (e) {}
+
+/* ---------- render ---------- */
+const lines = [];
+DATA.forEach((d, i) => {
+  const el = document.createElement('div');
+  el.className = 'line' + (d.m ? ' music' : '') + (pins.has(d.t) ? ' pinned' : '');
+  el.dataset.i = i;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  const body = d.w
+    ? '<div class="ws">' + d.w.map(([a, b]) => '<span class="w"><b>' + esc(a) + '</b><i>' + esc(b) + '</i></span>').join('') + '</div>'
+    : '<div class="ws"><span class="w"><b>' + esc(d.en) + '</b><i>' + esc(d.ip) + '</i></span></div>';
+  el.innerHTML = '<span class="tm">' + fmt(d.t) + '</span><div class="body">' + body + '</div><button class="pinb" aria-label="Simpan baris" tabindex="-1">' + pinSvg + '</button>';
+  list.appendChild(el);
+  lines.push(el);
+});
+const emptyEl = document.createElement('div');
+emptyEl.className = 'empty'; emptyEl.hidden = true;
+emptyEl.textContent = 'Belum ada baris tersimpan. Tekan ikon pin di sebuah baris untuk menyimpannya.';
+list.appendChild(emptyEl);
+$('#count').textContent = DATA.length;
+
+function updatePinUI() {
+  $('#pinCount').textContent = pins.size;
+  const onlyPins = app.classList.contains('only-pinned');
+  emptyEl.hidden = !(onlyPins && pins.size === 0);
+  const cur = Math.max(activeIdx, 0);
+  $('#bPin').setAttribute('aria-pressed', pins.has(DATA[cur].t) ? 'true' : 'false');
+}
+function togglePin(i) {
+  const t = DATA[i].t;
+  if (pins.has(t)) pins.delete(t); else pins.add(t);
+  lines[i].classList.toggle('pinned', pins.has(t));
+  try { localStorage.setItem('uk-pins', JSON.stringify([...pins])); } catch (e) {}
+  updatePinUI();
+}
+
+/* ---------- player adapter: YouTube when it can load, timer otherwise ---------- */
+const ytMode = () => mode === 'yt' && ytOk;
+const dur = () => { if (ytMode()) { const d = yt.getDuration(); if (d > 0) return d; } return DUR_DEFAULT; };
+const time = () => (ytMode() ? yt.getCurrentTime() : clock.t);
+const isPlaying = () => (ytMode() ? yt.getPlayerState() === 1 : clock.playing);
+function seek(t) {
+  t = Math.min(Math.max(0, t), dur());
+  holdUntil = performance.now() + 450;
+  if (ytMode()) yt.seekTo(t, true); else clock.t = t;
+}
+function play() {
+  if (ytMode()) yt.playVideo();
+  else { if (clock.t >= dur() - 0.1) clock.t = 0; clock.playing = true; clock.last = performance.now(); }
+}
+function pause() { if (ytMode()) yt.pauseVideo(); else clock.playing = false; }
+function setRate(r) {
+  rate = r;
+  if (ytMode()) yt.setPlaybackRate(r);
+  $('#speedLbl').textContent = 'Speed ' + r + '×';
+  [...pop.children].forEach((b) => b.setAttribute('aria-pressed', String(parseFloat(b.dataset.r) === r)));
+}
+
+function showTimer() {
+  mode = 'timer';
+  $('#ytbox').hidden = true; $('#timerbox').hidden = false;
+  $('#modeLbl').textContent = 'mode timer';
+}
+function showYT() {
+  mode = 'yt';
+  $('#ytbox').hidden = false; $('#timerbox').hidden = true;
+  $('#modeLbl').textContent = 'sinkron YouTube';
+}
+function loadYouTube() {
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.onerror = () => {};
+  window.onYouTubeIframeAPIReady = () => {
+    try {
+      yt = new YT.Player('ytplayer', {
+        videoId: VIDEO_ID,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: () => { ytOk = true; clock.playing = false; showYT(); yt.setPlaybackRate(rate); tdur.textContent = fmt(dur()); seekEl.max = dur(); },
+          onError: () => { ytOk = false; try { yt.destroy(); } catch (e) {} showTimer(); }
+        }
+      });
+    } catch (e) { showTimer(); }
+  };
+  document.head.appendChild(s);
+}
+
+/* ---------- loop ---------- */
+function setLoop(i) {
+  if (loopIdx != null) lines[loopIdx].classList.remove('looping');
+  loopIdx = i;
+  if (i != null) lines[i].classList.add('looping');
+  $('#bLoop').setAttribute('aria-pressed', i != null ? 'true' : 'false');
+  $('#loopLbl').textContent = i != null ? 'Ulang 1 baris' : 'Ulang';
+}
+
+/* ---------- active line + scrolling ---------- */
+function findIdx(t) {
+  let lo = 0, hi = DATA.length - 1, ans = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (DATA[mid].s <= t + 0.05) { ans = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  return ans;
+}
+function scrollToLine(i, force) {
+  const el = lines[i];
+  if (!el || el.offsetParent === null) return;
+  if (!force && performance.now() < userScrollUntil) return;
+  const top = el.offsetTop - list.clientHeight / 2 + el.clientHeight / 2;
+  list.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+function setActive(i, force) {
+  if (activeIdx >= 0) lines[activeIdx].classList.remove('active');
+  activeIdx = i;
+  if (i >= 0) { lines[i].classList.add('active'); scrollToLine(i, force); }
+  updatePinUI();
+}
+
+/* ---------- main tick ---------- */
+function updatePlayBtn() {
+  const p = isPlaying();
+  if (p === shownPlaying) return;
+  shownPlaying = p;
+  $('#bPlay').innerHTML = p ? pauseSvg : playSvg;
+  $('#bPlay').setAttribute('aria-label', p ? 'Jeda' : 'Play');
+}
+function tick() {
+  const nowMs = performance.now();
+  if (!ytMode()) {
+    if (clock.playing) {
+      clock.t += ((nowMs - clock.last) / 1000) * rate;
+      if (clock.t >= dur()) { clock.t = dur(); clock.playing = false; }
+    }
+    clock.last = nowMs;
+  }
+  const t = time();
+  if (loopIdx != null && isPlaying() && t >= DATA[loopIdx].le - 0.05 && nowMs - lastLoopSeek > 500) {
+    lastLoopSeek = nowMs;
+    seek(DATA[loopIdx].s);
+  }
+  if (!dragging) {
+    const i = nowMs < holdUntil ? activeIdx : findIdx(t);
+    if (i !== activeIdx) setActive(i);
+    seekEl.value = t;
+    tcur.textContent = fmt(t);
+  }
+  if (!ytMode()) {
+    $('#bigtime').textContent = fmt(t);
+    const sec = Math.floor(t);
+    if (sec !== lastLinkSec) { lastLinkSec = sec; $('#ytlink').href = 'https://youtu.be/' + VIDEO_ID + '?t=' + sec; $('#ytlink').textContent = 'Buka video di ' + fmt(t); }
+  }
+  updatePlayBtn();
+}
+setInterval(tick, 80);
+
+/* ---------- events ---------- */
+list.addEventListener('click', (e) => {
+  const ln = e.target.closest('.line');
+  if (!ln) return;
+  const i = +ln.dataset.i;
+  if (e.target.closest('.pinb')) { togglePin(i); return; }
+  if (loopIdx != null) setLoop(i);
+  seek(DATA[i].s);
+  setActive(i, true);
+  play();
+});
+list.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('line')) { e.preventDefault(); e.target.click(); }
+});
+['wheel', 'touchstart', 'pointerdown'].forEach((ev) => list.addEventListener(ev, () => { userScrollUntil = performance.now() + 4000; }, { passive: true }));
+
+seekEl.addEventListener('input', () => {
+  dragging = true;
+  const v = parseFloat(seekEl.value);
+  tcur.textContent = fmt(v);
+  const i = findIdx(v);
+  if (i !== activeIdx) setActive(i, true);
+});
+seekEl.addEventListener('change', () => {
+  const v = parseFloat(seekEl.value);
+  dragging = false;
+  if (loopIdx != null && (v < DATA[loopIdx].s - 0.5 || v > DATA[loopIdx].le + 0.5)) setLoop(null);
+  seek(v);
+});
+
+$('#bPlay').addEventListener('click', () => { if (isPlaying()) pause(); else play(); });
+$('#bLoop').addEventListener('click', () => { if (loopIdx != null) setLoop(null); else setLoop(Math.max(activeIdx, 0)); });
+$('#bPin').addEventListener('click', () => togglePin(Math.max(activeIdx, 0)));
+$('#bIpa').addEventListener('click', () => {
+  const off = app.classList.toggle('noipa');
+  $('#bIpa').setAttribute('aria-pressed', String(!off));
+  try { localStorage.setItem('uk-ipa', off ? '0' : '1'); } catch (e) {}
+});
+$('#bOnlyPins').addEventListener('click', () => {
+  const on = app.classList.toggle('only-pinned');
+  $('#bOnlyPins').setAttribute('aria-pressed', String(on));
+  updatePinUI();
+  if (activeIdx >= 0 && !on) scrollToLine(activeIdx, true);
+});
+
+RATES.forEach((r) => {
+  const b = document.createElement('button');
+  b.dataset.r = r; b.textContent = r + '×';
+  b.addEventListener('click', () => { setRate(r); pop.hidden = true; });
+  pop.appendChild(b);
+});
+$('#bSpeed').addEventListener('click', (e) => { e.stopPropagation(); pop.hidden = !pop.hidden; });
+document.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('#pop')) pop.hidden = true; });
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === ' ' && !e.target.classList.contains('line') && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('#bPlay').click(); }
+});
+
+/* ---------- start ---------- */
+seekEl.max = DUR_DEFAULT; tdur.textContent = fmt(DUR_DEFAULT);
+setRate(1); updatePinUI(); updatePlayBtn();
+loadYouTube();
+</script>
+
+</body>
+</html>
