@@ -1,0 +1,2146 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Shadowing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>
+/* Layout: one-screen practice app. Player/timer strip on top, transcript scrolls in the middle, control dock pinned at the bottom. Active line is tinted, its time chip turns red like a Tube line marker. */
+:root {
+  --bg: #EDEFF2;
+  --surface: #FFFFFF;
+  --ink: #0E1626;
+  --muted: #5A6577;
+  --rule: #D9DEE6;
+  --accent: #D8281F;
+  --accent-ink: #FFFFFF;
+  --tint: #FCEAE8;
+  --ipa: #1F5FB8;
+  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
+  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.35; overflow: hidden; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { height: 100%; max-width: 760px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 12px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.side { display: contents; }
+.stage { order: 1; }
+.list { order: 2; }
+.dock { order: 3; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.top .sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
+.chips { display: flex; gap: 8px; align-items: center; }
+.chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mode { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+/* stage */
+.stage { flex: none; }
+.ytbox { aspect-ratio: 16 / 9; width: min(100%, calc(clamp(110px, 22vh, 300px) * 16 / 9)); margin-inline: auto; background: #000; border-radius: 12px; overflow: hidden; }
+.ytbox iframe { width: 100%; height: 100%; display: block; }
+.timerbox { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+.timerbox .big { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.timerbox p { margin: 0; flex: 1 1 200px; min-width: 0; font-size: 0.82rem; color: var(--muted); }
+.timerbox a { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+
+/* transcript */
+.list { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-block: 2px 24px; scrollbar-width: thin; }
+.line { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 14px; cursor: pointer; }
+.line:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line .body { flex: 1; min-width: 0; }
+.ws { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.w { display: flex; flex-direction: column; }
+.w b { font-weight: 600; font-size: clamp(1.1rem, 1rem + 0.35vw, 1.4rem); letter-spacing: -0.005em; }
+.w i { font-family: var(--font-ipa); font-style: normal; font-size: clamp(0.95rem, 0.88rem + 0.25vw, 1.15rem); color: var(--ipa); line-height: 1.25; }
+.line.music .w b { font-weight: 400; font-style: italic; color: var(--muted); }
+.line.music { opacity: 0.7; }
+.pinb { flex: none; width: 36px; height: 36px; margin: -4px -4px 0 0; display: grid; place-items: center; color: var(--muted); opacity: 0; border-radius: 10px; }
+.line:hover .pinb, .line.pinned .pinb { opacity: 1; }
+@media (hover: none) { .pinb { opacity: 0.45; } .line.pinned .pinb { opacity: 1; } }
+.line.pinned .pinb { color: var(--accent); }
+.line.pinned .pinb svg { fill: currentColor; }
+.line.active { background: var(--tint); }
+.line.active .tm { background: var(--accent); color: var(--accent-ink); }
+.line.looping { box-shadow: inset 0 0 0 2px var(--accent); }
+.line.looping .tm::after { content: ' ↻'; }
+.noipa .w i { display: none; }
+.only-pinned .line:not(.pinned) { display: none; }
+.empty { padding: 28px 12px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+.empty[hidden] { display: none; }
+
+/* dock */
+.dock { position: relative; flex: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 22px; padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek input { flex: 1; min-width: 0; accent-color: var(--accent); height: 24px; }
+.btns { display: flex; align-items: center; gap: 2px; }
+.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
+.tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }
+.tool[aria-pressed="true"] { color: var(--accent); }
+.play { flex: none; width: 62px; height: 52px; margin-left: 4px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.play svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }
+.pop { position: absolute; right: 78px; bottom: calc(100% - 6px); display: flex; gap: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }
+.pop[hidden] { display: none; }
+.pop button { min-width: 48px; min-height: 40px; padding: 0 8px; border-radius: 10px; font-family: var(--font-mono); font-size: 0.82rem; border: 1px solid var(--rule); }
+.pop button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 420px) {
+  .w b { font-size: 1.1rem; }
+  .pop { right: 8px; }
+}
+/* Tablet portrait: a larger video, still one column. */
+@media (min-width: 600px) {
+  .ytbox { width: min(100%, calc(clamp(200px, 36vh, 560px) * 16 / 9)); }
+}
+/* Laptop and desktop (also phones in desktop mode): one column. Large video on top, transcript under it, controls in one row pinned to the bottom edge. */
+@media (min-width: 900px) {
+  .app { max-width: 1120px; overflow-y: auto; scrollbar-width: thin; }
+  .ytbox { width: min(100%, calc(clamp(240px, calc(100vh - 370px), 680px) * 16 / 9)); }
+  .list { flex: 1 1 auto; min-height: 200px; }
+  .dock { position: sticky; bottom: 0; z-index: 3; flex-direction: row; align-items: center; gap: 20px; padding: 8px 16px; }
+  .seek { flex: 1 1 auto; min-width: 0; }
+  .btns { flex: none; gap: 4px; }
+  .tool { flex: none; min-width: 66px; min-height: 48px; padding-inline: 6px; }
+  .play { height: 48px; }
+  .pop { right: 100px; }
+  .line { padding: 14px 16px; }
+  .line .tm { width: 52px; font-size: 0.78rem; }
+}
+/* Short landscape phones: two columns so the controls still fit. */
+@media (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
+  .app { max-width: 1280px; overflow: visible; display: grid; grid-template-columns: clamp(300px, 38%, 480px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(16px, 2.4vw, 36px); row-gap: 12px; }
+  .top { grid-column: 1 / -1; }
+  .side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; grid-column: 1; grid-row: 2; scrollbar-width: thin; padding-bottom: 2px; }
+  .side > * { flex: none; }
+  .list { grid-column: 2; grid-row: 2; min-height: 0; }
+  .dock { position: static; }
+  .ytbox { width: min(100%, max(220px, calc((100vh - 230px) * 16 / 9))); }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+<script>
+/* =====================================================================
+   TEMPLAT SHADOWING: ISI HANYA 3 BAGIAN DI BAWAH INI, LALU SIMPAN.
+   Bagian lain di file ini tidak perlu disentuh.
+   ===================================================================== */
+
+/* 1) Kode video YouTube: bagian setelah youtu.be/ atau setelah v=
+      Contoh: https://youtu.be/ofPPsEXbEKM  ->  ofPPsEXbEKM            */
+const VIDEO_ID = 'ofPPsEXbEKM';
+
+/* 2) Judul yang tampil di bagian atas halaman                         */
+const JUDUL = 'Shadowing';
+
+/* 3) Transkrip + fonetik. Tempel hasil ekspor toPhonetics apa adanya,
+      di antara dua tanda ` (backtick) di bawah. Setiap baris diawali
+      [jam:menit:detik]; baris pertama teks Inggris, baris kedua IPA.   */
+const TRANSKRIP = `
+toPhonetics.com
+
+[00:00:00]  Welcome guys .
+[00:00:00]  ˈwɛlkəm ɡaɪz .
+
+[00:00:02]  Today we are learning real life
+[00:00:02]  təˈdeɪ wiː ɑː ˈlɜːnɪŋ rɪəl laɪf
+
+[00:00:04]  English around the house and the farm .
+[00:00:04]  ˈɪŋɡlɪʃ əˈraʊnd ðə haʊs ænd ðə fɑːm .
+
+[00:00:08]  In this beginner friendly video ,  you will
+[00:00:08]  ɪn ðɪs bɪˈɡɪnə ˈfrɛndli ˈvɪdiəʊ ,  juː wɪl
+
+[00:00:11]  follow me and my mom around as we teach you
+[00:00:11]  ˈfɒləʊ miː ænd maɪ mɒm əˈraʊnd æz wiː tiːʧ juː
+
+[00:00:13]  beginner English naturally .
+[00:00:13]  bɪˈɡɪnər ˈɪŋɡlɪʃ ˈnæʧᵊrᵊli .
+
+[00:00:15]  This video is part of my  3000  most common
+[00:00:15]  ðɪs ˈvɪdiəʊ ɪz pɑːt ɒv maɪ  3000  məʊst ˈkɒmən
+
+[00:00:18]  English words series designed to help you
+[00:00:18]  ˈɪŋɡlɪʃ wɜːdz ˈsɪəriːz dɪˈzaɪnd tuː hɛlp juː
+
+[00:00:20]  English words series designed to help you
+[00:00:20]  ˈɪŋɡlɪʃ wɜːdz ˈsɪəriːz dɪˈzaɪnd tuː hɛlp juː
+
+[00:00:21]  understand  95%  of English through comprehensible input .
+[00:00:21]  ˌʌndəˈstænd  95%  ɒv ˈɪŋɡlɪʃ θruː ˌkɒmprɪˈhɛnsəbᵊl ˈɪnpʊt .
+
+[00:00:28]  Let's get the word count and let's go .
+[00:00:28]  lɛts ɡɛt ðə wɜːd kaʊnt ænd lɛts ɡəʊ .
+
+[00:00:30]  Okay ,  so now we're going to open the screen door .
+[00:00:30]  ˌəʊˈkeɪ ,  səʊ naʊ wɪə ˈɡəʊɪŋ tuː ˈəʊpᵊn ðə skriːn dɔː .
+
+[00:00:34]  I'm opening the screen door .
+[00:00:34]  aɪm ˈəʊpᵊnɪŋ ðə skriːn dɔː .
+
+[00:00:36]  You can see there's a little latch here that you have to
+[00:00:36]  juː kæn siː ðeəz ə ˈlɪtᵊl læʧ hɪə ðæt juː hæv tuː
+
+[00:00:39]  push in and it unlocks the door .
+[00:00:39]  pʊʃ ɪn ænd ɪt ʌnˈlɒks ðə dɔː .
+
+[00:00:43]  And here right here on the
+[00:00:43]  ænd hɪə raɪt hɪər ɒn ðiː
+
+[00:00:45]  bottom part ,  this is a deadbolt lock .
+[00:00:45]  ˈbɒtᵊm pɑːt ,  ðɪs ɪz ə deadbolt lɒk .
+
+[00:00:49]  So you can go like this and
+[00:00:49]  səʊ juː kæn ɡəʊ laɪk ðɪs ænd
+
+[00:00:51]  turn it and it will lock as well .
+[00:00:51]  tɜːn ɪt ænd ɪt wɪl lɒk æz wɛl .
+
+
+
+[00:00:54]  I'm going to close the screen door again .
+[00:00:54]  aɪm ˈɡəʊɪŋ tuː kləʊz ðə skriːn dɔːr əˈɡɛn .
+
+[00:00:58]  The screen door is to keep bugs outside but let air inside .
+[00:00:58]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:00:59]  The screen door is to keep bugs outside but let air inside .
+[00:00:59]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:01:01]  The screen door is to keep bugs outside but let air inside .
+[00:01:01]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:01:02]  The screen door is to keep bugs outside but let air inside .
+[00:01:02]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:01:03]  The screen door is to keep bugs outside but let air inside .
+[00:01:03]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:01:05]  Now I'm going to put on my shoes .
+[00:01:05]  naʊ aɪm ˈɡəʊɪŋ tuː pʊt ɒn maɪ ʃuːz .
+
+[00:01:08]  These shoes are like a little bit weird .
+[00:01:08]  ðiːz ʃuːz ɑː laɪk ə ˈlɪtᵊl bɪt wɪəd .
+
+[00:01:11]  I would call them sandals because they
+[00:01:11]  aɪ wʊd kɔːl ðɛm ˈsændᵊlz bɪˈkɒz ðeɪ
+
+[00:01:14]  don't have the back part of the shoe .
+[00:01:14]  dəʊnt hæv ðə bæk pɑːt ɒv ðə ʃuː .
+
+[00:01:17]  Anyways ,  now I'm putting my shoe on .
+[00:01:17]  ˈɛniweɪz ,  naʊ aɪm ˈpʊtɪŋ maɪ ʃuː ɒn .
+
+[00:01:21]  I'm lifting up this flap here and sliding my foot inside .
+[00:01:21]  aɪm ˈlɪftɪŋ ʌp ðɪs flæp hɪər ænd ˈslaɪdɪŋ maɪ fʊt ɪnˈsaɪd .
+
+[00:01:24]  I'm lifting up this flap here and sliding my foot inside .
+[00:01:24]  aɪm ˈlɪftɪŋ ʌp ðɪs flæp hɪər ænd ˈslaɪdɪŋ maɪ fʊt ɪnˈsaɪd .
+
+[00:01:26]  And I'm doing the same thing on the other shoe .
+[00:01:26]  ænd aɪm ˈduːɪŋ ðə seɪm θɪŋ ɒn ði ˈʌðə ʃuː .
+
+[00:01:30]  Now my shoes are on .
+[00:01:30]  naʊ maɪ ʃuːz ɑːr ɒn .
+
+[00:01:32]  Here in Canada ,  for this
+[00:01:32]  hɪər ɪn ˈkænədə ,  fɔː ðɪs
+
+[00:01:34]  specific brand ,  we just call them Birks .
+[00:01:34]  spəˈsɪfɪk brænd ,  wiː ʤʌst kɔːl ðɛm Birks .
+
+[00:01:36]  The brand ,  the name maybe in here you
+[00:01:36]  ðə brænd ,  ðə neɪm ˈmeɪbi ɪn hɪə juː
+
+[00:01:40]  can see a little bit ,  is Birkenstock .
+[00:01:40]  kæn siː ə ˈlɪtᵊl bɪt ,  ɪz Birkenstock .
+
+[00:01:43]  That's the brand name .
+[00:01:43]  ðæts ðə brænd neɪm .
+
+[00:01:44]  I think it's from Germany .
+[00:01:44]  aɪ θɪŋk ɪts frɒm ˈʤɜːməni .
+
+
+
+[00:01:46]  So people in Canada just call them Birks .
+[00:01:46]  səʊ ˈpiːpᵊl ɪn ˈkænədə ʤʌst kɔːl ðɛm Birks .
+
+[00:01:49]  Oh ,  I'm putting on my Birks .
+[00:01:49]  əʊ ,  aɪm ˈpʊtɪŋ ɒn maɪ Birks .
+
+[00:01:50]  So from now on ,  I'll just call them Birks .
+[00:01:50]  səʊ frɒm naʊ ɒn ,  aɪl ʤʌst kɔːl ðɛm Birks .
+
+[00:01:54]  I've got my Birks on .
+[00:01:54]  aɪv ɡɒt maɪ Birks ɒn .
+
+[00:01:56]  You ready ,  Mom ?
+[00:01:56]  juː ˈrɛdi ,  mɒm ?
+
+[00:01:57]  I'm ready ,  buddy .
+[00:01:57]  aɪm ˈrɛdi ,  ˈbʌdi .
+
+[00:01:58]  Okay ,  let's go .
+[00:01:58]  ˌəʊˈkeɪ ,  lɛts ɡəʊ .
+
+[00:02:00]  So we're on the patio right now .
+[00:02:00]  səʊ wɪər ɒn ðə ˈpætiəʊ raɪt naʊ .
+
+[00:02:03]  And a patio is just an outdoor area ,
+[00:02:03]  ænd ə ˈpætiəʊ ɪz ʤʌst ən ˈaʊtˌdɔːr ˈeəriə ,
+
+[00:02:06]  usually made out of wood or this material .
+[00:02:06]  ˈjuːʒuəli meɪd aʊt ɒv wʊd ɔː ðɪs məˈtɪəriəl .
+
+[00:02:09]  This isn't wood ,  it's some sort of plastic .
+[00:02:09]  ðɪs ˈɪzᵊnt wʊd ,  ɪts sʌm sɔːt ɒv ˈplæstɪk .
+
+[00:02:12]  But a patio area is just an area outside of your house ,
+[00:02:12]  bʌt ə ˈpætiəʊ ˈeəriə ɪz ʤʌst ən ˈeəriə ˌaʊtˈsaɪd ɒv jɔː haʊs ,
+
+[00:02:15]  usually right outside your back
+[00:02:15]  ˈjuːʒuəli raɪt ˌaʊtˈsaɪd jɔː bæk
+
+[00:02:16]  door that you could come and
+[00:02:16]  dɔː ðæt juː kʊd kʌm ænd
+
+[00:02:18]  sit on or eat on or just relax on .
+[00:02:18]  sɪt ɒn ɔːr iːt ɒn ɔː ʤʌst rɪˈlæks ɒn .
+
+[00:02:22]  Okay ,  so here are my dogs .
+[00:02:22]  ˌəʊˈkeɪ ,  səʊ hɪər ɑː maɪ dɒɡz .
+
+[00:02:25]  Let's go for a walk .
+[00:02:25]  lɛts ɡəʊ fɔːr ə wɔːk .
+
+[00:02:25]  All three of them .
+[00:02:25]  ɔːl θriː ɒv ðɛm .
+
+[00:02:27]  And what are the cows doing here ?
+[00:02:27]  ænd wɒt ɑː ðə kaʊz ˈduːɪŋ hɪə ?
+
+[00:02:30]  Well ,  it's been a dry summer and we had some grass here .
+[00:02:30]  wɛl ,  ɪts biːn ə draɪ ˈsʌmər ænd wiː hæd sʌm ɡrɑːs hɪə .
+
+[00:02:36]  This is normally the chicken area
+[00:02:36]  ðɪs ɪz ˈnɔːmᵊli ðə ˈʧɪkɪn ˈeəriə
+
+
+
+[00:02:39]  and we didn't have chickens this year .
+[00:02:39]  ænd wiː ˈdɪdᵊnt hæv ˈʧɪkɪnz ðɪs jɪə .
+
+[00:02:42]  So they ate the grass down .
+[00:02:42]  səʊ ðeɪ eɪt ðə ɡrɑːs daʊn .
+
+[00:02:44]  And if you want ,  we could chase them back .
+[00:02:44]  ænd ɪf juː wɒnt ,  wiː kʊd ʧeɪs ðɛm bæk .
+
+[00:02:47]  Okay .
+[00:02:47]  ˌəʊˈkeɪ .
+
+[00:02:48]  Let's do it .
+[00:02:48]  lɛts duː ɪt .
+
+[00:02:50]  And you can see right here ,  this fence is
+[00:02:50]  ænd juː kæn siː raɪt hɪə ,  ðɪs fɛns ɪz
+
+[00:02:52]  And you can see right here ,  this fence is
+[00:02:52]  ænd juː kæn siː raɪt hɪə ,  ðɪs fɛns ɪz
+
+[00:02:53]  And you can see right here ,  this fence is
+[00:02:53]  ænd juː kæn siː raɪt hɪə ,  ðɪs fɛns ɪz
+
+[00:02:53]  just a temporary fence because you can pick
+[00:02:53]  ʤʌst ə ˈtɛmpᵊrᵊri fɛns bɪˈkɒz juː kæn pɪk
+
+[00:02:58]  it up and move it .
+[00:02:58]  ɪt ʌp ænd muːv ɪt .
+
+[00:02:59]  You can see it just slides in
+[00:02:59]  juː kæn siː ɪt ʤʌst slaɪdz ɪn
+
+[00:03:00]  here and also on the ground here .
+[00:03:00]  hɪər ænd ˈɔːlsəʊ ɒn ðə ɡraʊnd hɪə .
+
+[00:03:03]  So it's a temporary fence .
+[00:03:03]  səʊ ɪts ə ˈtɛmpᵊrᵊri fɛns .
+
+[00:03:04]  It's not in the ground ,  it's just on top of the ground .
+[00:03:04]  ɪts nɒt ɪn ðə ɡraʊnd ,  ɪts ʤʌst ɒn tɒp ɒv ðə ɡraʊnd .
+
+[00:03:08]  So you can see right here ,  it just slides in .
+[00:03:08]  səʊ juː kæn siː raɪt hɪə ,  ɪt ʤʌst slaɪdz ɪn .
+
+[00:03:11]  So you can lift it out .
+[00:03:11]  səʊ juː kæn lɪft ɪt aʊt .
+
+[00:03:14]  So it's just pieces .
+[00:03:14]  səʊ ɪts ʤʌst ˈpiːsɪz .
+
+[00:03:16]  Here's one piece .
+[00:03:16]  hɪəz wʌn piːs .
+
+[00:03:19]  Here is another piece .
+[00:03:19]  hɪər ɪz əˈnʌðə piːs .
+
+[00:03:20]  I'll show you a permanent fence right now .
+[00:03:20]  aɪl ʃəʊ juː ə ˈpɜːmənənt fɛns raɪt naʊ .
+
+[00:03:24]  Come this way .
+[00:03:24]  kʌm ðɪs weɪ .
+
+
+
+[00:03:26]  And this is what a permanent fence is .
+[00:03:26]  ænd ðɪs ɪz wɒt ə ˈpɜːmənənt fɛns ɪz .
+
+[00:03:28]  You can see these posts are pounded into the ground .
+[00:03:28]  juː kæn siː ðiːz pəʊsts ɑː ˈpaʊndɪd ˈɪntuː ðə ɡraʊnd .
+
+[00:03:33]  Right there ,  right here ,  they're pounded into the ground .
+[00:03:33]  raɪt ðeə ,  raɪt hɪə ,  ðeə ˈpaʊndɪd ˈɪntuː ðə ɡraʊnd .
+
+[00:03:36]  This post is probably like that far
+[00:03:36]  ðɪs pəʊst ɪz ˈprɒbəbli laɪk ðæt fɑː
+
+[00:03:39]  into the ground and there's also wire here .
+[00:03:39]  ˈɪntuː ðə ɡraʊnd ænd ðeəz ˈɔːlsəʊ ˈwaɪə hɪə .
+
+[00:03:45]  You could have posts with wood or with wire ,  but a
+[00:03:45]  juː kʊd hæv pəʊsts wɪð wʊd ɔː wɪð ˈwaɪə ,  bʌt eɪ
+
+[00:03:47]  permanent fence is a fence you can't
+[00:03:47]  ˈpɜːmənənt fɛns ɪz ə fɛns juː kɑːnt
+
+[00:03:49]  move easily .
+[00:03:49]  muːv ˈiːzᵊli .
+
+[00:03:50]  If you open the gate ,  they'll just come and walk out and
+[00:03:50]  ɪf juː ˈəʊpᵊn ðə ɡeɪt ,  ðeɪl ʤʌst kʌm ænd wɔːk aʊt ænd
+
+[00:03:55]  then we'll open down there for
+[00:03:55]  ðɛn wiːl ˈəʊpᵊn daʊn ðeə fɔː
+
+[00:03:57]  them .
+[00:03:57]  ðɛm .
+
+[00:03:58]  Should we open down there first ?
+[00:03:58]  ʃʊd wiː ˈəʊpᵊn daʊn ðeə fɜːst ?
+
+[00:04:02]  they'll go slow .
+[00:04:02]  ðeɪl ɡəʊ sləʊ .
+
+[00:04:03]  Just open this gate ?
+[00:04:03]  ʤʌst ˈəʊpᵊn ðɪs ɡeɪt ?
+
+[00:04:05]  Yeah .
+[00:04:05]  jeə .
+
+[00:04:06]  Okay ,  so this is a gate and
+[00:04:06]  ˌəʊˈkeɪ ,  səʊ ðɪs ɪz ə ɡeɪt ænd
+
+[00:04:08]  it's just like a pretty small gate .
+[00:04:08]  ɪts ʤʌst laɪk ə ˈprɪti smɔːl ɡeɪt .
+
+[00:04:10]  It's just for people ,  but I guess
+[00:04:10]  ɪts ʤʌst fɔː ˈpiːpᵊl ,  bʌt aɪ ɡɛs
+
+[00:04:12]  these cows can also fit through .
+[00:04:12]  ðiːz kaʊz kæn ˈɔːlsəʊ fɪt θruː .
+
+[00:04:15]  So this gate just opens by grabbing this
+[00:04:15]  səʊ ðɪs ɡeɪt ʤʌst ˈəʊpᵊnz baɪ ˈɡræbɪŋ ðɪs
+
+[00:04:17]  piece of metal and just sliding it upwards .
+[00:04:17]  piːs ɒv ˈmɛtᵊl ænd ʤʌst ˈslaɪdɪŋ ɪt ˈʌpwədz .
+
+
+
+[00:04:23]  So there's no latch like that other door .
+[00:04:23]  səʊ ðeəz nəʊ læʧ laɪk ðæt ˈʌðə dɔː .
+
+[00:04:31]  And now the cows are going to come out .
+[00:04:31]  ænd naʊ ðə kaʊz ɑː ˈɡəʊɪŋ tuː kʌm aʊt .
+
+[00:04:33]  You can see the cows are very tame .
+[00:04:33]  juː kæn siː ðə kaʊz ɑː ˈvɛri teɪm .
+
+[00:04:34]  You can see the cows are very tame .
+[00:04:34]  juː kæn siː ðə kaʊz ɑː ˈvɛri teɪm .
+
+[00:04:36]  They're very tame .
+[00:04:36]  ðeə ˈvɛri teɪm .
+
+[00:04:37]  They're not crazy .
+[00:04:37]  ðeə nɒt ˈkreɪzi .
+
+[00:04:38]  They're not jumping around .
+[00:04:38]  ðeə nɒt ˈʤʌmpɪŋ əˈraʊnd .
+
+[00:04:39]  They're not trying to fight .
+[00:04:39]  ðeə nɒt ˈtraɪɪŋ tuː faɪt .
+
+[00:04:42]  They're just tame and they just want to eat grass .
+[00:04:42]  ðeə ʤʌst teɪm ænd ðeɪ ʤʌst wɒnt tuː iːt ɡrɑːs .
+
+[00:04:44]  So it's nice .
+[00:04:44]  səʊ ɪts naɪs .
+
+[00:04:48]  The gray one ?
+[00:04:48]  ðə ɡreɪ wʌn ?
+
+[00:04:49]  Okay ,  I'm not sure which gate because my mom didn't really
+[00:04:49]  ˌəʊˈkeɪ ,  aɪm nɒt ʃɔː wɪʧ ɡeɪt bɪˈkɒz maɪ mɒm ˈdɪdᵊnt ˈrɪəli
+
+[00:04:53]  tell me ,  but I'm going to assume
+[00:04:53]  tɛl miː ,  bʌt aɪm ˈɡəʊɪŋ tuː əˈsjuːm
+
+[00:04:57]  it's this gate .
+[00:04:57]  ɪts ðɪs ɡeɪt .
+
+[00:04:59]  Yeah ,  the gray one .
+[00:04:59]  jeə ,  ðə ɡreɪ wʌn .
+
+[00:05:00]  The gray one where Dexter is going in .
+[00:05:00]  ðə ɡreɪ wʌn weə ˈdɛkstər ɪz ˈɡəʊɪŋ ɪn .
+
+[00:05:03]  Okay ,  so I closed this gate and I
+[00:05:03]  ˌəʊˈkeɪ ,  səʊ aɪ kləʊzd ðɪs ɡeɪt ænd aɪ
+
+[00:05:06]  opened this gray gate right here .
+[00:05:06]  ˈəʊpᵊnd ðɪs ɡreɪ ɡeɪt raɪt hɪə .
+
+[00:05:10]  This gate is bigger than that gate and this gate is gray .
+[00:05:10]  ðɪs ɡeɪt ɪz ˈbɪɡə ðæn ðæt ɡeɪt ænd ðɪs ɡeɪt ɪz ɡreɪ .
+
+[00:05:16]  That gate is kind of burgundy .
+[00:05:16]  ðæt ɡeɪt ɪz kaɪnd ɒv ˈbɜːɡᵊndi .
+
+[00:05:20]  It's kind of faded a lot .
+[00:05:20]  ɪts kaɪnd ɒv ˈfeɪdɪd ə lɒt .
+
+
+
+[00:05:22]  So you can come here .
+[00:05:22]  səʊ juː kæn kʌm hɪə .
+
+[00:05:25]  You can see when it was brand
+[00:05:25]  juː kæn siː wɛn ɪt wɒz brænd
+
+[00:05:27]  new ,  it was a lot more vibrant .
+[00:05:27]  njuː ,  ɪt wɒz ə lɒt mɔː ˈvaɪbrᵊnt .
+
+[00:05:28]  new ,  it was a lot more vibrant .
+[00:05:28]  njuː ,  ɪt wɒz ə lɒt mɔː ˈvaɪbrᵊnt .
+
+[00:05:30]  The color was a lot more vibrant ,
+[00:05:30]  ðə ˈkʌlə wɒz ə lɒt mɔː ˈvaɪbrᵊnt ,
+
+[00:05:32]  but now the color is very faded .
+[00:05:32]  bʌt naʊ ðə ˈkʌlər ɪz ˈvɛri ˈfeɪdɪd .
+
+[00:05:34]  It's faded .
+[00:05:34]  ɪts ˈfeɪdɪd .
+
+[00:05:36]  And there's also rust .
+[00:05:36]  ænd ðeəz ˈɔːlsəʊ rʌst .
+
+[00:05:37]  There's rust .
+[00:05:37]  ðeəz rʌst .
+
+[00:05:38]  It's faded .
+[00:05:38]  ɪts ˈfeɪdɪd .
+
+[00:05:39]  It looks old .
+[00:05:39]  ɪt lʊks əʊld .
+
+[00:05:42]  Okay ,  let's go and go see where the cows went .
+[00:05:42]  ˌəʊˈkeɪ ,  lɛts ɡəʊ ænd ɡəʊ siː weə ðə kaʊz wɛnt .
+
+[00:05:46]  What ?
+[00:05:46]  wɒt ?
+
+[00:05:47]  I'm just on this side
+[00:05:47]  aɪm ʤʌst ɒn ðɪs saɪd
+
+[00:05:48]  I'm just going to walk them that way .
+[00:05:48]  aɪm ʤʌst ˈɡəʊɪŋ tuː wɔːk ðɛm ðæt weɪ .
+
+[00:05:49]  You could stay there ,  lovey .
+[00:05:49]  juː kʊd steɪ ðeə ,  ˈlʌvi .
+
+[00:05:52]  Stay on the other side .
+[00:05:52]  steɪ ɒn ði ˈʌðə saɪd .
+
+[00:05:52]  The cows are coming around the other side there .
+[00:05:52]  ðə kaʊz ɑː ˈkʌmɪŋ əˈraʊnd ði ˈʌðə saɪd ðeə .
+
+[00:05:57]  Oh yeah .
+[00:05:57]  əʊ jeə .
+
+[00:05:58]  You see there's a cow and a calf .
+[00:05:58]  juː siː ðeəz ə kaʊ ænd ə kɑːf .
+
+[00:06:02]  She's a runner ,  that one .
+[00:06:02]  ʃiːz ə ˈrʌnə ,  ðæt wʌn .
+
+
+
+[00:06:04]  She's a runner .
+[00:06:04]  ʃiːz ə ˈrʌnə .
+
+[00:06:05]  She's a track star .
+[00:06:05]  ʃiːz ə træk stɑː .
+
+[00:06:10]  Do you want to go and round up that little calf there ?
+[00:06:10]  duː juː wɒnt tuː ɡəʊ ænd raʊnd ʌp ðæt ˈlɪtᵊl kɑːf ðeə ?
+
+[00:06:13]  There's still another one .
+[00:06:13]  ðeəz stɪl əˈnʌðə wʌn .
+
+[00:06:15]  Okay ,  there's another calf over
+[00:06:15]  ˌəʊˈkeɪ ,  ðeəz əˈnʌðə kɑːf ˈəʊvə
+
+[00:06:17]  here that doesn't want to come out .
+[00:06:17]  hɪə ðæt ˈdʌzᵊnt wɒnt tuː kʌm aʊt .
+
+[00:06:22]  We have to go and chase him out .
+[00:06:22]  wiː hæv tuː ɡəʊ ænd ʧeɪs hɪm aʊt .
+
+[00:06:24]  We have to go and chase him out .
+[00:06:24]  wiː hæv tuː ɡəʊ ænd ʧeɪs hɪm aʊt .
+
+[00:06:29]  Go .
+[00:06:29]  ɡəʊ .
+
+[00:06:31]  Go .
+[00:06:31]  ɡəʊ .
+
+[00:06:37]  Okay ,  there you go .
+[00:06:37]  ˌəʊˈkeɪ ,  ðeə juː ɡəʊ .
+
+[00:06:40]  Okay ,  I just closed the gate .
+[00:06:40]  ˌəʊˈkeɪ ,  aɪ ʤʌst kləʊzd ðə ɡeɪt .
+
+[00:06:44]  You go around that way .
+[00:06:44]  juː ɡəʊ əˈraʊnd ðæt weɪ .
+
+[00:06:47]  Okay .
+[00:06:47]  ˌəʊˈkeɪ .
+
+[00:06:49]  They know exactly where to go .
+[00:06:49]  ðeɪ nəʊ ɪɡˈzæktli weə tuː ɡəʊ .
+
+[00:06:51]  spoils them .
+[00:06:51]  spɔːɪlz ðɛm .
+
+[00:06:54]  Okay ,  perfect .
+[00:06:54]  ˌəʊˈkeɪ ,  ˈpɜːfɛkt .
+
+[00:06:59]  You're going to give the dog a heart attack .
+[00:06:59]  jɔː ˈɡəʊɪŋ tuː ɡɪv ðə dɒɡ ə hɑːt əˈtæk .
+
+[00:07:02]  Why ?
+[00:07:02]  waɪ ?
+
+[00:07:03]  He's so old .
+[00:07:03]  hiːz səʊ əʊld .
+
+[00:07:05]  Yeah ,  I'm closing the gate with this chain .
+[00:07:05]  jeə ,  aɪm ˈkləʊzɪŋ ðə ɡeɪt wɪð ðɪs ʧeɪn .
+
+
+
+[00:07:10]  Okay .
+[00:07:10]  ˌəʊˈkeɪ .
+
+[00:07:10]  The cows are drinking water .
+[00:07:10]  ðə kaʊz ɑː ˈdrɪŋkɪŋ ˈwɔːtə .
+
+[00:07:12]  We're not milking tomorrow .
+[00:07:12]  wɪə nɒt ˈmɪlkɪŋ təˈmɒrəʊ .
+
+[00:07:15]  So they're going to hang out with their moms today .
+[00:07:15]  səʊ ðeə ˈɡəʊɪŋ tuː hæŋ aʊt wɪð ðeə mɒmz təˈdeɪ .
+
+[00:07:19]  So we can leave them here .
+[00:07:19]  səʊ wiː kæn liːv ðɛm hɪə .
+
+[00:07:21]  Or if you want ,  we'll just push them into the bush .
+[00:07:21]  ɔːr ɪf juː wɒnt ,  wiːl ʤʌst pʊʃ ðɛm ˈɪntuː ðə bʊʃ .
+
+[00:07:25]  Just leave them .
+[00:07:25]  ʤʌst liːv ðɛm .
+
+[00:07:27]  Leave them here .
+[00:07:27]  liːv ðɛm hɪə .
+
+[00:07:28]  It's fine .
+[00:07:28]  ɪts faɪn .
+
+[00:07:28]  Okay ,  so this is a scratch pole .
+[00:07:28]  ˌəʊˈkeɪ ,  səʊ ðɪs ɪz ə skræʧ pəʊl .
+
+[00:07:32]  It's almost like two broom heads and the cattle come and
+[00:07:32]  ɪts ˈɔːlməʊst laɪk tuː bruːm hɛdz ænd ðə ˈkætᵊl kʌm ænd
+
+[00:07:37]  they scratch their heads and their
+[00:07:37]  ðeɪ skræʧ ðeə hɛdz ænd ðeə
+
+[00:07:39]  back and their sides on this .
+[00:07:39]  bæk ænd ðeə saɪdz ɒn ðɪs .
+
+[00:07:42]  Yeah ,  they love scratching like this .
+[00:07:42]  jeə ,  ðeɪ lʌv ˈskræʧɪŋ laɪk ðɪs .
+
+[00:07:46]  Scratching their backs and stuff with that .
+[00:07:46]  ˈskræʧɪŋ ðeə bæks ænd stʌf wɪð ðæt .
+
+[00:07:48]  Yeah ,  and we put oil in here so they get oiled .
+[00:07:48]  jeə ,  ænd wiː pʊt ɔɪl ɪn hɪə səʊ ðeɪ ɡɛt ɔɪld .
+
+[00:07:55]  It helps with keeping the flies off them .
+[00:07:55]  ɪt hɛlps wɪð ˈkiːpɪŋ ðə flaɪz ɒf ðɛm .
+
+[00:07:57]  It helps with keeping the flies off them .
+[00:07:57]  ɪt hɛlps wɪð ˈkiːpɪŋ ðə flaɪz ɒf ðɛm .
+
+[00:07:59]  It helps with keeping the flies off them .
+[00:07:59]  ɪt hɛlps wɪð ˈkiːpɪŋ ðə flaɪz ɒf ðɛm .
+
+[00:08:00]  Yep .
+[00:08:00]  jɛp .
+
+[00:08:01]  Okay ,  so we'll leave these girls here .
+[00:08:01]  ˌəʊˈkeɪ ,  səʊ wiːl liːv ðiːz ɡɜːlz hɪə .
+
+
+
+[00:08:05]  So what's the most important rule on a farm ?
+[00:08:05]  səʊ wɒts ðə məʊst ɪmˈpɔːtᵊnt ruːl ɒn ə fɑːm ?
+
+[00:08:06]  So what's the most important rule on a farm ?
+[00:08:06]  səʊ wɒts ðə məʊst ɪmˈpɔːtᵊnt ruːl ɒn ə fɑːm ?
+
+[00:08:09]  The most important rule is to always close the gates .
+[00:08:09]  ðə məʊst ɪmˈpɔːtᵊnt ruːl ɪz tuː ˈɔːlweɪz kləʊz ðə ɡeɪts .
+
+[00:08:14]  If you open a gate ,  always close it right away .
+[00:08:14]  ɪf juː ˈəʊpᵊn ə ɡeɪt ,  ˈɔːlweɪz kləʊz ɪt raɪt əˈweɪ .
+
+[00:08:17]  You open it ,  you close it .
+[00:08:17]  juː ˈəʊpᵊn ɪt ,  juː kləʊz ɪt .
+
+[00:08:20]  Perfect .
+[00:08:20]  ˈpɜːfɛkt .
+
+[00:08:21]  And this ,  you can call this a pail .
+[00:08:21]  ænd ðɪs ,  juː kæn kɔːl ðɪs ə peɪl .
+
+[00:08:22]  And this ,  you can call this a pail .
+[00:08:22]  ænd ðɪs ,  juː kæn kɔːl ðɪs ə peɪl .
+
+[00:08:24]  This specifically is a five gallon pail .
+[00:08:24]  ðɪs spəˈsɪfɪkᵊli ɪz ə faɪv ˈɡælən peɪl .
+
+[00:08:26]  But you can just call it a pail .
+[00:08:26]  bʌt juː kæn ʤʌst kɔːl ɪt ə peɪl .
+
+[00:08:28]  And you can put water in it or grain to feed the cows .
+[00:08:28]  ænd juː kæn pʊt ˈwɔːtər ɪn ɪt ɔː ɡreɪn tuː fiːd ðə kaʊz .
+
+[00:08:32]  Did you want to feed the cows some grain ?
+[00:08:32]  dɪd juː wɒnt tuː fiːd ðə kaʊz sʌm ɡreɪn ?
+
+[00:08:35]  I think they're good .
+[00:08:35]  aɪ θɪŋk ðeə ɡʊd .
+
+[00:08:37]  Okay ,  so perfect .
+[00:08:37]  ˌəʊˈkeɪ ,  səʊ ˈpɜːfɛkt .
+
+[00:08:39]  Let's go towards the fire pit area .
+[00:08:39]  lɛts ɡəʊ təˈwɔːdz ðə faɪə pɪt ˈeəriə .
+
+[00:08:44]  We can go and pull some carrots from my garden as well .
+[00:08:44]  wiː kæn ɡəʊ ænd pʊl sʌm ˈkærəts frɒm maɪ ˈɡɑːdᵊn æz wɛl .
+
+[00:08:45]  We can go and pull some carrots from my garden as well .
+[00:08:45]  wiː kæn ɡəʊ ænd pʊl sʌm ˈkærəts frɒm maɪ ˈɡɑːdᵊn æz wɛl .
+
+[00:08:48]  Yeah ,  let's go to the fire pit ,  then
+[00:08:48]  jeə ,  lɛts ɡəʊ tuː ðə faɪə pɪt ,  ðɛn
+
+[00:08:50]  the front yard and then the garden .
+[00:08:50]  ðə frʌnt jɑːd ænd ðɛn ðə ˈɡɑːdᵊn .
+
+[00:08:52]  Yeah ,  hopefully it stays nicer for longer .
+[00:08:52]  jeə ,  ˈhəʊpfᵊli ɪt steɪz ˈnaɪsə fɔː ˈlɒŋɡə .
+
+[00:08:56]  But I don't think so .
+[00:08:56]  bʌt aɪ dəʊnt θɪŋk səʊ .
+
+
+
+[00:08:57]  It's been pretty cold .
+[00:08:57]  ɪts biːn ˈprɪti kəʊld .
+
+[00:08:58]  You know how it goes .
+[00:08:58]  juː nəʊ haʊ ɪt ɡəʊz .
+
+[00:08:59]  The weather can change here from one day to the next .
+[00:08:59]  ðə ˈwɛðə kæn ʧeɪnʤ hɪə frɒm wʌn deɪ tuː ðə nɛkst .
+
+[00:09:03]  Oh yeah ,  it's unpredictable .
+[00:09:03]  əʊ jeə ,  ɪts ˌʌnprɪˈdɪktəbᵊl .
+
+[00:09:05]  Very unpredictable .
+[00:09:05]  ˈvɛri ˌʌnprɪˈdɪktəbᵊl .
+
+[00:09:06]  Okay ,  now we're at the outdoor fire pit .
+[00:09:06]  ˌəʊˈkeɪ ,  naʊ wɪər æt ði ˈaʊtˌdɔː faɪə pɪt .
+
+[00:09:08]  This right here is a fire pit .
+[00:09:08]  ðɪs raɪt hɪər ɪz ə faɪə pɪt .
+
+[00:09:09]  This right here is a fire pit .
+[00:09:09]  ðɪs raɪt hɪər ɪz ə faɪə pɪt .
+
+[00:09:11]  And you can see inside the fire pit ,  there's a lot of ash .
+[00:09:11]  ænd juː kæn siː ɪnˈsaɪd ðə faɪə pɪt ,  ðeəz ə lɒt ɒv æʃ .
+
+[00:09:16]  All of that is ash from wood .
+[00:09:16]  ɔːl ɒv ðæt ɪz æʃ frɒm wʊd .
+
+[00:09:19]  Once wood burns ,  it turns into ash .
+[00:09:19]  wʌns wʊd bɜːnz ,  ɪt tɜːnz ˈɪntuː æʃ .
+
+[00:09:21]  And this is called a poker stick
+[00:09:21]  ænd ðɪs ɪz kɔːld ə ˈpəʊkə stɪk
+
+[00:09:23]  for the fire ,  to poke the fire .
+[00:09:23]  fɔː ðə faɪə ,  tuː pəʊk ðə faɪə .
+
+[00:09:25]  This kind of outdoor building ,  you can call a gazebo .
+[00:09:25]  ðɪs kaɪnd ɒv ˈaʊtˌdɔː ˈbɪldɪŋ ,  juː kæn kɔːl ə ɡəˈziːbəʊ .
+
+[00:09:29]  And there are lights ,  light bulbs all
+[00:09:29]  ænd ðeər ɑː laɪts ,  laɪt bʌlbz ɔːl
+
+[00:09:32]  around the gazebo and a little bit inside .
+[00:09:32]  əˈraʊnd ðə ɡəˈziːbəʊ ænd ə ˈlɪtᵊl bɪt ɪnˈsaɪd .
+
+[00:09:35]  And there's spider webs ,  I guess ,  on the gazebo too .
+[00:09:35]  ænd ðeəz ˈspaɪdə wɛbz ,  aɪ ɡɛs ,  ɒn ðə ɡəˈziːbəʊ tuː .
+
+[00:09:39]  But let's go to the shop now .
+[00:09:39]  bʌt lɛts ɡəʊ tuː ðə ʃɒp naʊ .
+
+[00:09:43]  Okay ,  and this is the shop .
+[00:09:43]  ˌəʊˈkeɪ ,  ænd ðɪs ɪz ðə ʃɒp .
+
+[00:09:45]  I just opened the door .
+[00:09:45]  aɪ ʤʌst ˈəʊpᵊnd ðə dɔː .
+
+[00:09:49]  This door has a small window on the top
+[00:09:49]  ðɪs dɔː hæz ə smɔːl ˈwɪndəʊ ɒn ðə tɒp
+
+
+
+[00:09:52]  part of the door ,  so you can see through .
+[00:09:52]  pɑːt ɒv ðə dɔː ,  səʊ juː kæn siː θruː .
+
+[00:09:57]  But yeah ,  right now we're in the shop .
+[00:09:57]  bʌt jeə ,  raɪt naʊ wɪər ɪn ðə ʃɒp .
+
+[00:09:59]  It's like pretty big .
+[00:09:59]  ɪts laɪk ˈprɪti bɪɡ .
+
+[00:10:00]  The ceiling is very high .
+[00:10:00]  ðə ˈsiːlɪŋ ɪz ˈvɛri haɪ .
+
+[00:10:01]  You can see the ceiling is very high .
+[00:10:01]  juː kæn siː ðə ˈsiːlɪŋ ɪz ˈvɛri haɪ .
+
+[00:10:06]  And I'm going to turn the lights on now .
+[00:10:06]  ænd aɪm ˈɡəʊɪŋ tuː tɜːn ðə laɪts ɒn naʊ .
+
+[00:10:09]  So you can see all of this .
+[00:10:09]  səʊ juː kæn siː ɔːl ɒv ðɪs .
+
+[00:10:10]  This is a lot of tools and like nuts and bolts and parts .
+[00:10:10]  ðɪs ɪz ə lɒt ɒv tuːlz ænd laɪk nʌts ænd bəʊlts ænd pɑːts .
+
+[00:10:16]  Yeah ,  it's a workbench and it is full of stuff because your
+[00:10:16]  jeə ,  ɪts ə ˈwɜːkbɛnʧ ænd ɪt ɪz fʊl ɒv stʌf bɪˈkɒz jɔː
+
+[00:10:22]  dad is working on his project .
+[00:10:22]  dæd ɪz ˈwɜːkɪŋ ɒn hɪz ˈprɒʤɛkt .
+
+[00:10:24]  So he's always looking for bits and pieces and screws and
+[00:10:24]  səʊ hiːz ˈɔːlweɪz ˈlʊkɪŋ fɔː bɪts ænd ˈpiːsɪz ænd skruːz ænd
+
+[00:10:30]  nuts and bolts and you name it .
+[00:10:30]  nʌts ænd bəʊlts ænd juː neɪm ɪt .
+
+[00:10:34]  And these right here ,  this ,
+[00:10:34]  ænd ðiːz raɪt hɪə ,  ðɪs ,
+
+[00:10:35]  this ,  this ,  these are all aerosols .
+[00:10:35]  ðɪs ,  ðɪs ,  ðiːz ɑːr ɔːl ˈeərəsɒlz .
+
+[00:10:37]  this ,  this ,  these are all aerosols .
+[00:10:37]  ðɪs ,  ðɪs ,  ðiːz ɑːr ɔːl ˈeərəsɒlz .
+
+[00:10:39]  So these cans are aerosol cans also .
+[00:10:39]  səʊ ðiːz kænz ɑːr ˈeərəsɒl kænz ˈɔːlsəʊ .
+
+[00:10:41]  So these cans are aerosol cans also .
+[00:10:41]  səʊ ðiːz kænz ɑːr ˈeərəsɒl kænz ˈɔːlsəʊ .
+
+[00:10:42]  So these cans are aerosol cans also .
+[00:10:42]  səʊ ðiːz kænz ɑːr ˈeərəsɒl kænz ˈɔːlsəʊ .
+
+[00:10:43]  I can see .
+[00:10:43]  aɪ kæn siː .
+
+[00:10:44]  Safety glasses .
+[00:10:44]  ˈseɪfti ˈɡlɑːsɪz .
+
+[00:10:45]  Yeah ,  that's very important .
+[00:10:45]  jeə ,  ðæts ˈvɛri ɪmˈpɔːtᵊnt .
+
+
+
+[00:10:47]  To protect your eyes .
+[00:10:47]  tuː prəˈtɛkt jɔːr aɪz .
+
+[00:10:49]  It was broken ?
+[00:10:49]  ɪt wɒz ˈbrəʊkᵊn ?
+
+[00:10:50]  Yeah ,  you can show that .
+[00:10:50]  jeə ,  juː kæn ʃəʊ ðæt .
+
+[00:10:51]  Oh ,  from there .
+[00:10:51]  əʊ ,  frɒm ðeə .
+
+[00:10:52]  I made one .
+[00:10:52]  aɪ meɪd wʌn .
+
+[00:10:53]  Oh .
+[00:10:53]  əʊ .
+
+[00:10:55]  I made one for up there
+[00:10:55]  aɪ meɪd wʌn fɔːr ʌp ðeə
+
+[00:10:57]  To make it strong
+[00:10:57]  tuː meɪk ɪt strɒŋ
+
+[00:10:58]  I'm going to rockguard it at the back
+[00:10:58]  aɪm ˈɡəʊɪŋ tuː rockguard ɪt æt ðə bæk
+
+[00:11:01]  Oh ,  rockguard the back of it .
+[00:11:01]  əʊ ,  rockguard ðə bæk ɒv ɪt .
+
+[00:11:03]  So then it'll be strong like a
+[00:11:03]  səʊ ðɛn ˈɪtᵊl biː strɒŋ laɪk eɪ
+
+[00:11:04]  rock and then Polyurethane
+[00:11:04]  rɒk ænd ðɛn ˌpɒlɪˈjʊərəθeɪn
+
+[00:11:06]  So it's hard .
+[00:11:06]  səʊ ɪts hɑːd .
+
+[00:11:08]  Oh ,  that looked good .
+[00:11:08]  əʊ ,  ðæt lʊkt ɡʊd .
+
+[00:11:09]  So i'm just waiting for the clips for that .
+[00:11:09]  səʊ aɪm ʤʌst ˈweɪtɪŋ fɔː ðə klɪps fɔː ðæt .
+
+[00:11:11]  Okay ,  so Volka
+[00:11:11]  ˌəʊˈkeɪ ,  səʊ Volka
+
+[00:11:13]  Yeah .
+[00:11:13]  jeə .
+
+[00:11:14]  Do you remember how to ride your unicycle ?
+[00:11:14]  duː juː rɪˈmɛmbə haʊ tuː raɪd jɔː ˈjuːnɪˌsaɪkᵊl ?
+
+[00:11:18]  Just straighten the seat out slightly .
+[00:11:18]  ʤʌst ˈstreɪtᵊn ðə siːt aʊt ˈslaɪtli .
+
+[00:11:21]  It's slightly ...
+[00:11:21]  ɪts ˈslaɪtli ...
+
+[00:11:22]  Do I remember how to ride it ?
+[00:11:22]  duː aɪ rɪˈmɛmbə haʊ tuː raɪd ɪt ?
+
+
+
+[00:11:25]  Yep .
+[00:11:25]  jɛp .
+
+[00:11:26]  Let's see if you can still do it .
+[00:11:26]  lɛts siː ɪf juː kæn stɪl duː ɪt .
+
+[00:11:28]  The tire is inflated .
+[00:11:28]  ðə ˈtaɪər ɪz ɪnˈfleɪtɪd .
+
+[00:11:30]  It is actually ,  i'm surprised .
+[00:11:30]  ɪt ɪz ˈækʧuəli ,  aɪm səˈpraɪzd .
+
+[00:11:33]  So now the seat was not straight .
+[00:11:33]  səʊ naʊ ðə siːt wɒz nɒt streɪt .
+
+[00:11:37]  The seat was a little bit to the side on an angle .
+[00:11:37]  ðə siːt wɒz ə ˈlɪtᵊl bɪt tuː ðə saɪd ɒn ən ˈæŋɡᵊl .
+
+[00:11:40]  So now I'm just putting the seat
+[00:11:40]  səʊ naʊ aɪm ʤʌst ˈpʊtɪŋ ðə siːt
+
+[00:11:41]  straight in line with the tire .
+[00:11:41]  streɪt ɪn laɪn wɪð ðə ˈtaɪə .
+
+[00:11:42]  straight in line with the tire .
+[00:11:42]  streɪt ɪn laɪn wɪð ðə ˈtaɪə .
+
+[00:11:46]  Right there .
+[00:11:46]  raɪt ðeə .
+
+[00:11:49]  So this is a pedal .
+[00:11:49]  səʊ ðɪs ɪz ə ˈpɛdᵊl .
+
+[00:11:51]  Every bicycle needs to have a
+[00:11:51]  ˈɛvri ˈbaɪsɪkᵊl niːdz tuː hæv eɪ
+
+[00:11:53]  pedal because that's how you pedal .
+[00:11:53]  ˈpɛdᵊl bɪˈkɒz ðæts haʊ juː ˈpɛdᵊl .
+
+[00:11:54]  pedal because that's how you pedal .
+[00:11:54]  ˈpɛdᵊl bɪˈkɒz ðæts haʊ juː ˈpɛdᵊl .
+
+[00:11:56]  So a pedal is the noun and to pedal is the verb .
+[00:11:56]  səʊ ə ˈpɛdᵊl ɪz ðə naʊn ænd tuː ˈpɛdᵊl ɪz ðə vɜːb .
+
+[00:12:01]  So I'm pedaling means I'm putting
+[00:12:01]  səʊ aɪm ˈpɛdᵊlɪŋ miːnz aɪm ˈpʊtɪŋ
+
+[00:12:02]  So I'm pedaling means I'm putting
+[00:12:02]  səʊ aɪm ˈpɛdᵊlɪŋ miːnz aɪm ˈpʊtɪŋ
+
+[00:12:03]  my feet on the pedals and I'm moving
+[00:12:03]  maɪ fiːt ɒn ðə ˈpɛdᵊlz ænd aɪm ˈmuːvɪŋ
+
+[00:12:06]  and I'm going forward .
+[00:12:06]  ænd aɪm ˈɡəʊɪŋ ˈfɔːwəd .
+
+[00:12:07]  But I learned how to do this
+[00:12:07]  bʌt aɪ lɜːnd haʊ tuː duː ðɪs
+
+[00:12:11]  many ,  many ,  many ,  many years ago .
+[00:12:11]  ˈmɛni ,  ˈmɛni ,  ˈmɛni ,  ˈmɛni jɪəz əˈɡəʊ .
+
+
+
+[00:12:14]  Many years .
+[00:12:14]  ˈmɛni jɪəz .
+
+[00:12:15]  I think I was like how many years ago ?
+[00:12:15]  aɪ θɪŋk aɪ wɒz laɪk haʊ ˈmɛni jɪəz əˈɡəʊ ?
+
+[00:12:19]  Probably like  10.
+[00:12:19]  ˈprɒbəbli laɪk  10.
+
+[00:12:21] 10,  at least  10.
+[00:12:21] 10,  æt liːst  10.
+
+[00:12:22] 10  years ago .
+[00:12:22] 10  jɪəz əˈɡəʊ .
+
+[00:12:23]  And I haven't done it since .
+[00:12:23]  ænd aɪ ˈhævᵊnt dʌn ɪt sɪns .
+
+[00:12:24]  So the last time I did this  10  years ago .
+[00:12:24]  səʊ ðə lɑːst taɪm aɪ dɪd ðɪs  10  jɪəz əˈɡəʊ .
+
+[00:12:30]  Wow .
+[00:12:30]  waʊ .
+
+[00:12:31]  Looks like you haven't forgotten how to ride the unicycle .
+[00:12:31]  lʊks laɪk juː ˈhævᵊnt fəˈɡɒtᵊn haʊ tuː raɪd ðə ˈjuːnɪˌsaɪkᵊl .
+
+[00:12:40]  I guess not .
+[00:12:40]  aɪ ɡɛs nɒt .
+
+[00:12:41]  You used to ride it all the way up to
+[00:12:41]  juː juːzd tuː raɪd ɪt ɔːl ðə weɪ ʌp tuː
+
+[00:12:43]  the driveway ,  to the road ,  on the gravel .
+[00:12:43]  ðə ˈdraɪvweɪ ,  tuː ðə rəʊd ,  ɒn ðə ˈɡrævᵊl .
+
+[00:12:47]  That would be harder .
+[00:12:47]  ðæt wʊd biː ˈhɑːdə .
+
+[00:13:03]  You have to have good balance for that .
+[00:13:03]  juː hæv tuː hæv ɡʊd ˈbælᵊns fɔː ðæt .
+
+[00:13:07]  So like my mom just said ,  you have to have good balance .
+[00:13:07]  səʊ laɪk maɪ mɒm ʤʌst sɛd ,  juː hæv tuː hæv ɡʊd ˈbælᵊns .
+
+[00:13:13]  So like my mom just said ,  you have to have good balance .
+[00:13:13]  səʊ laɪk maɪ mɒm ʤʌst sɛd ,  juː hæv tuː hæv ɡʊd ˈbælᵊns .
+
+[00:13:14]  You have to have good balance .
+[00:13:14]  juː hæv tuː hæv ɡʊd ˈbælᵊns .
+
+[00:13:16]  If you don't have good balance ,  you're
+[00:13:16]  ɪf juː dəʊnt hæv ɡʊd ˈbælᵊns ,  jɔː
+
+[00:13:18]  going to fall because it's just one wheel .
+[00:13:18]  ˈɡəʊɪŋ tuː fɔːl bɪˈkɒz ɪts ʤʌst wʌn wiːl .
+
+[00:13:23]  That's why it's called a unicycle for one uni .
+[00:13:23]  ðæts waɪ ɪts kɔːld ə ˈjuːnɪˌsaɪkᵊl fɔː wʌn ˈjuːnɪ .
+
+[00:13:27]  Where was this ?
+[00:13:27]  weə wɒz ðɪs ?
+
+
+
+[00:13:28]  It's got a stand to the right hand side there .
+[00:13:28]  ɪts ɡɒt ə stænd tuː ðə raɪt hænd saɪd ðeə .
+
+[00:13:31]  This is the unicycle stand .
+[00:13:31]  ðɪs ɪz ðə ˈjuːnɪˌsaɪkᵊl stænd .
+
+[00:13:35]  And if you come here ,  I already showed you guys this ,  the
+[00:13:35]  ænd ɪf juː kʌm hɪə ,  aɪ ɔːlˈrɛdi ʃəʊd juː ɡaɪz ðɪs ,  ðiː
+
+[00:13:38]  lawn mower ,  the riding lawn mower .
+[00:13:38]  lɔːn ˈməʊə ,  ðə ˈraɪdɪŋ lɔːn ˈməʊə .
+
+[00:13:41]  But this right here is a dirt bike .
+[00:13:41]  bʌt ðɪs raɪt hɪər ɪz ə dɜːt baɪk .
+
+[00:13:44]  And this part of the dirt bike ,  so these are pegs .
+[00:13:44]  ænd ðɪs pɑːt ɒv ðə dɜːt baɪk ,  səʊ ðiːz ɑː pɛɡz .
+
+[00:13:49]  But yeah ,  this is a dirt bike .
+[00:13:49]  bʌt jeə ,  ðɪs ɪz ə dɜːt baɪk .
+
+[00:13:51]  If you guys want to see me ride it
+[00:13:51]  ɪf juː ɡaɪz wɒnt tuː siː miː raɪd ɪt
+
+[00:13:53]  in a video ,  leave it in the comments .
+[00:13:53]  ɪn ə ˈvɪdiəʊ ,  liːv ɪt ɪn ðə ˈkɒmɛnts .
+
+[00:13:56]  Let's go .
+[00:13:56]  lɛts ɡəʊ .
+
+[00:13:58]  Okay ,  I think ,  let's go to the garden .
+[00:13:58]  ˌəʊˈkeɪ ,  aɪ θɪŋk ,  lɛts ɡəʊ tuː ðə ˈɡɑːdᵊn .
+
+[00:14:01]  Let's do that .
+[00:14:01]  lɛts duː ðæt .
+
+[00:14:01]  Let's go to the garden now .
+[00:14:01]  lɛts ɡəʊ tuː ðə ˈɡɑːdᵊn naʊ .
+
+[00:14:03]  What do we need at the garden ?
+[00:14:03]  wɒt duː wiː niːd æt ðə ˈɡɑːdᵊn ?
+
+[00:14:05]  Some carrots .
+[00:14:05]  sʌm ˈkærəts .
+
+[00:14:06]  I am going to make some Thai
+[00:14:06]  aɪ æm ˈɡəʊɪŋ tuː meɪk sʌm taɪ
+
+[00:14:08]  green curry with chicken tonight .
+[00:14:08]  ɡriːn ˈkʌri wɪð ˈʧɪkɪn təˈnaɪt .
+
+[00:14:11]  Thai green curry .
+[00:14:11]  taɪ ɡriːn ˈkʌri .
+
+[00:14:12]  If you're from Thailand ,  write that in the comments .
+[00:14:12]  ɪf jɔː frɒm ˈtaɪlænd ,  raɪt ðæt ɪn ðə ˈkɒmɛnts .
+
+[00:14:16]  Anyways ,  before we go there ,  let's pick some cherries .
+[00:14:16]  ˈɛniweɪz ,  bɪˈfɔː wiː ɡəʊ ðeə ,  lɛts pɪk sʌm ˈʧɛriz .
+
+[00:14:21]  You want to pick some cherries ?
+[00:14:21]  juː wɒnt tuː pɪk sʌm ˈʧɛriz ?
+
+
+
+[00:14:22]  Just some for the road ,  not really too much .
+[00:14:22]  ʤʌst sʌm fɔː ðə rəʊd ,  nɒt ˈrɪəli tuː mʌʧ .
+
+[00:14:26]  I've picked the majority of them .
+[00:14:26]  aɪv pɪkt ðə məˈʤɒrəti ɒv ðɛm .
+
+[00:14:30]  They're so good this year .
+[00:14:30]  ðeə səʊ ɡʊd ðɪs jɪə .
+
+[00:14:32]  I know the cherries are really good .
+[00:14:32]  aɪ nəʊ ðə ˈʧɛriz ɑː ˈrɪəli ɡʊd .
+
+[00:14:34]  Sometimes they can be a bit sour ,  but
+[00:14:34]  ˈsʌmtaɪmz ðeɪ kæn biː ə bɪt saʊə ,  bʌt
+
+[00:14:36]  oh ,  they're really delicious this year .
+[00:14:36]  əʊ ,  ðeə ˈrɪəli dɪˈlɪʃəs ðɪs jɪə .
+
+[00:14:39]  They're good .
+[00:14:39]  ðeə ɡʊd .
+
+[00:14:41]  So ,  we just picked some cherries .
+[00:14:41]  səʊ ,  wiː ʤʌst pɪkt sʌm ˈʧɛriz .
+
+[00:14:46]  We picked cherries past tense .
+[00:14:46]  wiː pɪkt ˈʧɛriz pɑːst tɛns .
+
+[00:14:50]  We're picking cherries present tense .
+[00:14:50]  wɪə ˈpɪkɪŋ ˈʧɛriz ˈprɛzᵊnt tɛns .
+
+[00:14:53]  Future ,  we will pick cherries .
+[00:14:53]  ˈfjuːʧə ,  wiː wɪl pɪk ˈʧɛriz .
+
+[00:14:56]  We're going to pick cherries .
+[00:14:56]  wɪə ˈɡəʊɪŋ tuː pɪk ˈʧɛriz .
+
+[00:14:58]  What's your guys' favorite fruit to pick ?
+[00:14:58]  wɒts jɔː ɡaɪz ˈfeɪvᵊrɪt fruːt tuː pɪk ?
+
+[00:15:02]  What's your favorite fruit to pick ?
+[00:15:02]  wɒts jɔː ˈfeɪvᵊrɪt fruːt tuː pɪk ?
+
+[00:15:04]  Leave it in the comments and make
+[00:15:04]  liːv ɪt ɪn ðə ˈkɒmɛnts ænd meɪk
+
+[00:15:05]  a sentence with that word ,  to pick .
+[00:15:05]  ə ˈsɛntəns wɪð ðæt wɜːd ,  tuː pɪk .
+
+[00:15:08]  But right now we're in the garden .
+[00:15:08]  bʌt raɪt naʊ wɪər ɪn ðə ˈɡɑːdᵊn .
+
+[00:15:12]  Okay ,  so these ,  what are these ,  Mom ?
+[00:15:12]  ˌəʊˈkeɪ ,  səʊ ðiːz ,  wɒt ɑː ðiːz ,  mɒm ?
+
+[00:15:15]  These are raised beds .
+[00:15:15]  ðiːz ɑː reɪzd bɛdz .
+
+[00:15:17]  They are waist - high ,  so that they are easy on my back .
+[00:15:17]  ðeɪ ɑː weɪst - haɪ ,  səʊ ðæt ðeɪ ɑːr ˈiːzi ɒn maɪ bæk .
+
+[00:15:24]  Because normal gardens are like this on the ground ,  and you
+[00:15:24]  bɪˈkɒz ˈnɔːmᵊl ˈɡɑːdᵊnz ɑː laɪk ðɪs ɒn ðə ɡraʊnd ,  ænd juː
+
+
+
+[00:15:28]  have to go like this ,  or go like this .
+[00:15:28]  hæv tuː ɡəʊ laɪk ðɪs ,  ɔː ɡəʊ laɪk ðɪs .
+
+[00:15:30]  And it can be hard on your knees and on your back ,  but with
+[00:15:30]  ænd ɪt kæn biː hɑːd ɒn jɔː niːz ænd ɒn jɔː bæk ,  bʌt wɪð
+
+[00:15:34]  this type of garden with a raised bed ,
+[00:15:34]  ðɪs taɪp ɒv ˈɡɑːdᵊn wɪð ə reɪzd bɛd ,
+
+[00:15:36]  you could just reach over like this ,  standing up straight .
+[00:15:36]  juː kʊd ʤʌst riːʧ ˈəʊvə laɪk ðɪs ,  ˈstændɪŋ ʌp streɪt .
+
+[00:15:41]  So you can garden while standing up straight .
+[00:15:41]  səʊ juː kæn ˈɡɑːdᵊn waɪl ˈstændɪŋ ʌp streɪt .
+
+[00:15:44]  And it's easier on your back .
+[00:15:44]  ænd ɪts ˈiːziər ɒn jɔː bæk .
+
+[00:15:46]  So I'm just ...
+[00:15:46]  səʊ aɪm ʤʌst ...
+
+[00:15:47]  So now you're pulling carrots .
+[00:15:47]  səʊ naʊ jɔː ˈpʊlɪŋ ˈkærəts .
+
+[00:15:48]  You want me to pull some too ?
+[00:15:48]  juː wɒnt miː tuː pʊl sʌm tuː ?
+
+[00:15:50]  Yep ,  try to find the ones that look bigger .
+[00:15:50]  jɛp ,  traɪ tuː faɪnd ðə wʌnz ðæt lʊk ˈbɪɡə .
+
+[00:15:52]  Some of these are out of the ground .
+[00:15:52]  sʌm ɒv ðiːz ɑːr aʊt ɒv ðə ɡraʊnd .
+
+[00:15:54]  I'll shove them back in .
+[00:15:54]  aɪl ʃʌv ðɛm bæk ɪn .
+
+[00:15:56]  They're not going to grow .
+[00:15:56]  ðeə nɒt ˈɡəʊɪŋ tuː ɡrəʊ .
+
+[00:15:57]  Your best just to pull them out .
+[00:15:57]  jɔː bɛst ʤʌst tuː pʊl ðɛm aʊt .
+
+[00:15:59]  Here ,  we can pull here on the edge .
+[00:15:59]  hɪə ,  wiː kæn pʊl hɪər ɒn ði ɛʤ .
+
+[00:16:02]  Those two were out already .
+[00:16:02]  ðəʊz tuː wɜːr aʊt ɔːlˈrɛdi .
+
+[00:16:04]  How do you know if they're big or not though ?
+[00:16:04]  haʊ duː juː nəʊ ɪf ðeə bɪɡ ɔː nɒt ðəʊ ?
+
+[00:16:09]  You see the stems ,  sometimes when I pull
+[00:16:09]  juː siː ðə stɛmz ,  ˈsʌmtaɪmz wɛn aɪ pʊl
+
+[00:16:12]  them ,  the stems at the bottom are thicker .
+[00:16:12]  ðɛm ,  ðə stɛmz æt ðə ˈbɒtᵊm ɑː ˈθɪkə .
+
+[00:16:17]  And we have lots ,  so it doesn't matter
+[00:16:17]  ænd wiː hæv lɒts ,  səʊ ɪt ˈdʌzᵊnt ˈmætə
+
+[00:16:19]  if there's a few that come out or not .
+[00:16:19]  ɪf ðeəz ə fjuː ðæt kʌm aʊt ɔː nɒt .
+
+
+
+[00:16:23]  They are so good .
+[00:16:23]  ðeɪ ɑː səʊ ɡʊd .
+
+[00:16:25]  I picked one or two good ones there .
+[00:16:25]  aɪ pɪkt wʌn ɔː tuː ɡʊd wʌnz ðeə .
+
+[00:16:28]  Perfect .
+[00:16:28]  ˈpɜːfɛkt .
+
+[00:16:29]  I accidentally pulled one small one though .
+[00:16:29]  aɪ ˌæksɪˈdɛntəli pʊld wʌn smɔːl wʌn ðəʊ .
+
+[00:16:32]  It's okay ,  we can eat it .
+[00:16:32]  ɪts ˌəʊˈkeɪ ,  wiː kæn iːt ɪt .
+
+[00:16:34]  Give it a rinse and we'll eat it .
+[00:16:34]  ɡɪv ɪt ə rɪns ænd wiːl iːt ɪt .
+
+[00:16:36]  They're very good fresh .
+[00:16:36]  ðeə ˈvɛri ɡʊd frɛʃ .
+
+[00:16:38]  How many do you want ?
+[00:16:38]  haʊ ˈmɛni duː juː wɒnt ?
+
+[00:16:39]  Oh ,  there you go .
+[00:16:39]  əʊ ,  ðeə juː ɡəʊ .
+
+[00:16:40]  You have a whole bunch .
+[00:16:40]  juː hæv ə həʊl bʌnʧ .
+
+[00:16:41]  That looks really good .
+[00:16:41]  ðæt lʊks ˈrɪəli ɡʊd .
+
+[00:16:43]  But if you pull them though ,  the thing is ...
+[00:16:43]  bʌt ɪf juː pʊl ðɛm ðəʊ ,  ðə θɪŋ ɪz ...
+
+[00:16:45]  Yeah ,  the other ones come with them .
+[00:16:45]  jeə ,  ði ˈʌðə wʌnz kʌm wɪð ðɛm .
+
+[00:16:47]  You gotta go ...
+[00:16:47]  juː ˈɡɒtə ɡəʊ ...
+
+[00:16:48]  You could break .
+[00:16:48]  juː kʊd breɪk .
+
+[00:16:49]  So if you pull it ,  they're so knotted up
+[00:16:49]  səʊ ɪf juː pʊl ɪt ,  ðeə səʊ ˈnɒtɪd ʌp
+
+[00:16:51]  So if you pull it ,  they're so knotted up
+[00:16:51]  səʊ ɪf juː pʊl ɪt ,  ðeə səʊ ˈnɒtɪd ʌp
+
+[00:16:52]  because you see they're all tied together .
+[00:16:52]  bɪˈkɒz juː siː ðeər ɔːl taɪd təˈɡɛðə .
+
+[00:16:55]  So if I pull it ,  i'm going to pull out more .
+[00:16:55]  səʊ ɪf aɪ pʊl ɪt ,  aɪm ˈɡəʊɪŋ tuː pʊl aʊt mɔː .
+
+[00:16:57]  So I'm going to break it here .
+[00:16:57]  səʊ aɪm ˈɡəʊɪŋ tuː breɪk ɪt hɪə .
+
+[00:16:59]  So now we have a bunch of carrots without pulling out more .
+[00:16:59]  səʊ naʊ wiː hæv ə bʌnʧ ɒv ˈkærəts wɪˈðaʊt ˈpʊlɪŋ aʊt mɔː .
+
+
+
+[00:17:05]  So put that back .
+[00:17:05]  səʊ pʊt ðæt bæk .
+
+[00:17:08]  So this whole area here used to be a garden .
+[00:17:08]  səʊ ðɪs həʊl ˈeəriə hɪə juːzd tuː biː ə ˈɡɑːdᵊn .
+
+[00:17:11]  In the past ,  this was all a garden ,
+[00:17:11]  ɪn ðə pɑːst ,  ðɪs wɒz ɔːl ə ˈɡɑːdᵊn ,
+
+[00:17:14]  but my dad built these raised beds .
+[00:17:14]  bʌt maɪ dæd bɪlt ðiːz reɪzd bɛdz .
+
+[00:17:18]  So we planted grass here and now
+[00:17:18]  səʊ wiː ˈplɑːntɪd ɡrɑːs hɪər ænd naʊ
+
+[00:17:20]  you can see just grass is growing .
+[00:17:20]  juː kæn siː ʤʌst ɡrɑːs ɪz ˈɡrəʊɪŋ .
+
+[00:17:23]  Are you getting potatoes ?
+[00:17:23]  ɑː juː ˈɡɛtɪŋ pəˈteɪtəʊz ?
+
+[00:17:25]  I'm so ...
+[00:17:25]  aɪm səʊ ...
+
+[00:17:25]  Is the one potato there ?
+[00:17:25]  ɪz ðə wʌn pəˈteɪtəʊ ðeə ?
+
+[00:17:26]  So are these potato leaves poisonous ?
+[00:17:26]  səʊ ɑː ðiːz pəˈteɪtəʊ liːvz ˈpɔɪzᵊnəs ?
+
+[00:17:31]  Yes .
+[00:17:31]  jɛs .
+
+[00:17:31]  You can eat it
+[00:17:31]  juː kæn iːt ɪt
+
+[00:17:32]  No ,  you can't eat potato leaves .
+[00:17:32]  nəʊ ,  juː kɑːnt iːt pəˈteɪtəʊ liːvz .
+
+[00:17:36]  Okay ,  so these potatoes are different .
+[00:17:36]  ˌəʊˈkeɪ ,  səʊ ðiːz pəˈteɪtəʊz ɑː ˈdɪfᵊrᵊnt .
+
+[00:17:39]  Can you give me three
+[00:17:39]  kæn juː ɡɪv miː θriː
+
+[00:17:40]  differences between these two potatoes ?
+[00:17:40]  ˈdɪfᵊrᵊnsɪz bɪˈtwiːn ðiːz tuː pəˈteɪtəʊz ?
+
+[00:17:44]  So the difference between these
+[00:17:44]  səʊ ðə ˈdɪfᵊrᵊns bɪˈtwiːn ðiːz
+
+[00:17:46]  two potatoes ,  the first is the color .
+[00:17:46]  tuː pəˈteɪtəʊz ,  ðə fɜːst ɪz ðə ˈkʌlə .
+
+[00:17:50]  This is a red potato and this is a white potato .
+[00:17:50]  ðɪs ɪz ə rɛd pəˈteɪtəʊ ænd ðɪs ɪz ə waɪt pəˈteɪtəʊ .
+
+[00:17:52]  The second difference is this one is round .
+[00:17:52]  ðə ˈsɛkᵊnd ˈdɪfᵊrᵊns ɪz ðɪs wʌn ɪz raʊnd .
+
+[00:17:57]  This one is longer and more oval shape .
+[00:17:57]  ðɪs wʌn ɪz ˈlɒŋɡər ænd mɔːr ˈəʊvᵊl ʃeɪp .
+
+
+
+[00:18:00]  And the final difference between these
+[00:18:00]  ænd ðə ˈfaɪnᵊl ˈdɪfᵊrᵊns bɪˈtwiːn ðiːz
+
+[00:18:01]  two potatoes ,  can you guess what it is ?
+[00:18:01]  tuː pəˈteɪtəʊz ,  kæn juː ɡɛs wɒt ɪt ɪz ?
+
+[00:18:04]  It's the taste .
+[00:18:04]  ɪts ðə teɪst .
+
+[00:18:06]  These potatoes taste different .
+[00:18:06]  ðiːz pəˈteɪtəʊz teɪst ˈdɪfᵊrᵊnt .
+
+[00:18:10]  So we have another one here .
+[00:18:10]  səʊ wiː hæv əˈnʌðə wʌn hɪə .
+
+[00:18:11]  What else do you need ?
+[00:18:11]  wɒt ɛls duː juː niːd ?
+
+[00:18:13]  So what are you grabbing now ?
+[00:18:13]  səʊ wɒt ɑː juː ˈɡræbɪŋ naʊ ?
+
+[00:18:14]  I'm going to grab some of this basil .
+[00:18:14]  aɪm ˈɡəʊɪŋ tuː ɡræb sʌm ɒv ðɪs ˈbæzᵊl .
+
+[00:18:18]  Oh yeah ,  this basil smells strong .
+[00:18:18]  əʊ jeə ,  ðɪs ˈbæzᵊl smɛlz strɒŋ .
+
+[00:18:22]  The basil smells strong .
+[00:18:22]  ðə ˈbæzᵊl smɛlz strɒŋ .
+
+[00:18:25]  But it smells good .
+[00:18:25]  bʌt ɪt smɛlz ɡʊd .
+
+[00:18:26]  It smells very good .
+[00:18:26]  ɪt smɛlz ˈvɛri ɡʊd .
+
+[00:18:27]  You put basil on food .
+[00:18:27]  juː pʊt ˈbæzᵊl ɒn fuːd .
+
+[00:18:31]  I didn't bring a container .
+[00:18:31]  aɪ ˈdɪdᵊnt brɪŋ ə kənˈteɪnə .
+
+[00:18:34]  Well ,  we can wash the carrots and stuff outside as well .
+[00:18:34]  wɛl ,  wiː kæn wɒʃ ðə ˈkærəts ænd stʌf ˌaʊtˈsaɪd æz wɛl .
+
+[00:18:37]  Okay ,  and the final thing we're
+[00:18:37]  ˌəʊˈkeɪ ,  ænd ðə ˈfaɪnᵊl θɪŋ wɪə
+
+[00:18:39]  getting from the garden
+[00:18:39]  ˈɡɛtɪŋ frɒm ðə ˈɡɑːdᵊn
+
+[00:18:41]  We are getting cucumbers .
+[00:18:41]  wiː ɑː ˈɡɛtɪŋ ˈkjuːkʌmbəz .
+
+[00:18:44]  And you can see ,  I don't know if you can see close up ,  but
+[00:18:44]  ænd juː kæn siː ,  aɪ dəʊnt nəʊ ɪf juː kæn siː kləʊz ʌp ,  bʌt
+
+[00:18:46]  there's a lot of these like prickly hairs on them .
+[00:18:46]  ðeəz ə lɒt ɒv ðiːz laɪk ˈprɪkli heəz ɒn ðɛm .
+
+[00:18:48]  But look at my dogs just chilling .
+[00:18:48]  bʌt lʊk æt maɪ dɒɡz ʤʌst ˈʧɪlɪŋ .
+
+
+
+[00:18:53]  Isn't that right ?
+[00:18:53]  ˈɪzᵊnt ðæt raɪt ?
+
+[00:18:55]  Oh ,  how are you doing buddy ?
+[00:18:55]  əʊ ,  haʊ ɑː juː ˈduːɪŋ ˈbʌdi ?
+
+[00:18:58]  And now he's stretching .
+[00:18:58]  ænd naʊ hiːz ˈstrɛʧɪŋ .
+
+[00:19:02]  They're the best dogs .
+[00:19:02]  ðeə ðə bɛst dɒɡz .
+
+[00:19:03]  They sleep during the day and they work during the night .
+[00:19:03]  ðeɪ sliːp ˈdjʊərɪŋ ðə deɪ ænd ðeɪ wɜːk ˈdjʊərɪŋ ðə naɪt .
+
+[00:19:07]  Yep .
+[00:19:07]  jɛp .
+
+[00:19:09]  So now I'm going to open up the well water .
+[00:19:09]  səʊ naʊ aɪm ˈɡəʊɪŋ tuː ˈəʊpᵊn ʌp ðə wɛl ˈwɔːtə .
+
+[00:19:13]  This is a garden hose ,  or you can just call it a hose .
+[00:19:13]  ðɪs ɪz ə ˈɡɑːdᵊn həʊz ,  ɔː juː kæn ʤʌst kɔːl ɪt ə həʊz .
+
+[00:19:18]  And now water is starting to flow out of the hose .
+[00:19:18]  ænd naʊ ˈwɔːtər ɪz ˈstɑːtɪŋ tuː fləʊ aʊt ɒv ðə həʊz .
+
+[00:19:22]  Water is flowing out of the hose .
+[00:19:22]  ˈwɔːtər ɪz ˈfləʊɪŋ aʊt ɒv ðə həʊz .
+
+[00:19:25]  And now I'm going to wash all of these with some water .
+[00:19:25]  ænd naʊ aɪm ˈɡəʊɪŋ tuː wɒʃ ɔːl ɒv ðiːz wɪð sʌm ˈwɔːtə .
+
+[00:19:30]  And the reason I call it well water is
+[00:19:30]  ænd ðə ˈriːzᵊn aɪ kɔːl ɪt wɛl ˈwɔːtər ɪz
+
+[00:19:33]  because it comes from a well underground .
+[00:19:33]  bɪˈkɒz ɪt kʌmz frɒm ə wɛl ˈʌndəɡraʊnd .
+
+[00:19:34]  because it comes from a well underground .
+[00:19:34]  bɪˈkɒz ɪt kʌmz frɒm ə wɛl ˈʌndəɡraʊnd .
+
+[00:19:36]  So it comes from underground .
+[00:19:36]  səʊ ɪt kʌmz frɒm ˈʌndəɡraʊnd .
+
+[00:19:37]  There's a well of water and this comes directly from there .
+[00:19:37]  ðeəz ə wɛl ɒv ˈwɔːtər ænd ðɪs kʌmz daɪˈrɛktli frɒm ðeə .
+
+[00:19:42]  So it's cold .
+[00:19:42]  səʊ ɪts kəʊld .
+
+[00:19:43]  It's very cold .  Now I'm washing these carrots .
+[00:19:43]  ɪts ˈvɛri kəʊld .  naʊ aɪm ˈwɒʃɪŋ ðiːz ˈkærəts .
+
+[00:19:50]  Ooh ,  that water is cold .
+[00:19:50]  uː ,  ðæt ˈwɔːtər ɪz kəʊld .
+
+[00:19:51]  Okay ,  now I'm closing the water .
+[00:19:51]  ˌəʊˈkeɪ ,  naʊ aɪm ˈkləʊzɪŋ ðə ˈwɔːtə .
+
+[00:19:55]  My leg kind of fell asleep .
+[00:19:55]  maɪ lɛɡ kaɪnd ɒv fɛl əˈsliːp .
+
+
+
+[00:19:57]  So we have the pale ,  the silver pail ,  filled with
+[00:19:57]  səʊ wiː hæv ðə peɪl ,  ðə ˈsɪlvə peɪl ,  fɪld wɪð
+
+[00:20:02]  vegetables like carrots ,  cucumbers ,  potatoes .
+[00:20:02]  ˈvɛʤtəbᵊlz laɪk ˈkærəts ,  ˈkjuːkʌmbəz ,  pəˈteɪtəʊz .
+
+[00:20:06]  And now I'm going to pick the pail up from the handle .
+[00:20:06]  ænd naʊ aɪm ˈɡəʊɪŋ tuː pɪk ðə peɪl ʌp frɒm ðə ˈhændᵊl .
+
+[00:20:09]  So this is the handle and I'm picking the pail up .
+[00:20:09]  səʊ ðɪs ɪz ðə ˈhændᵊl ænd aɪm ˈpɪkɪŋ ðə peɪl ʌp .
+
+[00:20:13]  Well ,  I already picked it up .
+[00:20:13]  wɛl ,  aɪ ɔːlˈrɛdi pɪkt ɪt ʌp .
+
+[00:20:15]  Where are we going ?
+[00:20:15]  weər ɑː wiː ˈɡəʊɪŋ ?
+
+[00:20:16]  I think we leave that at the front door and then we go and
+[00:20:16]  aɪ θɪŋk wiː liːv ðæt æt ðə frʌnt dɔːr ænd ðɛn wiː ɡəʊ ænd
+
+[00:20:19]  lock the gate and then we can go in and make supper .
+[00:20:19]  lɒk ðə ɡeɪt ænd ðɛn wiː kæn ɡəʊ ɪn ænd meɪk ˈsʌpə .
+
+[00:20:24]  Okay .
+[00:20:24]  ˌəʊˈkeɪ .
+
+[00:20:25]  Where's the keys ?
+[00:20:25]  weəz ðə kiːz ?
+
+[00:20:26]  It should be in the bowl there .
+[00:20:26]  ɪt ʃʊd biː ɪn ðə bəʊl ðeə .
+
+[00:20:31]  Got it .
+[00:20:31]  ɡɒt ɪt .
+
+[00:20:32]  So these are keys .
+[00:20:32]  səʊ ðiːz ɑː kiːz .
+
+[00:20:36]  This is a car key ,  but this is a gate key .
+[00:20:36]  ðɪs ɪz ə kɑː kiː ,  bʌt ðɪs ɪz ə ɡeɪt kiː .
+
+[00:20:39]  We're going to walk up the driveway to close the gate .
+[00:20:39]  wɪə ˈɡəʊɪŋ tuː wɔːk ʌp ðə ˈdraɪvweɪ tuː kləʊz ðə ɡeɪt .
+
+[00:20:42]  They'll be flying south now .
+[00:20:42]  ðeɪl biː ˈflaɪɪŋ saʊθ naʊ .
+
+[00:20:45]  And you can see that that's a flock
+[00:20:45]  ænd juː kæn siː ðæt ðæts ə flɒk
+
+[00:20:47]  of geese and they fly in a V shape .
+[00:20:47]  ɒv ɡiːs ænd ðeɪ flaɪ ɪn ə viː ʃeɪp .
+
+[00:20:49]  of geese and they fly in a V shape .
+[00:20:49]  ɒv ɡiːs ænd ðeɪ flaɪ ɪn ə viː ʃeɪp .
+
+[00:20:52]  So the geese are flying down south towards the United
+[00:20:52]  səʊ ðə ɡiːs ɑː ˈflaɪɪŋ daʊn saʊθ təˈwɔːdz ðə juːˈnaɪtɪd
+
+[00:20:56]  States ,  even further south to Mexico
+[00:20:56]  steɪts ,  ˈiːvᵊn ˈfɜːðə saʊθ tuː ˈmɛksɪkəʊ
+
+
+
+[00:20:59]  because right now it's almost fall in Canada .
+[00:20:59]  bɪˈkɒz raɪt naʊ ɪts ˈɔːlməʊst fɔːl ɪn ˈkænədə .
+
+[00:21:02]  And that's when it gets very cold .
+[00:21:02]  ænd ðæts wɛn ɪt ɡɛts ˈvɛri kəʊld .
+
+[00:21:05]  So the geese and other birds fly south where it's warmer .
+[00:21:05]  səʊ ðə ɡiːs ænd ˈʌðə bɜːdz flaɪ saʊθ weər ɪts ˈwɔːmə .
+
+[00:21:10]  Okay .
+[00:21:10]  ˌəʊˈkeɪ .
+
+[00:21:10]  And now we're closing the gate .
+[00:21:10]  ænd naʊ wɪə ˈkləʊzɪŋ ðə ɡeɪt .
+
+[00:21:15]  This gate is black and it pretty much just stops vehicles
+[00:21:15]  ðɪs ɡeɪt ɪz blæk ænd ɪt ˈprɪti mʌʧ ʤʌst stɒps ˈvɪəkᵊlz
+
+[00:21:20]  from driving in through the driveway to our house .
+[00:21:20]  frɒm ˈdraɪvɪŋ ɪn θruː ðə ˈdraɪvweɪ tuː ˈaʊə haʊs .
+
+[00:21:24]  So if you really wanted ,  you
+[00:21:24]  səʊ ɪf juː ˈrɪəli ˈwɒntɪd ,  juː
+
+[00:21:25]  could walk ,  but you can't drive .
+[00:21:25]  kʊd wɔːk ,  bʌt juː kɑːnt draɪv .
+
+[00:21:28]  And that's just for safety .
+[00:21:28]  ænd ðæts ʤʌst fɔː ˈseɪfti .
+
+[00:21:29]  Okay .
+[00:21:29]  ˌəʊˈkeɪ .
+
+[00:21:31]  We just locked the gate there .
+[00:21:31]  wiː ʤʌst lɒkt ðə ɡeɪt ðeə .
+
+[00:21:32]  You can see this row of trees right here .
+[00:21:32]  juː kæn siː ðɪs rəʊ ɒv triːz raɪt hɪə .
+
+[00:21:35]  How many years ago did we plant this row of trees ?
+[00:21:35]  haʊ ˈmɛni jɪəz əˈɡəʊ dɪd wiː plɑːnt ðɪs rəʊ ɒv triːz ?
+
+[00:21:39]  Oh ,  that is a good question .
+[00:21:39]  əʊ ,  ðæt ɪz ə ɡʊd ˈkwɛsʧən .
+
+[00:21:41]  A lot ,  eh ?
+[00:21:41]  ə lɒt ,  eɪ ?
+
+[00:21:42]  I think maybe  14  years ago .
+[00:21:42]  aɪ θɪŋk ˈmeɪbi  14  jɪəz əˈɡəʊ .
+
+[00:22:01]  The screen door is to keep bugs outside but let air inside .
+[00:22:01]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:22:03]  The screen door is to keep bugs outside but let air inside .
+[00:22:03]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:22:04]  The screen door is to keep bugs outside but let air inside .
+[00:22:04]  ðə skriːn dɔːr ɪz tuː kiːp bʌɡz ˌaʊtˈsaɪd bʌt lɛt eər ɪnˈsaɪd .
+
+[00:22:08]  I'm lifting up this flap here and sliding my foot inside .
+[00:22:08]  aɪm ˈlɪftɪŋ ʌp ðɪs flæp hɪər ænd ˈslaɪdɪŋ maɪ fʊt ɪnˈsaɪd .
+
+
+
+[00:22:10]  That's the brand name .
+[00:22:10]  ðæts ðə brænd neɪm .
+
+[00:22:13]  Okay ,  so here are my dogs .
+[00:22:13]  ˌəʊˈkeɪ ,  səʊ hɪər ɑː maɪ dɒɡz .
+
+[00:22:16]  And you can see right here ,  this fence is
+[00:22:16]  ænd juː kæn siː raɪt hɪə ,  ðɪs fɛns ɪz
+
+[00:22:18]  You can see the cows are very tame .
+[00:22:18]  juː kæn siː ðə kaʊz ɑː ˈvɛri teɪm .
+
+[00:22:20]  new ,  it was a lot more vibrant .
+[00:22:20]  njuː ,  ɪt wɒz ə lɒt mɔː ˈvaɪbrᵊnt .
+
+[00:22:23]  but now the color is very faded .
+[00:22:23]  bʌt naʊ ðə ˈkʌlər ɪz ˈvɛri ˈfeɪdɪd .
+
+[00:22:26]  Do you want to go and round up that little calf there ?
+[00:22:26]  duː juː wɒnt tuː ɡəʊ ænd raʊnd ʌp ðæt ˈlɪtᵊl kɑːf ðeə ?
+
+[00:22:31]  We have to go and chase him out .
+[00:22:31]  wiː hæv tuː ɡəʊ ænd ʧeɪs hɪm aʊt .
+
+[00:22:35]  It helps with keeping the flies off them .
+[00:22:35]  ɪt hɛlps wɪð ˈkiːpɪŋ ðə flaɪz ɒf ðɛm .
+
+[00:22:39]  So what's the most important rule on a farm ?
+[00:22:39]  səʊ wɒts ðə məʊst ɪmˈpɔːtᵊnt ruːl ɒn ə fɑːm ?
+
+[00:22:44]  And this ,  you can call this a pail .
+[00:22:44]  ænd ðɪs ,  juː kæn kɔːl ðɪs ə peɪl .
+
+[00:22:47]  Okay ,  now we're at the outdoor fire pit .
+[00:22:47]  ˌəʊˈkeɪ ,  naʊ wɪər æt ði ˈaʊtˌdɔː faɪə pɪt .
+
+[00:22:51]  This kind of outdoor building ,  you can call a gazebo .
+[00:22:51]  ðɪs kaɪnd ɒv ˈaʊtˌdɔː ˈbɪldɪŋ ,  juː kæn kɔːl ə ɡəˈziːbəʊ .
+
+[00:22:55]  So these cans are aerosol cans also .
+[00:22:55]  səʊ ðiːz kænz ɑːr ˈeərəsɒl kænz ˈɔːlsəʊ .
+
+[00:22:58]  So now I'm just putting the seat
+[00:22:58]  səʊ naʊ aɪm ʤʌst ˈpʊtɪŋ ðə siːt
+
+[00:22:59]  straight in line with the tire .
+[00:22:59]  streɪt ɪn laɪn wɪð ðə ˈtaɪə .
+
+[00:23:01]  Every bicycle needs to have a
+[00:23:01]  ˈɛvri ˈbaɪsɪkᵊl niːdz tuː hæv eɪ
+
+[00:23:03]  pedal because that's how you pedal .
+[00:23:03]  ˈpɛdᵊl bɪˈkɒz ðæts haʊ juː ˈpɛdᵊl .
+
+[00:23:05]  So I'm pedaling means I'm putting
+[00:23:05]  səʊ aɪm ˈpɛdᵊlɪŋ miːnz aɪm ˈpʊtɪŋ
+
+[00:23:08]  So like my mom just said ,  you have to have good balance .
+[00:23:08]  səʊ laɪk maɪ mɒm ʤʌst sɛd ,  juː hæv tuː hæv ɡʊd ˈbælᵊns .
+
+[00:23:10]  But right now we're in the garden .
+[00:23:10]  bʌt raɪt naʊ wɪər ɪn ðə ˈɡɑːdᵊn .
+
+
+
+[00:23:13]  So if you pull it ,  they're so knotted up
+[00:23:13]  səʊ ɪf juː pʊl ɪt ,  ðeə səʊ ˈnɒtɪd ʌp
+
+[00:23:15]  because you see they're all tied together .
+[00:23:15]  bɪˈkɒz juː siː ðeər ɔːl taɪd təˈɡɛðə .
+
+[00:23:18]  because it comes from a well underground .
+[00:23:18]  bɪˈkɒz ɪt kʌmz frɒm ə wɛl ˈʌndəɡraʊnd .
+
+[00:23:23]  And you can see that that's a flock
+[00:23:23]  ænd juː kæn siː ðæt ðæts ə flɒk
+
+[00:23:25]  of geese and they fly in a V shape .
+[00:23:25]  ɒv ɡiːs ænd ðeɪ flaɪ ɪn ə viː ʃeɪp .
+
+[00:23:28]  that's the end of the video ,  guys .
+[00:23:28]  ðæts ði ɛnd ɒv ðə ˈvɪdiəʊ ,  ɡaɪz .
+
+[00:23:30]  I'll be posting every single Friday from now on .
+[00:23:30]  aɪl biː ˈpəʊstɪŋ ˈɛvri ˈsɪŋɡᵊl ˈfraɪdeɪ frɒm naʊ ɒn .
+
+[00:23:34]  So make sure to turn on notifications and stay up to date .
+[00:23:34]  səʊ meɪk ʃɔː tuː tɜːn ɒn ˌnəʊtɪfɪˈkeɪʃᵊnz ænd steɪ ʌp tuː deɪt .
+
+[00:23:36]  And remember ,  guys ,  you will become fluent in English .
+[00:23:36]  ænd rɪˈmɛmbə ,  ɡaɪz ,  juː wɪl bɪˈkʌm ˈfluːənt ɪn ˈɪŋɡlɪʃ .
+
+[00:23:41]  See you in the next video .
+[00:23:41]  siː juː ɪn ðə nɛkst ˈvɪdiəʊ .
+`;
+/* ================= SELESAI. JANGAN UBAH DI BAWAH INI ================= */
+</script>
+
+<div class="app" id="app">
+  <header class="top">
+    <div>
+      <h1 id="ttl">Shadowing</h1>
+      <p class="sub"><span id="count">204</span> baris · transkrip + fonetik · <span class="mode" id="modeLbl">mode timer</span></p>
+    </div>
+    <div class="chips">
+      <button class="chip" id="bOnlyPins" aria-pressed="false">Tersimpan <span id="pinCount">0</span></button>
+    </div>
+  </header>
+
+  <div class="side">
+  <section class="stage" id="stage">
+    <div class="ytbox" id="ytbox" hidden><div id="ytplayer"></div></div>
+    <div class="timerbox" id="timerbox">
+      <div class="big" id="bigtime">0:00</div>
+      <p>Video YouTube tidak bisa diputar di halaman ini, jadi transkrip berjalan dengan timer. Mulai video di YouTube pada detik yang sama, lalu tekan Play di sini.</p>
+      <a id="ytlink" target="_blank" rel="noopener" href="https://youtu.be/ofPPsEXbEKM">Buka video di 0:00</a>
+    </div>
+  </section>
+
+  <footer class="dock" id="dock">
+    <div class="pop" id="pop" hidden></div>
+    <div class="seek">
+      <span id="tcur">0:00</span>
+      <input type="range" id="seek" min="0" max="625" step="0.1" value="0" aria-label="Posisi video">
+      <span id="tdur">10:25</span>
+    </div>
+    <div class="btns">
+      <button class="tool" id="bPin" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/></svg><span>Pin</span></button>
+      <button class="tool" id="bIpa" aria-pressed="true"><span class="glyph">ə</span><span>Fonetik</span></button>
+      <button class="tool" id="bLoop" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 01-4 4H4"/></svg><span id="loopLbl">Ulang</span></button>
+      <button class="tool" id="bSpeed" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0M12 14l4-5"/></svg><span id="speedLbl">Speed 1×</span></button>
+      <button class="play" id="bPlay" aria-label="Play"></button>
+    </div>
+  </footer>
+  </div>
+
+  <main class="list" id="list" aria-label="Transkrip"></main>
+</div>
+
+<script>
+
+function parseTranskrip(raw) {
+  const ent = [];
+  raw.split(/\r?\n/).forEach((l) => {
+    let m = l.match(/^\s*\[(\d{1,2}):(\d{2}):(\d{2})\]\s*(.*)$/);
+    if (m) { ent.push([+m[1] * 3600 + +m[2] * 60 + +m[3], m[4].trim()]); return; }
+    m = l.match(/^\s*\[(\d{1,3}):(\d{2})\]\s*(.*)$/);
+    if (m) ent.push([+m[1] * 60 + +m[2], m[3].trim()]);
+  });
+  const tidy = (s) => s.replace(/"\s+(\S)/g, '"$1').replace(/\s+([.,?!])/g, '$1').replace(/ - /g, '-').replace(/\s+/g, ' ').trim();
+  const out = [];
+  let prev = -1, i = 0;
+  while (i < ent.length - 1) {
+    if (ent[i][0] !== ent[i + 1][0]) { i += 1; continue; }
+    let t = ent[i][0];
+    const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);
+    i += 2;
+    if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;
+    prev = t;
+    const a = en.split(' '), b = ip.split(' ');
+    const d = { t, en, ip };
+    if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);
+    if (/^\[\s*music\s*\]/i.test(en)) d.m = 1;
+    out.push(d);
+  }
+  return out;
+}
+const DATA = parseTranskrip(TRANSKRIP);
+document.title = JUDUL;
+const titleEl = document.getElementById('ttl');
+if (titleEl) titleEl.textContent = JUDUL;
+if (!DATA.length) {
+  document.getElementById('list').innerHTML = '<div class="empty">Transkrip kosong atau formatnya tidak dikenali. Pastikan setiap baris diawali [00:00:17] dan berpasangan: teks Inggris lalu IPA.</div>';
+  throw new Error('Transkrip kosong');
+}
+const RATES = [0.5, 0.75, 1, 1.25, 1.5];
+const $ = (s) => document.querySelector(s);
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/* segment ends: highlight runs until the next line, a loop stops a little after the speech ends */
+DATA.forEach((d, i) => {
+  const next = i < DATA.length - 1 ? DATA[i + 1].t : d.t + 5;
+  const words = d.w ? d.w.length : 3;
+  d.s = d.t;
+  d.le = Math.min(next, d.t + Math.max(2.2, words * 0.55 + 1.3));
+});
+const DUR_DEFAULT = Math.ceil(DATA[DATA.length - 1].t + 8);
+
+const list = $('#list'), seekEl = $('#seek'), tcur = $('#tcur'), tdur = $('#tdur');
+const app = $('#app'), pop = $('#pop');
+const playSvg = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseSvg = '<svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
+const pinSvg = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/></svg>';
+
+let mode = 'timer', yt = null, ytOk = false;
+const clock = { t: 0, playing: false, last: 0 };
+let rate = 1, loopIdx = null, activeIdx = -1, dragging = false;
+let userScrollUntil = 0, lastLoopSeek = 0, holdUntil = 0, shownPlaying = null, lastLinkSec = -1;
+let pins = new Set();
+try { pins = new Set(JSON.parse(localStorage.getItem('uk-pins') || '[]')); } catch (e) {}
+try { if (localStorage.getItem('uk-ipa') === '0') { app.classList.add('noipa'); $('#bIpa').setAttribute('aria-pressed', 'false'); } } catch (e) {}
+
+/* ---------- render ---------- */
+const lines = [];
+DATA.forEach((d, i) => {
+  const el = document.createElement('div');
+  el.className = 'line' + (d.m ? ' music' : '') + (pins.has(d.t) ? ' pinned' : '');
+  el.dataset.i = i;
+  el.tabIndex = 0;
+  el.setAttribute('role', 'button');
+  const body = d.w
+    ? '<div class="ws">' + d.w.map(([a, b]) => '<span class="w"><b>' + esc(a) + '</b><i>' + esc(b) + '</i></span>').join('') + '</div>'
+    : '<div class="ws"><span class="w"><b>' + esc(d.en) + '</b><i>' + esc(d.ip) + '</i></span></div>';
+  el.innerHTML = '<span class="tm">' + fmt(d.t) + '</span><div class="body">' + body + '</div><button class="pinb" aria-label="Simpan baris" tabindex="-1">' + pinSvg + '</button>';
+  list.appendChild(el);
+  lines.push(el);
+});
+const emptyEl = document.createElement('div');
+emptyEl.className = 'empty'; emptyEl.hidden = true;
+emptyEl.textContent = 'Belum ada baris tersimpan. Tekan ikon pin di sebuah baris untuk menyimpannya.';
+list.appendChild(emptyEl);
+$('#count').textContent = DATA.length;
+
+function updatePinUI() {
+  $('#pinCount').textContent = pins.size;
+  const onlyPins = app.classList.contains('only-pinned');
+  emptyEl.hidden = !(onlyPins && pins.size === 0);
+  const cur = Math.max(activeIdx, 0);
+  $('#bPin').setAttribute('aria-pressed', pins.has(DATA[cur].t) ? 'true' : 'false');
+}
+function togglePin(i) {
+  const t = DATA[i].t;
+  if (pins.has(t)) pins.delete(t); else pins.add(t);
+  lines[i].classList.toggle('pinned', pins.has(t));
+  try { localStorage.setItem('uk-pins', JSON.stringify([...pins])); } catch (e) {}
+  updatePinUI();
+}
+
+/* ---------- player adapter: YouTube when it can load, timer otherwise ---------- */
+const ytMode = () => mode === 'yt' && ytOk;
+const dur = () => { if (ytMode()) { const d = yt.getDuration(); if (d > 0) return d; } return DUR_DEFAULT; };
+const time = () => (ytMode() ? yt.getCurrentTime() : clock.t);
+const isPlaying = () => (ytMode() ? yt.getPlayerState() === 1 : clock.playing);
+function seek(t) {
+  t = Math.min(Math.max(0, t), dur());
+  holdUntil = performance.now() + 450;
+  if (ytMode()) yt.seekTo(t, true); else clock.t = t;
+}
+function play() {
+  if (ytMode()) yt.playVideo();
+  else { if (clock.t >= dur() - 0.1) clock.t = 0; clock.playing = true; clock.last = performance.now(); }
+}
+function pause() { if (ytMode()) yt.pauseVideo(); else clock.playing = false; }
+function setRate(r) {
+  rate = r;
+  if (ytMode()) yt.setPlaybackRate(r);
+  $('#speedLbl').textContent = 'Speed ' + r + '×';
+  [...pop.children].forEach((b) => b.setAttribute('aria-pressed', String(parseFloat(b.dataset.r) === r)));
+}
+
+function showTimer() {
+  mode = 'timer';
+  $('#ytbox').hidden = true; $('#timerbox').hidden = false;
+  $('#modeLbl').textContent = 'mode timer';
+}
+function showYT() {
+  mode = 'yt';
+  $('#ytbox').hidden = false; $('#timerbox').hidden = true;
+  $('#modeLbl').textContent = 'sinkron YouTube';
+}
+function loadYouTube() {
+  const s = document.createElement('script');
+  s.src = 'https://www.youtube.com/iframe_api';
+  s.onerror = () => {};
+  window.onYouTubeIframeAPIReady = () => {
+    try {
+      yt = new YT.Player('ytplayer', {
+        videoId: VIDEO_ID,
+        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },
+        events: {
+          onReady: () => { ytOk = true; clock.playing = false; showYT(); yt.setPlaybackRate(rate); tdur.textContent = fmt(dur()); seekEl.max = dur(); },
+          onError: () => { ytOk = false; try { yt.destroy(); } catch (e) {} showTimer(); }
+        }
+      });
+    } catch (e) { showTimer(); }
+  };
+  document.head.appendChild(s);
+}
+
+/* ---------- loop ---------- */
+function setLoop(i) {
+  if (loopIdx != null) lines[loopIdx].classList.remove('looping');
+  loopIdx = i;
+  if (i != null) lines[i].classList.add('looping');
+  $('#bLoop').setAttribute('aria-pressed', i != null ? 'true' : 'false');
+  $('#loopLbl').textContent = i != null ? 'Ulang 1 baris' : 'Ulang';
+}
+
+/* ---------- active line + scrolling ---------- */
+function findIdx(t) {
+  let lo = 0, hi = DATA.length - 1, ans = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (DATA[mid].s <= t + 0.05) { ans = mid; lo = mid + 1; } else hi = mid - 1;
+  }
+  return ans;
+}
+function scrollToLine(i, force) {
+  const el = lines[i];
+  if (!el || el.offsetParent === null) return;
+  if (!force && performance.now() < userScrollUntil) return;
+  const top = el.offsetTop - list.clientHeight / 2 + el.clientHeight / 2;
+  list.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+}
+function setActive(i, force) {
+  if (activeIdx >= 0) lines[activeIdx].classList.remove('active');
+  activeIdx = i;
+  if (i >= 0) { lines[i].classList.add('active'); scrollToLine(i, force); }
+  updatePinUI();
+}
+
+/* ---------- main tick ---------- */
+function updatePlayBtn() {
+  const p = isPlaying();
+  if (p === shownPlaying) return;
+  shownPlaying = p;
+  $('#bPlay').innerHTML = p ? pauseSvg : playSvg;
+  $('#bPlay').setAttribute('aria-label', p ? 'Jeda' : 'Play');
+}
+function tick() {
+  const nowMs = performance.now();
+  if (!ytMode()) {
+    if (clock.playing) {
+      clock.t += ((nowMs - clock.last) / 1000) * rate;
+      if (clock.t >= dur()) { clock.t = dur(); clock.playing = false; }
+    }
+    clock.last = nowMs;
+  }
+  const t = time();
+  if (loopIdx != null && isPlaying() && t >= DATA[loopIdx].le - 0.05 && nowMs - lastLoopSeek > 500) {
+    lastLoopSeek = nowMs;
+    seek(DATA[loopIdx].s);
+  }
+  if (!dragging) {
+    const i = nowMs < holdUntil ? activeIdx : findIdx(t);
+    if (i !== activeIdx) setActive(i);
+    seekEl.value = t;
+    tcur.textContent = fmt(t);
+  }
+  if (!ytMode()) {
+    $('#bigtime').textContent = fmt(t);
+    const sec = Math.floor(t);
+    if (sec !== lastLinkSec) { lastLinkSec = sec; $('#ytlink').href = 'https://youtu.be/' + VIDEO_ID + '?t=' + sec; $('#ytlink').textContent = 'Buka video di ' + fmt(t); }
+  }
+  updatePlayBtn();
+}
+setInterval(tick, 80);
+
+/* ---------- events ---------- */
+list.addEventListener('click', (e) => {
+  const ln = e.target.closest('.line');
+  if (!ln) return;
+  const i = +ln.dataset.i;
+  if (e.target.closest('.pinb')) { togglePin(i); return; }
+  if (loopIdx != null) setLoop(i);
+  seek(DATA[i].s);
+  setActive(i, true);
+  play();
+});
+list.addEventListener('keydown', (e) => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('line')) { e.preventDefault(); e.target.click(); }
+});
+['wheel', 'touchstart', 'pointerdown'].forEach((ev) => list.addEventListener(ev, () => { userScrollUntil = performance.now() + 4000; }, { passive: true }));
+
+seekEl.addEventListener('input', () => {
+  dragging = true;
+  const v = parseFloat(seekEl.value);
+  tcur.textContent = fmt(v);
+  const i = findIdx(v);
+  if (i !== activeIdx) setActive(i, true);
+});
+seekEl.addEventListener('change', () => {
+  const v = parseFloat(seekEl.value);
+  dragging = false;
+  if (loopIdx != null && (v < DATA[loopIdx].s - 0.5 || v > DATA[loopIdx].le + 0.5)) setLoop(null);
+  seek(v);
+});
+
+$('#bPlay').addEventListener('click', () => { if (isPlaying()) pause(); else play(); });
+$('#bLoop').addEventListener('click', () => { if (loopIdx != null) setLoop(null); else setLoop(Math.max(activeIdx, 0)); });
+$('#bPin').addEventListener('click', () => togglePin(Math.max(activeIdx, 0)));
+$('#bIpa').addEventListener('click', () => {
+  const off = app.classList.toggle('noipa');
+  $('#bIpa').setAttribute('aria-pressed', String(!off));
+  try { localStorage.setItem('uk-ipa', off ? '0' : '1'); } catch (e) {}
+});
+$('#bOnlyPins').addEventListener('click', () => {
+  const on = app.classList.toggle('only-pinned');
+  $('#bOnlyPins').setAttribute('aria-pressed', String(on));
+  updatePinUI();
+  if (activeIdx >= 0 && !on) scrollToLine(activeIdx, true);
+});
+
+RATES.forEach((r) => {
+  const b = document.createElement('button');
+  b.dataset.r = r; b.textContent = r + '×';
+  b.addEventListener('click', () => { setRate(r); pop.hidden = true; });
+  pop.appendChild(b);
+});
+$('#bSpeed').addEventListener('click', (e) => { e.stopPropagation(); pop.hidden = !pop.hidden; });
+document.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('#pop')) pop.hidden = true; });
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === ' ' && !e.target.classList.contains('line') && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('#bPlay').click(); }
+});
+
+/* ---------- start ---------- */
+seekEl.max = DUR_DEFAULT; tdur.textContent = fmt(DUR_DEFAULT);
+setRate(1); updatePinUI(); updatePlayBtn();
+loadYouTube();
+</script>
+
+</body>
+</html>
