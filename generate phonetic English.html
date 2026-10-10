@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pembuat Shadowing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>
+/* Layout: satu kolom, tiga langkah berurutan (video, transkrip, hasil). Warna dan huruf sama dengan halaman shadowing. */
+:root {
+  --bg: #EDEFF2; --surface: #FFFFFF; --ink: #0E1626; --muted: #5A6577; --rule: #D9DEE6;
+  --accent: #D8281F; --accent-ink: #FFFFFF; --tint: #FCEAE8; --ipa: #1F5FB8;
+  --ok: #1B7F4B; --warn: #94600A; --bad: #C0261D;
+  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
+  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+    --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+  --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.45; }
+.wrap { max-width: 720px; margin: 0 auto; padding-inline: 16px; padding-block: 22px 56px; display: flex; flex-direction: column; gap: 26px; }
+h1 { margin: 0; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+.lead { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; max-width: 60ch; }
+.step { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step > h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 700; }
+.step > h2 .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
+.field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.field label { font-size: 0.85rem; font-weight: 600; }
+.hint { font-size: 0.8rem; color: var(--muted); }
+input[type="text"], input[type="url"], textarea { width: 100%; min-width: 0; padding: 12px 14px; border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); color: var(--ink); font: inherit; font-size: 16px; }
+textarea { min-height: 220px; resize: vertical; font-family: var(--font-mono); font-size: 13px; line-height: 1.5; }
+input:focus-visible, textarea:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--rule); background: var(--surface); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 8px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.status { display: flex; flex-direction: column; gap: 6px; font-size: 0.88rem; }
+.pill { display: inline-flex; align-items: center; gap: 8px; width: fit-content; max-width: 100%; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.84rem; }
+.dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: none; }
+.pill.ok .dot { background: var(--ok); } .pill.warn .dot { background: var(--warn); } .pill.bad .dot { background: var(--bad); }
+.pill code { font-family: var(--font-mono); }
+.note { margin: 0; font-size: 0.84rem; color: var(--muted); }
+.note.warn { color: var(--warn); } .note.bad { color: var(--bad); }
+.preview { display: flex; flex-direction: column; gap: 2px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; padding: 6px; }
+.preview[hidden] { display: none; }
+.pl { display: flex; gap: 12px; padding: 10px; align-items: flex-start; }
+.pl .tm { flex: none; width: 44px; margin-top: 3px; text-align: center; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ws { display: flex; flex-wrap: wrap; gap: 2px 12px; min-width: 0; }
+.w { display: flex; flex-direction: column; }
+.w b { font-weight: 600; font-size: 1.05rem; }
+.w i { font-family: var(--font-ipa); font-style: normal; font-size: 0.92rem; color: var(--ipa); line-height: 1.25; }
+.more { padding: 4px 10px 8px 66px; font-size: 0.8rem; color: var(--muted); }
+details { border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); padding: 0 14px; }
+details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+details[open] > summary { border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
+details .inner { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+details ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+.code { margin: 0; padding: 12px; border-radius: 10px; background: var(--bg); border: 1px solid var(--rule); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+#output { min-height: 140px; font-size: 12px; }
+.toast { min-height: 1.3em; font-size: 0.88rem; font-weight: 600; color: var(--ok); }
+.toast.bad { color: var(--bad); }
+</style>
+
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <h1>Pembuat halaman shadowing</h1>
+    <p class="lead">Isi link video dan tempel transkrip dari toPhonetics. Hasilnya satu file HTML yang siap diunggah, dengan transkrip yang menyorot baris sesuai waktu video, fonetik per kata, fitur ulang, dan kecepatan.</p>
+  </header>
+
+  <section class="step" aria-labelledby="h1s">
+    <h2 id="h1s"><span class="n">1</span>Video</h2>
+    <div class="field">
+      <label for="url">Link YouTube</label>
+      <input type="url" id="url" placeholder="https://youtu.be/52t241OQ7Ec" autocomplete="off" inputmode="url">
+      <div class="status"><span class="pill" id="idPill"><span class="dot"></span><span id="idText">Belum ada link</span></span></div>
+    </div>
+    <div class="field">
+      <label for="title">Judul halaman</label>
+      <input type="text" id="title" placeholder="Contoh: Travel to the UK" autocomplete="off">
+    </div>
+  </section>
+
+  <section class="step" aria-labelledby="h2s">
+    <h2 id="h2s"><span class="n">2</span>Transkrip dan fonetik</h2>
+    <div class="field">
+      <label for="raw">Tempel hasil ekspor toPhonetics</label>
+      <textarea id="raw" spellcheck="false" placeholder="[00:00:17] today&#10;[00:00:17] təˈdeɪ&#10;&#10;[00:00:19] I'm going back to the UK&#10;[00:00:19] aɪm ˈɡəʊɪŋ bæk tuː ðə juː-keɪ"></textarea>
+      <span class="hint">Setiap baris diawali [jam:menit:detik]. Baris pertama teks Inggris, baris kedua IPA dengan waktu yang sama.</span>
+    </div>
+    <div class="row">
+      <button class="btn" id="bFile" type="button">Pilih file .txt</button>
+      <button class="btn" id="bSample" type="button">Isi contoh</button>
+      <button class="btn" id="bClear" type="button">Hapus</button>
+      <input type="file" id="file" accept=".txt,text/plain" hidden>
+    </div>
+    <div class="status">
+      <span class="pill" id="rawPill"><span class="dot"></span><span id="rawText">Belum ada transkrip</span></span>
+      <p class="note warn" id="warn1" hidden></p>
+      <p class="note warn" id="warn2" hidden></p>
+    </div>
+    <div class="preview" id="preview" hidden></div>
+  </section>
+
+  <section class="step" aria-labelledby="h3s">
+    <h2 id="h3s"><span class="n">3</span>Hasil</h2>
+    <div class="row">
+      <button class="btn primary" id="bDl" type="button" disabled>Unduh file HTML</button>
+      <button class="btn" id="bCopy" type="button" disabled>Salin kode</button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <details id="dOut">
+      <summary>Lihat kode hasil</summary>
+      <div class="inner">
+        <textarea id="output" readonly spellcheck="false" aria-label="Kode HTML hasil"></textarea>
+      </div>
+    </details>
+    <details>
+      <summary>Cara menampilkan di blog</summary>
+      <div class="inner">
+        <ol>
+          <li>Unggah file ke GitHub Pages atau Netlify, sehingga punya alamat https.</li>
+          <li>Di WordPress pakai blok HTML Kustom. Di Blogger buka tampilan HTML di postingan.</li>
+          <li>Tempel baris di bawah ini, lalu ganti alamatnya dengan alamat file kamu.</li>
+        </ol>
+        <pre class="code" id="iframeCode">&lt;iframe src="https://alamat-file-kamu.html"
+        style="width:100%;height:720px;border:0;border-radius:12px"
+        allow="fullscreen; encrypted-media"&gt;&lt;/iframe&gt;</pre>
+        <div class="row"><button class="btn" id="bCopyIframe" type="button">Salin kode iframe</button></div>
+      </div>
+    </details>
+  </section>
+</main>
+
+<script>
+const TEMPLATE = "<!doctype html>\n<html lang=\"id\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1,viewport-fit=cover\">\n<title>__JUDUL_HTML__<\/title>\n<link rel=\"preconnect\" href=\"https://fonts.googleapis.com\">\n<link rel=\"preconnect\" href=\"https://fonts.gstatic.com\" crossorigin>\n<link rel=\"stylesheet\" href=\"https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap\">\n<style>\n/* Layout: one-screen practice app. Player/timer strip on top, transcript scrolls in the middle, control dock pinned at the bottom. Active line is tinted, its time chip turns red like a Tube line marker. */\n:root {\n  --bg: #EDEFF2;\n  --surface: #FFFFFF;\n  --ink: #0E1626;\n  --muted: #5A6577;\n  --rule: #D9DEE6;\n  --accent: #D8281F;\n  --accent-ink: #FFFFFF;\n  --tint: #FCEAE8;\n  --ipa: #1F5FB8;\n  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;\n  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;\n  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;\n  color-scheme: light;\n}\n@media (prefers-color-scheme: dark) {\n  :root:not([data-theme=\"light\"]) {\n    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;\n    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;\n    color-scheme: dark;\n  }\n}\n:root[data-theme=\"dark\"] {\n  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;\n  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;\n  color-scheme: dark;\n}\n\n* { box-sizing: border-box; }\nhtml, body { height: 100%; }\nbody { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.35; overflow: hidden; }\nbutton { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }\n:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }\n\n.app { height: 100%; max-width: 760px; margin: 0 auto; padding-inline: 16px; padding-block: 12px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }\n\n/* header */\n.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }\n.top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }\n.top .sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }\n.chips { display: flex; gap: 8px; align-items: center; }\n.chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }\n.chip[aria-pressed=\"true\"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }\n.mode { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }\n\n/* stage */\n.stage { flex: none; }\n.ytbox { aspect-ratio: 16 / 9; max-height: 34vh; margin-inline: auto; background: #000; border-radius: 12px; overflow: hidden; }\n.ytbox iframe { width: 100%; height: 100%; display: block; }\n.timerbox { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }\n.timerbox .big { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }\n.timerbox p { margin: 0; flex: 1 1 200px; min-width: 0; font-size: 0.82rem; color: var(--muted); }\n.timerbox a { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 0.82rem; font-weight: 600; text-decoration: none; }\n\n/* transcript */\n.list { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-block: 2px 24px; scrollbar-width: thin; }\n.line { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 14px; cursor: pointer; }\n.line:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }\n.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }\n.line .body { flex: 1; min-width: 0; }\n.ws { display: flex; flex-wrap: wrap; gap: 2px 12px; }\n.w { display: flex; flex-direction: column; }\n.w b { font-weight: 600; font-size: 1.18rem; letter-spacing: -0.005em; }\n.w i { font-family: var(--font-ipa); font-style: normal; font-size: 0.98rem; color: var(--ipa); line-height: 1.25; }\n.line.music .w b { font-weight: 400; font-style: italic; color: var(--muted); }\n.line.music { opacity: 0.7; }\n.pinb { flex: none; width: 36px; height: 36px; margin: -4px -4px 0 0; display: grid; place-items: center; color: var(--muted); opacity: 0; border-radius: 10px; }\n.line:hover .pinb, .line.pinned .pinb { opacity: 1; }\n@media (hover: none) { .pinb { opacity: 0.45; } .line.pinned .pinb { opacity: 1; } }\n.line.pinned .pinb { color: var(--accent); }\n.line.pinned .pinb svg { fill: currentColor; }\n.line.active { background: var(--tint); }\n.line.active .tm { background: var(--accent); color: var(--accent-ink); }\n.line.looping { box-shadow: inset 0 0 0 2px var(--accent); }\n.line.looping .tm::after { content: ' ↻'; }\n.noipa .w i { display: none; }\n.only-pinned .line:not(.pinned) { display: none; }\n.empty { padding: 28px 12px; color: var(--muted); font-size: 0.9rem; text-align: center; }\n.empty[hidden] { display: none; }\n\n/* dock */\n.dock { position: relative; flex: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 22px; padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 6px; }\n.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }\n.seek input { flex: 1; min-width: 0; accent-color: var(--accent); height: 24px; }\n.btns { display: flex; align-items: center; gap: 2px; }\n.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }\n.tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }\n.tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }\n.tool[aria-pressed=\"true\"] { color: var(--accent); }\n.play { flex: none; width: 62px; height: 52px; margin-left: 4px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }\n.play svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }\n.pop { position: absolute; right: 78px; bottom: calc(100% - 6px); display: flex; gap: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }\n.pop[hidden] { display: none; }\n.pop button { min-width: 48px; min-height: 40px; padding: 0 8px; border-radius: 10px; font-family: var(--font-mono); font-size: 0.82rem; border: 1px solid var(--rule); }\n.pop button[aria-pressed=\"true\"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }\n\n@media (max-width: 420px) {\n  .w b { font-size: 1.1rem; }\n  .pop { right: 8px; }\n}\n@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }\n<\/style>\n<\/head>\n<body>\n<script>\n/* =====================================================================\n   TEMPLAT SHADOWING: ISI HANYA 3 BAGIAN DI BAWAH INI, LALU SIMPAN.\n   Bagian lain di file ini tidak perlu disentuh.\n   ===================================================================== */\n\n/* 1) Kode video YouTube: bagian setelah youtu.be/ atau setelah v=\n      Contoh: https://youtu.be/__VIDEO_ID__  ->  __VIDEO_ID__            */\nconst VIDEO_ID = '__VIDEO_ID__';\n\n/* 2) Judul yang tampil di bagian atas halaman                         */\nconst JUDUL = '__JUDUL__';\n\n/* 3) Transkrip + fonetik. Tempel hasil ekspor toPhonetics apa adanya,\n      di antara dua tanda ` (backtick) di bawah. Setiap baris diawali\n      [jam:menit:detik]; baris pertama teks Inggris, baris kedua IPA.   */\nconst TRANSKRIP = `\n__TRANSKRIP__\n`;\n/* ================= SELESAI. JANGAN UBAH DI BAWAH INI ================= */\n<\/script>\n\n<div class=\"app\" id=\"app\">\n  <header class=\"top\">\n    <div>\n      <h1 id=\"ttl\">__JUDUL_HTML__<\/h1>\n      <p class=\"sub\"><span id=\"count\">204<\/span> baris · transkrip + fonetik · <span class=\"mode\" id=\"modeLbl\">mode timer<\/span><\/p>\n    <\/div>\n    <div class=\"chips\">\n      <button class=\"chip\" id=\"bOnlyPins\" aria-pressed=\"false\">Tersimpan <span id=\"pinCount\">0<\/span><\/button>\n    <\/div>\n  <\/header>\n\n  <section class=\"stage\" id=\"stage\">\n    <div class=\"ytbox\" id=\"ytbox\" hidden><div id=\"ytplayer\"><\/div><\/div>\n    <div class=\"timerbox\" id=\"timerbox\">\n      <div class=\"big\" id=\"bigtime\">0:00<\/div>\n      <p>Video YouTube tidak bisa diputar di halaman ini, jadi transkrip berjalan dengan timer. Mulai video di YouTube pada detik yang sama, lalu tekan Play di sini.<\/p>\n      <a id=\"ytlink\" target=\"_blank\" rel=\"noopener\" href=\"https://youtu.be/__VIDEO_ID__\">Buka video di 0:00<\/a>\n    <\/div>\n  <\/section>\n\n  <main class=\"list\" id=\"list\" aria-label=\"Transkrip\"><\/main>\n\n  <footer class=\"dock\" id=\"dock\">\n    <div class=\"pop\" id=\"pop\" hidden><\/div>\n    <div class=\"seek\">\n      <span id=\"tcur\">0:00<\/span>\n      <input type=\"range\" id=\"seek\" min=\"0\" max=\"625\" step=\"0.1\" value=\"0\" aria-label=\"Posisi video\">\n      <span id=\"tdur\">10:25<\/span>\n    <\/div>\n    <div class=\"btns\">\n      <button class=\"tool\" id=\"bPin\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\"><path d=\"M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7\"/><\/svg><span>Pin<\/span><\/button>\n      <button class=\"tool\" id=\"bIpa\" aria-pressed=\"true\"><span class=\"glyph\">ə<\/span><span>Fonetik<\/span><\/button>\n      <button class=\"tool\" id=\"bLoop\" aria-pressed=\"false\"><svg viewBox=\"0 0 24 24\"><path d=\"M17 2l3 3-3 3M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 01-4 4H4\"/><\/svg><span id=\"loopLbl\">Ulang<\/span><\/button>\n      <button class=\"tool\" id=\"bSpeed\" aria-haspopup=\"true\"><svg viewBox=\"0 0 24 24\"><path d=\"M4.5 18a9 9 0 1115 0M12 14l4-5\"/><\/svg><span id=\"speedLbl\">Speed 1×<\/span><\/button>\n      <button class=\"play\" id=\"bPlay\" aria-label=\"Play\"><\/button>\n    <\/div>\n  <\/footer>\n<\/div>\n\n<script>\n\nfunction parseTranskrip(raw) {\n  const ent = [];\n  raw.split(/\\r?\\n/).forEach((l) => {\n    let m = l.match(/^\\s*\\[(\\d{1,2}):(\\d{2}):(\\d{2})\\]\\s*(.*)$/);\n    if (m) { ent.push([+m[1] * 3600 + +m[2] * 60 + +m[3], m[4].trim()]); return; }\n    m = l.match(/^\\s*\\[(\\d{1,3}):(\\d{2})\\]\\s*(.*)$/);\n    if (m) ent.push([+m[1] * 60 + +m[2], m[3].trim()]);\n  });\n  const tidy = (s) => s.replace(/\"\\s+(\\S)/g, '\"$1').replace(/\\s+([.,?!])/g, '$1').replace(/ - /g, '-').replace(/\\s+/g, ' ').trim();\n  const out = [];\n  let prev = -1, i = 0;\n  while (i < ent.length - 1) {\n    if (ent[i][0] !== ent[i + 1][0]) { i += 1; continue; }\n    let t = ent[i][0];\n    const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);\n    i += 2;\n    if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;\n    prev = t;\n    const a = en.split(' '), b = ip.split(' ');\n    const d = { t, en, ip };\n    if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);\n    if (/^\\[\\s*music\\s*\\]/i.test(en)) d.m = 1;\n    out.push(d);\n  }\n  return out;\n}\nconst DATA = parseTranskrip(TRANSKRIP);\ndocument.title = JUDUL;\nconst titleEl = document.getElementById('ttl');\nif (titleEl) titleEl.textContent = JUDUL;\nif (!DATA.length) {\n  document.getElementById('list').innerHTML = '<div class=\"empty\">Transkrip kosong atau formatnya tidak dikenali. Pastikan setiap baris diawali [00:00:17] dan berpasangan: teks Inggris lalu IPA.<\/div>';\n  throw new Error('Transkrip kosong');\n}\nconst RATES = [0.5, 0.75, 1, 1.25, 1.5];\nconst $ = (s) => document.querySelector(s);\nconst fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };\nconst esc = (s) => String(s).replace(/&/g, '&amp;').replace(/<\/g, '&lt;').replace(/>/g, '&gt;');\n\n/* segment ends: highlight runs until the next line, a loop stops a little after the speech ends */\nDATA.forEach((d, i) => {\n  const next = i < DATA.length - 1 ? DATA[i + 1].t : d.t + 5;\n  const words = d.w ? d.w.length : 3;\n  d.s = d.t;\n  d.le = Math.min(next, d.t + Math.max(2.2, words * 0.55 + 1.3));\n});\nconst DUR_DEFAULT = Math.ceil(DATA[DATA.length - 1].t + 8);\n\nconst list = $('#list'), seekEl = $('#seek'), tcur = $('#tcur'), tdur = $('#tdur');\nconst app = $('#app'), pop = $('#pop');\nconst playSvg = '<svg viewBox=\"0 0 24 24\"><path d=\"M8 5v14l11-7z\"/><\/svg>';\nconst pauseSvg = '<svg viewBox=\"0 0 24 24\"><rect x=\"6\" y=\"5\" width=\"4\" height=\"14\" rx=\"1\"/><rect x=\"14\" y=\"5\" width=\"4\" height=\"14\" rx=\"1\"/><\/svg>';\nconst pinSvg = '<svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7\"/><\/svg>';\n\nlet mode = 'timer', yt = null, ytOk = false;\nconst clock = { t: 0, playing: false, last: 0 };\nlet rate = 1, loopIdx = null, activeIdx = -1, dragging = false;\nlet userScrollUntil = 0, lastLoopSeek = 0, holdUntil = 0, shownPlaying = null, lastLinkSec = -1;\nlet pins = new Set();\ntry { pins = new Set(JSON.parse(localStorage.getItem('uk-pins') || '[]')); } catch (e) {}\ntry { if (localStorage.getItem('uk-ipa') === '0') { app.classList.add('noipa'); $('#bIpa').setAttribute('aria-pressed', 'false'); } } catch (e) {}\n\n/* ---------- render ---------- */\nconst lines = [];\nDATA.forEach((d, i) => {\n  const el = document.createElement('div');\n  el.className = 'line' + (d.m ? ' music' : '') + (pins.has(d.t) ? ' pinned' : '');\n  el.dataset.i = i;\n  el.tabIndex = 0;\n  el.setAttribute('role', 'button');\n  const body = d.w\n    ? '<div class=\"ws\">' + d.w.map(([a, b]) => '<span class=\"w\"><b>' + esc(a) + '<\/b><i>' + esc(b) + '<\/i><\/span>').join('') + '<\/div>'\n    : '<div class=\"ws\"><span class=\"w\"><b>' + esc(d.en) + '<\/b><i>' + esc(d.ip) + '<\/i><\/span><\/div>';\n  el.innerHTML = '<span class=\"tm\">' + fmt(d.t) + '<\/span><div class=\"body\">' + body + '<\/div><button class=\"pinb\" aria-label=\"Simpan baris\" tabindex=\"-1\">' + pinSvg + '<\/button>';\n  list.appendChild(el);\n  lines.push(el);\n});\nconst emptyEl = document.createElement('div');\nemptyEl.className = 'empty'; emptyEl.hidden = true;\nemptyEl.textContent = 'Belum ada baris tersimpan. Tekan ikon pin di sebuah baris untuk menyimpannya.';\nlist.appendChild(emptyEl);\n$('#count').textContent = DATA.length;\n\nfunction updatePinUI() {\n  $('#pinCount').textContent = pins.size;\n  const onlyPins = app.classList.contains('only-pinned');\n  emptyEl.hidden = !(onlyPins && pins.size === 0);\n  const cur = Math.max(activeIdx, 0);\n  $('#bPin').setAttribute('aria-pressed', pins.has(DATA[cur].t) ? 'true' : 'false');\n}\nfunction togglePin(i) {\n  const t = DATA[i].t;\n  if (pins.has(t)) pins.delete(t); else pins.add(t);\n  lines[i].classList.toggle('pinned', pins.has(t));\n  try { localStorage.setItem('uk-pins', JSON.stringify([...pins])); } catch (e) {}\n  updatePinUI();\n}\n\n/* ---------- player adapter: YouTube when it can load, timer otherwise ---------- */\nconst ytMode = () => mode === 'yt' && ytOk;\nconst dur = () => { if (ytMode()) { const d = yt.getDuration(); if (d > 0) return d; } return DUR_DEFAULT; };\nconst time = () => (ytMode() ? yt.getCurrentTime() : clock.t);\nconst isPlaying = () => (ytMode() ? yt.getPlayerState() === 1 : clock.playing);\nfunction seek(t) {\n  t = Math.min(Math.max(0, t), dur());\n  holdUntil = performance.now() + 450;\n  if (ytMode()) yt.seekTo(t, true); else clock.t = t;\n}\nfunction play() {\n  if (ytMode()) yt.playVideo();\n  else { if (clock.t >= dur() - 0.1) clock.t = 0; clock.playing = true; clock.last = performance.now(); }\n}\nfunction pause() { if (ytMode()) yt.pauseVideo(); else clock.playing = false; }\nfunction setRate(r) {\n  rate = r;\n  if (ytMode()) yt.setPlaybackRate(r);\n  $('#speedLbl').textContent = 'Speed ' + r + '×';\n  [...pop.children].forEach((b) => b.setAttribute('aria-pressed', String(parseFloat(b.dataset.r) === r)));\n}\n\nfunction showTimer() {\n  mode = 'timer';\n  $('#ytbox').hidden = true; $('#timerbox').hidden = false;\n  $('#modeLbl').textContent = 'mode timer';\n}\nfunction showYT() {\n  mode = 'yt';\n  $('#ytbox').hidden = false; $('#timerbox').hidden = true;\n  $('#modeLbl').textContent = 'sinkron YouTube';\n}\nfunction loadYouTube() {\n  const s = document.createElement('script');\n  s.src = 'https://www.youtube.com/iframe_api';\n  s.onerror = () => {};\n  window.onYouTubeIframeAPIReady = () => {\n    try {\n      yt = new YT.Player('ytplayer', {\n        videoId: VIDEO_ID,\n        playerVars: { playsinline: 1, rel: 0, modestbranding: 1 },\n        events: {\n          onReady: () => { ytOk = true; clock.playing = false; showYT(); yt.setPlaybackRate(rate); tdur.textContent = fmt(dur()); seekEl.max = dur(); },\n          onError: () => { ytOk = false; try { yt.destroy(); } catch (e) {} showTimer(); }\n        }\n      });\n    } catch (e) { showTimer(); }\n  };\n  document.head.appendChild(s);\n}\n\n/* ---------- loop ---------- */\nfunction setLoop(i) {\n  if (loopIdx != null) lines[loopIdx].classList.remove('looping');\n  loopIdx = i;\n  if (i != null) lines[i].classList.add('looping');\n  $('#bLoop').setAttribute('aria-pressed', i != null ? 'true' : 'false');\n  $('#loopLbl').textContent = i != null ? 'Ulang 1 baris' : 'Ulang';\n}\n\n/* ---------- active line + scrolling ---------- */\nfunction findIdx(t) {\n  let lo = 0, hi = DATA.length - 1, ans = -1;\n  while (lo <= hi) {\n    const mid = (lo + hi) >> 1;\n    if (DATA[mid].s <= t + 0.05) { ans = mid; lo = mid + 1; } else hi = mid - 1;\n  }\n  return ans;\n}\nfunction scrollToLine(i, force) {\n  const el = lines[i];\n  if (!el || el.offsetParent === null) return;\n  if (!force && performance.now() < userScrollUntil) return;\n  const top = el.offsetTop - list.clientHeight / 2 + el.clientHeight / 2;\n  list.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });\n}\nfunction setActive(i, force) {\n  if (activeIdx >= 0) lines[activeIdx].classList.remove('active');\n  activeIdx = i;\n  if (i >= 0) { lines[i].classList.add('active'); scrollToLine(i, force); }\n  updatePinUI();\n}\n\n/* ---------- main tick ---------- */\nfunction updatePlayBtn() {\n  const p = isPlaying();\n  if (p === shownPlaying) return;\n  shownPlaying = p;\n  $('#bPlay').innerHTML = p ? pauseSvg : playSvg;\n  $('#bPlay').setAttribute('aria-label', p ? 'Jeda' : 'Play');\n}\nfunction tick() {\n  const nowMs = performance.now();\n  if (!ytMode()) {\n    if (clock.playing) {\n      clock.t += ((nowMs - clock.last) / 1000) * rate;\n      if (clock.t >= dur()) { clock.t = dur(); clock.playing = false; }\n    }\n    clock.last = nowMs;\n  }\n  const t = time();\n  if (loopIdx != null && isPlaying() && t >= DATA[loopIdx].le - 0.05 && nowMs - lastLoopSeek > 500) {\n    lastLoopSeek = nowMs;\n    seek(DATA[loopIdx].s);\n  }\n  if (!dragging) {\n    const i = nowMs < holdUntil ? activeIdx : findIdx(t);\n    if (i !== activeIdx) setActive(i);\n    seekEl.value = t;\n    tcur.textContent = fmt(t);\n  }\n  if (!ytMode()) {\n    $('#bigtime').textContent = fmt(t);\n    const sec = Math.floor(t);\n    if (sec !== lastLinkSec) { lastLinkSec = sec; $('#ytlink').href = 'https://youtu.be/' + VIDEO_ID + '?t=' + sec; $('#ytlink').textContent = 'Buka video di ' + fmt(t); }\n  }\n  updatePlayBtn();\n}\nsetInterval(tick, 80);\n\n/* ---------- events ---------- */\nlist.addEventListener('click', (e) => {\n  const ln = e.target.closest('.line');\n  if (!ln) return;\n  const i = +ln.dataset.i;\n  if (e.target.closest('.pinb')) { togglePin(i); return; }\n  if (loopIdx != null) setLoop(i);\n  seek(DATA[i].s);\n  setActive(i, true);\n  play();\n});\nlist.addEventListener('keydown', (e) => {\n  if ((e.key === 'Enter' || e.key === ' ') && e.target.classList.contains('line')) { e.preventDefault(); e.target.click(); }\n});\n['wheel', 'touchstart', 'pointerdown'].forEach((ev) => list.addEventListener(ev, () => { userScrollUntil = performance.now() + 4000; }, { passive: true }));\n\nseekEl.addEventListener('input', () => {\n  dragging = true;\n  const v = parseFloat(seekEl.value);\n  tcur.textContent = fmt(v);\n  const i = findIdx(v);\n  if (i !== activeIdx) setActive(i, true);\n});\nseekEl.addEventListener('change', () => {\n  const v = parseFloat(seekEl.value);\n  dragging = false;\n  if (loopIdx != null && (v < DATA[loopIdx].s - 0.5 || v > DATA[loopIdx].le + 0.5)) setLoop(null);\n  seek(v);\n});\n\n$('#bPlay').addEventListener('click', () => { if (isPlaying()) pause(); else play(); });\n$('#bLoop').addEventListener('click', () => { if (loopIdx != null) setLoop(null); else setLoop(Math.max(activeIdx, 0)); });\n$('#bPin').addEventListener('click', () => togglePin(Math.max(activeIdx, 0)));\n$('#bIpa').addEventListener('click', () => {\n  const off = app.classList.toggle('noipa');\n  $('#bIpa').setAttribute('aria-pressed', String(!off));\n  try { localStorage.setItem('uk-ipa', off ? '0' : '1'); } catch (e) {}\n});\n$('#bOnlyPins').addEventListener('click', () => {\n  const on = app.classList.toggle('only-pinned');\n  $('#bOnlyPins').setAttribute('aria-pressed', String(on));\n  updatePinUI();\n  if (activeIdx >= 0 && !on) scrollToLine(activeIdx, true);\n});\n\nRATES.forEach((r) => {\n  const b = document.createElement('button');\n  b.dataset.r = r; b.textContent = r + '×';\n  b.addEventListener('click', () => { setRate(r); pop.hidden = true; });\n  pop.appendChild(b);\n});\n$('#bSpeed').addEventListener('click', (e) => { e.stopPropagation(); pop.hidden = !pop.hidden; });\ndocument.addEventListener('click', (e) => { if (!pop.hidden && !e.target.closest('#pop')) pop.hidden = true; });\ndocument.addEventListener('keydown', (e) => {\n  if (e.target.tagName === 'INPUT') return;\n  if (e.key === ' ' && !e.target.classList.contains('line') && e.target.tagName !== 'BUTTON') { e.preventDefault(); $('#bPlay').click(); }\n});\n\n/* ---------- start ---------- */\nseekEl.max = DUR_DEFAULT; tdur.textContent = fmt(DUR_DEFAULT);\nsetRate(1); updatePinUI(); updatePlayBtn();\nloadYouTube();\n<\/script>\n\n<\/body>\n<\/html>\n";
+const SAMPLE = "[00:00:17] today\n[00:00:17] təˈdeɪ\n[00:00:19] I'm going back to the UK\n[00:00:19] aɪm ˈɡəʊɪŋ bæk tuː ðə juː-keɪ\n[00:00:21] and you are coming with me\n[00:00:21] ænd juː ɑː ˈkʌmɪŋ wɪð miː\n[00:00:24] so let's travel and learn some English\n[00:00:24] səʊ lɛts ˈtrævᵊl ænd lɜːn sʌm ˈɪŋɡlɪʃ\n[00:00:33] [ Music ]\n[00:00:33] [ ˈmjuːzɪk ]\n[00:00:44] all right\n[00:00:44] ɔːl raɪt\n[00:00:45] we've arrived in London\n[00:00:45] wiːv  əˈraɪvd ɪn ˈlʌndən\n[00:00:46] got my coffee\n[00:00:46] ɡɒt maɪ ˈkɒfi\n[00:00:48] got my suitcase\n[00:00:48] ɡɒt maɪ ˈsuːtkeɪs\n[00:00:50] going to go to the center now and find my uncle\n[00:00:50] ˈɡəʊɪŋ tuː ɡəʊ tuː ðə ˈsɛntə naʊ ænd faɪnd maɪ ˈʌŋkᵊl\n[00:00:52] let's go\n[00:00:52] lɛts ɡəʊ\n[00:00:54] it's lovely British summertime\n[00:00:54] ɪts ˈlʌvli  ˈbrɪtɪʃ ˈsʌmətaɪm\n[00:00:56] i'm with my uncle Lee\n[00:00:56] aɪm wɪð maɪ ˈʌŋkᵊl liː\n[00:00:58] we're going to go get the tube\n[00:00:58] wɪə   ˈɡəʊɪŋ tuː ɡəʊ ɡɛt ðə ʧuːb\n[00:01:00] and explore London\n[00:01:00] ænd ɪkˈsplɔː ˈlʌndən\n[00:01:02] all right here we are queens station\n[00:01:02] ɔːl raɪt hɪə wiː ɑː kwiːnz ˈsteɪʃᵊn\n[00:01:04] heading into the tube\n[00:01:04] ˈhɛdɪŋ  ˈɪntuː ðə ʧuːb\n[00:01:06] i'm tapping my card and walking through the barriers\n[00:01:06] aɪm ˈtæpɪŋ maɪ kɑːd ænd ˈwɔːkɪŋ θruː    ðə ˈbæriəz\n[00:01:10] the tube has arrived\n[00:01:10] ðə ʧuːb hæz əˈraɪvd\n[00:01:12] the tube has arrived\n[00:01:12] ðə ʧuːb hæz əˈraɪvd\n[00:01:14] we're getting on\n[00:01:14] wɪə   ˈɡɛtɪŋ ɒn\n[00:01:18] now we're getting off\n[00:01:18] naʊ wɪə   ˈɡɛtɪŋ ɒf\n[00:01:21] all right just coming out of the tube\n[00:01:21] ɔːl raɪt ʤʌst ˈkʌmɪŋ aʊt ɒv ðə ʧuːb\n[00:01:22] and going onto the escalator\n[00:01:22] ænd ˈɡəʊɪŋ ˈɒntuː ði ˈɛskəleɪtə\n[00:01:25] this is an escalator\n[00:01:25] ðɪs ɪz ən ˈɛskəleɪtə\n[00:01:28] please hold the handrail\n[00:01:28] pliːz  həʊld ðə ˈhændreɪl";
+const CAN_DL = true;
+
+const $ = (s) => document.querySelector(s);
+const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+const htmlEsc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const jsStr = (s) => s.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ').replace(/<\/(script)/gi, '<\\/$1');
+const jsTpl = (s) => s.replace(/\\/g, '\\\\').replace(/`/g, '\\`').replace(/\$\{/g, '\\${').replace(/<\/(script)/gi, '<\\/$1');
+
+function extractId(s) {
+  s = (s || '').trim();
+  if (/^[\w-]{11}$/.test(s)) return s;
+  const m = s.match(/(?:youtu\.be\/|[?&]v=|\/embed\/|\/shorts\/|\/live\/)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+
+function parse(raw) {
+  const ent = [];
+  raw.split(/\r?\n/).forEach((l) => {
+    let m = l.match(/^\s*\[(\d{1,2}):(\d{2}):(\d{2})\]\s*(.*)$/);
+    if (m) { ent.push([+m[1] * 3600 + +m[2] * 60 + +m[3], m[4].trim()]); return; }
+    m = l.match(/^\s*\[(\d{1,3}):(\d{2})\]\s*(.*)$/);
+    if (m) ent.push([+m[1] * 60 + +m[2], m[3].trim()]);
+  });
+  const tidy = (s) => s.replace(/"\s+(\S)/g, '"$1').replace(/\s+([.,?!])/g, '$1').replace(/ - /g, '-').replace(/\s+/g, ' ').trim();
+  const out = [];
+  let prev = -1, i = 0, skipped = 0, mism = 0;
+  while (i < ent.length - 1) {
+    if (ent[i][0] !== ent[i + 1][0]) { i += 1; skipped += 1; continue; }
+    let t = ent[i][0];
+    const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);
+    i += 2;
+    if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;
+    prev = t;
+    const a = en.split(' '), b = ip.split(' ');
+    const d = { t, en, ip };
+    if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]); else mism += 1;
+    out.push(d);
+  }
+  if (i === ent.length - 1) skipped += 1;
+  return { lines: out, skipped, mism, entries: ent.length };
+}
+
+function slug(s) {
+  const x = s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return x || 'halaman';
+}
+
+function build() {
+  const id = extractId($('#url').value);
+  const title = $('#title').value.trim() || 'Shadowing';
+  const raw = $('#raw').value.replace(/\r\n?/g, '\n').trim();
+  return TEMPLATE
+    .split('__VIDEO_ID__').join(id)
+    .split('__JUDUL_HTML__').join(htmlEsc(title))
+    .split('__JUDUL__').join(jsStr(title))
+    .split('__TRANSKRIP__').join(jsTpl(raw));
+}
+
+let state = { id: null, parsed: null };
+let timer = null;
+
+function setPill(el, cls, text) {
+  el.className = 'pill ' + cls;
+  el.querySelector('span:last-child').innerHTML = text;
+}
+
+function refresh() {
+  state.id = extractId($('#url').value);
+  const hasUrl = $('#url').value.trim().length > 0;
+  if (state.id) setPill($('#idPill'), 'ok', 'ID video <code>' + htmlEsc(state.id) + '</code>');
+  else if (hasUrl) setPill($('#idPill'), 'bad', 'Link tidak dikenali. Pakai link youtu.be atau youtube.com/watch.');
+  else setPill($('#idPill'), '', 'Belum ada link');
+
+  const raw = $('#raw').value;
+  const p = parse(raw);
+  state.parsed = p;
+  const w1 = $('#warn1'), w2 = $('#warn2'), pv = $('#preview');
+  w1.hidden = true; w2.hidden = true;
+  if (!raw.trim()) {
+    setPill($('#rawPill'), '', 'Belum ada transkrip');
+    pv.hidden = true;
+  } else if (!p.lines.length) {
+    setPill($('#rawPill'), 'bad', 'Formatnya belum terbaca. Pastikan tiap baris diawali [00:00:17] dan berpasangan.');
+    pv.hidden = true;
+  } else {
+    const last = p.lines[p.lines.length - 1].t;
+    setPill($('#rawPill'), 'ok', p.lines.length + ' baris terbaca, sampai sekitar ' + fmt(last + 5));
+    if (p.skipped) { w1.hidden = false; w1.textContent = p.skipped + ' baris dilewati karena waktunya tidak berpasangan antara teks Inggris dan IPA.'; }
+    if (p.mism) { w2.hidden = false; w2.textContent = p.mism + ' baris punya jumlah kata Inggris dan IPA yang berbeda, jadi fonetiknya tampil per baris, bukan per kata.'; }
+    pv.hidden = false;
+    const show = p.lines.slice(0, 5);
+    pv.innerHTML = show.map((d) => {
+      const body = d.w
+        ? d.w.map(([a, b]) => '<span class="w"><b>' + htmlEsc(a) + '</b><i>' + htmlEsc(b) + '</i></span>').join('')
+        : '<span class="w"><b>' + htmlEsc(d.en) + '</b><i>' + htmlEsc(d.ip) + '</i></span>';
+      return '<div class="pl"><span class="tm">' + fmt(d.t) + '</span><div class="ws">' + body + '</div></div>';
+    }).join('') + (p.lines.length > 5 ? '<div class="more">dan ' + (p.lines.length - 5) + ' baris lainnya</div>' : '');
+  }
+  const ready = !!state.id && p.lines.length > 0;
+  $('#bDl').disabled = !ready;
+  $('#bCopy').disabled = !ready;
+  if ($('#dOut').open) $('#output').value = ready ? build() : '';
+}
+function schedule() { clearTimeout(timer); timer = setTimeout(refresh, 150); }
+
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : '');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => { t.textContent = ''; }, 5000);
+}
+
+async function copyText(text, okMsg) {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast(okMsg);
+  } catch (e) {
+    const d = $('#dOut'); d.open = true;
+    const o = $('#output');
+    if (!o.value) o.value = text;
+    o.focus(); o.select();
+    toast('Salin otomatis ditolak. Kode sudah dipilih, tekan salin secara manual.', true);
+  }
+}
+
+if (!CAN_DL) {
+  $('#bDl').hidden = true;
+  $('#bCopy').classList.add('primary');
+}
+$('#bDl').addEventListener('click', () => {
+  try {
+    const html = build();
+    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'shadowing-' + slug($('#title').value) + '.html';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('File diunduh: ' + a.download);
+  } catch (e) { toast('Gagal mengunduh. Pakai tombol Salin kode.', true); }
+});
+$('#bCopy').addEventListener('click', () => copyText(build(), 'Kode disalin. Tempel ke file bernama index.html.'));
+$('#bCopyIframe').addEventListener('click', () => copyText($('#iframeCode').textContent, 'Kode iframe disalin.'));
+$('#dOut').addEventListener('toggle', () => { if ($('#dOut').open) $('#output').value = (state.id && state.parsed && state.parsed.lines.length) ? build() : ''; });
+
+$('#bFile').addEventListener('click', () => $('#file').click());
+$('#file').addEventListener('change', () => {
+  const f = $('#file').files[0];
+  if (!f) return;
+  const r = new FileReader();
+  r.onload = () => { $('#raw').value = String(r.result); refresh(); };
+  r.readAsText(f);
+});
+$('#bSample').addEventListener('click', () => {
+  $('#raw').value = SAMPLE;
+  if (!$('#url').value.trim()) $('#url').value = 'https://youtu.be/52t241OQ7Ec';
+  if (!$('#title').value.trim()) $('#title').value = 'Travel to the UK';
+  refresh();
+});
+$('#bClear').addEventListener('click', () => { $('#raw').value = ''; refresh(); });
+['#url', '#title', '#raw'].forEach((s) => $(s).addEventListener('input', schedule));
+refresh();
+</script>
+
+</body>
+</html>
