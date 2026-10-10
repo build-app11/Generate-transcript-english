@@ -1,1 +1,176 @@
-hello world 
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>UK Travel Shadowing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>
+/* Layout: one-screen practice app. Player/timer strip on top, transcript scrolls in the middle, control dock pinned at the bottom. Active line is tinted, its time chip turns red like a Tube line marker. */
+:root {
+  --bg: #EDEFF2;
+  --surface: #FFFFFF;
+  --ink: #0E1626;
+  --muted: #5A6577;
+  --rule: #D9DEE6;
+  --accent: #D8281F;
+  --accent-ink: #FFFFFF;
+  --tint: #FCEAE8;
+  --ipa: #1F5FB8;
+  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
+  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.35; overflow: hidden; }
+button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.app { height: 100%; max-width: 760px; margin: 0 auto; padding-inline: clamp(16px, 3vw, 32px); padding-block: 12px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
+.side { display: contents; }
+.stage { order: 1; }
+.list { order: 2; }
+.dock { order: 3; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.top .sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
+.chips { display: flex; gap: 8px; align-items: center; }
+.chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.mode { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+/* stage */
+.stage { flex: none; }
+.ytbox { aspect-ratio: 16 / 9; width: min(100%, calc(clamp(110px, 22vh, 300px) * 16 / 9)); margin-inline: auto; background: #000; border-radius: 12px; overflow: hidden; }
+.ytbox iframe { width: 100%; height: 100%; display: block; }
+.timerbox { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; padding: 12px 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+.timerbox .big { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; font-variant-numeric: tabular-nums; }
+.timerbox p { margin: 0; flex: 1 1 200px; min-width: 0; font-size: 0.82rem; color: var(--muted); }
+.timerbox a { min-height: 40px; padding: 0 14px; display: inline-flex; align-items: center; border-radius: 999px; background: var(--ink); color: var(--bg); font-size: 0.82rem; font-weight: 600; text-decoration: none; }
+
+/* transcript */
+.list { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-block: 2px 24px; scrollbar-width: thin; }
+.line { display: flex; align-items: flex-start; gap: 12px; padding: 12px; border-radius: 14px; cursor: pointer; }
+.line:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line .body { flex: 1; min-width: 0; }
+.ws { display: flex; flex-wrap: wrap; gap: 2px 12px; }
+.w { display: flex; flex-direction: column; }
+.w b { font-weight: 600; font-size: clamp(1.1rem, 1rem + 0.35vw, 1.4rem); letter-spacing: -0.005em; }
+.w i { font-family: var(--font-ipa); font-style: normal; font-size: clamp(0.95rem, 0.88rem + 0.25vw, 1.15rem); color: var(--ipa); line-height: 1.25; }
+.line.music .w b { font-weight: 400; font-style: italic; color: var(--muted); }
+.line.music { opacity: 0.7; }
+.pinb { flex: none; width: 36px; height: 36px; margin: -4px -4px 0 0; display: grid; place-items: center; color: var(--muted); opacity: 0; border-radius: 10px; }
+.line:hover .pinb, .line.pinned .pinb { opacity: 1; }
+@media (hover: none) { .pinb { opacity: 0.45; } .line.pinned .pinb { opacity: 1; } }
+.line.pinned .pinb { color: var(--accent); }
+.line.pinned .pinb svg { fill: currentColor; }
+.line.active { background: var(--tint); }
+.line.active .tm { background: var(--accent); color: var(--accent-ink); }
+.line.looping { box-shadow: inset 0 0 0 2px var(--accent); }
+.line.looping .tm::after { content: ' ↻'; }
+.noipa .w i { display: none; }
+.only-pinned .line:not(.pinned) { display: none; }
+.empty { padding: 28px 12px; color: var(--muted); font-size: 0.9rem; text-align: center; }
+.empty[hidden] { display: none; }
+
+/* dock */
+.dock { position: relative; flex: none; background: var(--surface); border: 1px solid var(--rule); border-radius: 22px; padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
+.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek input { flex: 1; min-width: 0; accent-color: var(--accent); height: 24px; }
+.btns { display: flex; align-items: center; gap: 2px; }
+.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
+.tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }
+.tool[aria-pressed="true"] { color: var(--accent); }
+.play { flex: none; width: 62px; height: 52px; margin-left: 4px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.play svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }
+.pop { position: absolute; right: 78px; bottom: calc(100% - 6px); display: flex; gap: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }
+.pop[hidden] { display: none; }
+.pop button { min-width: 48px; min-height: 40px; padding: 0 8px; border-radius: 10px; font-family: var(--font-mono); font-size: 0.82rem; border: 1px solid var(--rule); }
+.pop button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+@media (max-width: 420px) {
+  .w b { font-size: 1.1rem; }
+  .pop { right: 8px; }
+}
+/* Laptop, desktop, tablet landscape, and short landscape phones: two columns. Video and controls on the left, transcript on the right. */
+@media (min-width: 900px), (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
+  .app { max-width: 1280px; display: grid; grid-template-columns: clamp(300px, 38%, 480px) minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: clamp(16px, 2.4vw, 36px); row-gap: 12px; }
+  .top { grid-column: 1 / -1; }
+  .side { display: flex; flex-direction: column; gap: 10px; min-height: 0; overflow-y: auto; grid-column: 1; grid-row: 2; scrollbar-width: thin; padding-bottom: 2px; }
+  .side > * { flex: none; }
+  .list { grid-column: 2; grid-row: 2; }
+  .ytbox { width: min(100%, max(220px, calc((100vh - 230px) * 16 / 9))); }
+  .line { padding: 14px 16px; }
+  .line .tm { width: 52px; font-size: 0.78rem; }
+}
+@media (min-width: 1500px) { .app { max-width: 1440px; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<div class="app" id="app">
+  <header class="top">
+    <div>
+      <h1>Travel to the UK</h1>
+      <p class="sub"><span id="count">204</span> baris · transkrip + fonetik · <span class="mode" id="modeLbl">mode timer</span></p>
+    </div>
+    <div class="chips">
+      <button class="chip" id="bOnlyPins" aria-pressed="false">Tersimpan <span id="pinCount">0</span></button>
+    </div>
+  </header>
+
+  <div class="side">
+  <section class="stage" id="stage">
+    <div class="ytbox" id="ytbox" hidden><div id="ytplayer"></div></div>
+    <div class="timerbox" id="timerbox">
+      <div class="big" id="bigtime">0:00</div>
+      <p>Video YouTube tidak bisa diputar di halaman ini, jadi transkrip berjalan dengan timer. Mulai video di YouTube pada detik yang sama, lalu tekan Play di sini.</p>
+      <a id="ytlink" target="_blank" rel="noopener" href="https://youtu.be/52t241OQ7Ec">Buka video di 0:00</a>
+    </div>
+  </section>
+
+  <footer class="dock" id="dock">
+    <div class="pop" id="pop" hidden></div>
+    <div class="seek">
+      <span id="tcur">0:00</span>
+      <input type="range" id="seek" min="0" max="625" step="0.1" value="0" aria-label="Posisi video">
+      <span id="tdur">10:25</span>
+    </div>
+    <div class="btns">
+      <button class="tool" id="bPin" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M9 3h6l-1 6 3 3v2H7v-2l3-3-1-6zM12 14v7"/></svg><span>Pin</span></button>
+      <button class="tool" id="bIpa" aria-pressed="true"><span class="glyph">ə</span><span>Fonetik</span></button>
+      <button class="tool" id="bLoop" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 01-4 4H4"/></svg><span id="loopLbl">Ulang</span></button>
+      <button class="tool" id="bSpeed" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0M12 14l4-5"/></svg><span id="speedLbl">Speed 1×</span></button>
+      <button class="play" id="bPlay" aria-label="Play"></button>
+    </div>
+  </footer>
+  </div>
+
+  <main class="list" id="list" aria-label="Transkrip"></main>
+</div>
+
+<script>
+const DATA = [{"t":17,"en":"today","ip":"təˈdeɪ","w":[["today","təˈdeɪ"]]},{"t":19,"en":"I'm going back to the UK","ip":"aɪm ˈɡəʊɪŋ bæk tuː ðə juː-keɪ","w":[["I'm","aɪm"],["going","ˈɡəʊɪŋ"],["back","bæk"],["to","tuː"],["the","ðə"],["UK","juː-keɪ"]]},{"t":21,"en":"and you are coming with me","ip":"ænd juː ɑː ˈkʌmɪŋ wɪð miː","w":[["and","ænd"],["you","juː"],["are","ɑː"],["coming","ˈkʌmɪŋ"],["with","wɪð"],["me","miː"]]},{"t":24,"en":"so let's travel and learn some English","ip":"səʊ lɛts ˈtrævᵊl ænd lɜːn sʌm ˈɪŋɡlɪʃ","w":[["so","səʊ"],["let's","lɛts"],["travel","ˈtrævᵊl"],["and","ænd"],["learn","lɜːn"],["some","sʌm"],["English","ˈɪŋɡlɪʃ"]]},{"t":33,"en":"[ Music ]","ip":"[ ˈmjuːzɪk ]","w":[["[","["],["Music","ˈmjuːzɪk"],["]","]"]],"m":1},{"t":44,"en":"all right","ip":"ɔːl raɪt","w":[["all","ɔːl"],["right","raɪt"]]},{"t":45,"en":"we've arrived in London","ip":"wiːv əˈraɪvd ɪn ˈlʌndən","w":[["we've","wiːv"],["arrived","əˈraɪvd"],["in","ɪn"],["London","ˈlʌndən"]]},{"t":46,"en":"got my coffee","ip":"ɡɒt maɪ ˈkɒfi","w":[["got","ɡɒt"],["my","maɪ"],["coffee","ˈkɒfi"]]},{"t":48,"en":"got my suitcase","ip":"ɡɒt maɪ ˈsuːtkeɪs","w":[["got","ɡɒt"],["my","maɪ"],["suitcase","ˈsuːtkeɪs"]]},{"t":50,"en":"going to go to the center now and find my uncle","ip":"ˈɡəʊɪŋ tuː ɡəʊ tuː ðə ˈsɛntə naʊ ænd faɪnd maɪ ˈʌŋkᵊl","w":[["going","ˈɡəʊɪŋ"],["to","tuː"],["go","ɡəʊ"],["to","tuː"],["the","ðə"],["center","ˈsɛntə"],["now","naʊ"],["and","ænd"],["find","faɪnd"],["my","maɪ"],["uncle","ˈʌŋkᵊl"]]},{"t":52,"en":"let's go","ip":"lɛts ɡəʊ","w":[["let's","lɛts"],["go","ɡəʊ"]]},{"t":54,"en":"it's lovely British summertime","ip":"ɪts ˈlʌvli ˈbrɪtɪʃ ˈsʌmətaɪm","w":[["it's","ɪts"],["lovely","ˈlʌvli"],["British","ˈbrɪtɪʃ"],["summertime","ˈsʌmətaɪm"]]},{"t":56,"en":"i'm with my uncle Lee","ip":"aɪm wɪð maɪ ˈʌŋkᵊl liː","w":[["i'm","aɪm"],["with","wɪð"],["my","maɪ"],["uncle","ˈʌŋkᵊl"],["Lee","liː"]]},{"t":58,"en":"we're going to go get the tube","ip":"wɪə ˈɡəʊɪŋ tuː ɡəʊ ɡɛt ðə ʧuːb","w":[["we're","wɪə"],["going","ˈɡəʊɪŋ"],["to","tuː"],["go","ɡəʊ"],["get","ɡɛt"],["the","ðə"],["tube","ʧuːb"]]},{"t":60,"en":"and explore London","ip":"ænd ɪkˈsplɔː ˈlʌndən","w":[["and","ænd"],["explore","ɪkˈsplɔː"],["London","ˈlʌndən"]]},{"t":62,"en":"all right here we are queens station","ip":"ɔːl raɪt hɪə wiː ɑː kwiːnz ˈsteɪʃᵊn","w":[["all","ɔːl"],["right","raɪt"],["here","hɪə"],["we","wiː"],["are","ɑː"],["queens","kwiːnz"],["station","ˈsteɪʃᵊn"]]},{"t":64,"en":"heading into the tube","ip":"ˈhɛdɪŋ ˈɪntuː ðə ʧuːb","w":[["heading","ˈhɛdɪŋ"],["into","ˈɪntuː"],["the","ðə"],["tube","ʧuːb"]]},{"t":66,"en":"i'm tapping my card and walking through the barriers","ip":"aɪm ˈtæpɪŋ maɪ kɑːd ænd ˈwɔːkɪŋ θruː ðə ˈbæriəz","w":[["i'm","aɪm"],["tapping","ˈtæpɪŋ"],["my","maɪ"],["card","kɑːd"],["and","ænd"],["walking","ˈwɔːkɪŋ"],["through","θruː"],["the","ðə"],["barriers","ˈbæriəz"]]},{"t":70,"en":"the tube has arrived","ip":"ðə ʧuːb hæz əˈraɪvd","w":[["the","ðə"],["tube","ʧuːb"],["has","hæz"],["arrived","əˈraɪvd"]]},{"t":72,"en":"the tube has arrived","ip":"ðə ʧuːb hæz əˈraɪvd","w":[["the","ðə"],["tube","ʧuːb"],["has","hæz"],["arrived","əˈraɪvd"]]},{"t":74,"en":"we're getting on","ip":"wɪə ˈɡɛtɪŋ ɒn","w":[["we're","wɪə"],["getting","ˈɡɛtɪŋ"],["on","ɒn"]]},{"t":78,"en":"now we're getting off","ip":"naʊ wɪə ˈɡɛtɪŋ ɒf","w":[["now","naʊ"],["we're","wɪə"],["getting","ˈɡɛtɪŋ"],["off","ɒf"]]},{"t":81,"en":"all right just coming out of the tube","ip":"ɔːl raɪt ʤʌst ˈkʌmɪŋ aʊt ɒv ðə ʧuːb","w":[["all","ɔːl"],["right","raɪt"],["just","ʤʌst"],["coming","ˈkʌmɪŋ"],["out","aʊt"],["of","ɒv"],["the","ðə"],["tube","ʧuːb"]]},{"t":82,"en":"and going onto the escalator","ip":"ænd ˈɡəʊɪŋ ˈɒntuː ði ˈɛskəleɪtə","w":[["and","ænd"],["going","ˈɡəʊɪŋ"],["onto","ˈɒntuː"],["the","ði"],["escalator","ˈɛskəleɪtə"]]},{"t":85,"en":"this is an escalator","ip":"ðɪs ɪz ən ˈɛskəleɪtə","w":[["this","ðɪs"],["is","ɪz"],["an","ən"],["escalator","ˈɛskəleɪtə"]]},{"t":88,"en":"please hold the handrail","ip":"pliːz həʊld ðə ˈhændreɪl","w":[["please","pliːz"],["hold","həʊld"],["the","ðə"],["handrail","ˈhændreɪl"]]},{"t":90,"en":"this is a handrail","ip":"ðɪs ɪz ə ˈhændreɪl","w":[["this","ðɪs"],["is","ɪz"],["a","ə"],["handrail","ˈhændreɪl"]]},{"t":93,"en":"a police car with a flashing sirens","ip":"ə pəˈliːs kɑː wɪð ə ˈflæʃɪŋ ˈsaɪərənz","w":[["a","ə"],["police","pəˈliːs"],["car","kɑː"],["with","wɪð"],["a","ə"],["flashing","ˈflæʃɪŋ"],["sirens","ˈsaɪərənz"]]},{"t":97,"en":"restaurant","ip":"ˈrɛstᵊrɒnt","w":[["restaurant","ˈrɛstᵊrɒnt"]]},{"t":98,"en":"a little girl in a pink hoodie is chasing a pigeon and giggling","ip":"ə ˈlɪtᵊl ɡɜːl ɪn ə pɪŋk ˈhʊdi ɪz ˈʧeɪsɪŋ ə ˈpɪʤən ænd ˈɡɪɡᵊlɪŋ","w":[["a","ə"],["little","ˈlɪtᵊl"],["girl","ɡɜːl"],["in","ɪn"],["a","ə"],["pink","pɪŋk"],["hoodie","ˈhʊdi"],["is","ɪz"],["chasing","ˈʧeɪsɪŋ"],["a","ə"],["pigeon","ˈpɪʤən"],["and","ænd"],["giggling","ˈɡɪɡᵊlɪŋ"]]},{"t":102,"en":"but the pigeon flew away","ip":"bʌt ðə ˈpɪʤən fluː əˈweɪ","w":[["but","bʌt"],["the","ðə"],["pigeon","ˈpɪʤən"],["flew","fluː"],["away","əˈweɪ"]]},{"t":105,"en":"all right guys","ip":"ɔːl raɪt ɡaɪz","w":[["all","ɔːl"],["right","raɪt"],["guys","ɡaɪz"]]},{"t":106,"en":"the London Eye","ip":"ðə ˈlʌndən aɪ","w":[["the","ðə"],["London","ˈlʌndən"],["Eye","aɪ"]]},{"t":108,"en":"the famous London Eye","ip":"ðə ˈfeɪməs ˈlʌndən aɪ","w":[["the","ðə"],["famous","ˈfeɪməs"],["London","ˈlʌndən"],["Eye","aɪ"]]},{"t":110,"en":"this is called a carousel","ip":"ðɪs ɪz kɔːld ə ˌkærʊˈsɛl","w":[["this","ðɪs"],["is","ɪz"],["called","kɔːld"],["a","ə"],["carousel","ˌkærʊˈsɛl"]]},{"t":112,"en":"you're riding the horses","ip":"jɔː ˈraɪdɪŋ ðə ˈhɔːsɪz","w":[["you're","jɔː"],["riding","ˈraɪdɪŋ"],["the","ðə"],["horses","ˈhɔːsɪz"]]},{"t":113,"en":"and you spin round and round","ip":"ænd juː spɪn raʊnd ænd raʊnd","w":[["and","ænd"],["you","juː"],["spin","spɪn"],["round","raʊnd"],["and","ænd"],["round","raʊnd"]]},{"t":117,"en":"and a bit of classic Britishness for you","ip":"ænd ə bɪt ɒv ˈklæsɪk ˈbrɪtɪʃnəs fɔː juː","w":[["and","ænd"],["a","ə"],["bit","bɪt"],["of","ɒv"],["classic","ˈklæsɪk"],["Britishness","ˈbrɪtɪʃnəs"],["for","fɔː"],["you","juː"]]},{"t":120,"en":"fish and chips","ip":"fɪʃ ænd ʧɪps","w":[["fish","fɪʃ"],["and","ænd"],["chips","ʧɪps"]]},{"t":123,"en":"love it","ip":"lʌv ɪt","w":[["love","lʌv"],["it","ɪt"]]},{"t":124,"en":"all right we are walking by the famous River Thames","ip":"ɔːl raɪt wiː ɑː ˈwɔːkɪŋ baɪ ðə ˈfeɪməs ˈrɪvə tɛmz","w":[["all","ɔːl"],["right","raɪt"],["we","wiː"],["are","ɑː"],["walking","ˈwɔːkɪŋ"],["by","baɪ"],["the","ðə"],["famous","ˈfeɪməs"],["River","ˈrɪvə"],["Thames","tɛmz"]]},{"t":128,"en":"this is the River Thames","ip":"ðɪs ɪz ðə ˈrɪvə tɛmz","w":[["this","ðɪs"],["is","ɪz"],["the","ðə"],["River","ˈrɪvə"],["Thames","tɛmz"]]},{"t":129,"en":"and the sun has come out to grace us","ip":"ænd ðə sʌn hæz kʌm aʊt tuː ɡreɪs ʌs","w":[["and","ænd"],["the","ðə"],["sun","sʌn"],["has","hæz"],["come","kʌm"],["out","aʊt"],["to","tuː"],["grace","ɡreɪs"],["us","ʌs"]]},{"t":131,"en":"look how beautiful it is, London","ip":"lʊk haʊ ˈbjuːtɪfᵊl ɪt ɪz, ˈlʌndən","w":[["look","lʊk"],["how","haʊ"],["beautiful","ˈbjuːtɪfᵊl"],["it","ɪt"],["is,","ɪz,"],["London","ˈlʌndən"]]},{"t":134,"en":"there we have Big Ben","ip":"ðeə wiː hæv bɪɡ bɛn","w":[["there","ðeə"],["we","wiː"],["have","hæv"],["Big","bɪɡ"],["Ben","bɛn"]]},{"t":137,"en":"okay okay and if I flip the camera around","ip":"ˌəʊˈkeɪ ˌəʊˈkeɪ ænd ɪf aɪ flɪp ðə ˈkæmᵊrə əˈraʊnd","w":[["okay","ˌəʊˈkeɪ"],["okay","ˌəʊˈkeɪ"],["and","ænd"],["if","ɪf"],["I","aɪ"],["flip","flɪp"],["the","ðə"],["camera","ˈkæmᵊrə"],["around","əˈraʊnd"]]},{"t":141,"en":"there we got the London Eye","ip":"ðeə wiː ɡɒt ðə ˈlʌndən aɪ","w":[["there","ðeə"],["we","wiː"],["got","ɡɒt"],["the","ðə"],["London","ˈlʌndən"],["Eye","aɪ"]]},{"t":144,"en":"these are pods or capsules","ip":"ðiːz ɑː pɒdz ɔː ˈkæpsjuːlz","w":[["these","ðiːz"],["are","ɑː"],["pods","pɒdz"],["or","ɔː"],["capsules","ˈkæpsjuːlz"]]},{"t":147,"en":"and this right here is a spiral staircase","ip":"ænd ðɪs raɪt hɪər ɪz ə ˈspaɪərᵊl ˈsteəkeɪs","w":[["and","ænd"],["this","ðɪs"],["right","raɪt"],["here","hɪər"],["is","ɪz"],["a","ə"],["spiral","ˈspaɪərᵊl"],["staircase","ˈsteəkeɪs"]]},{"t":150,"en":"street lamp","ip":"striːt læmp","w":[["street","striːt"],["lamp","læmp"]]},{"t":152,"en":"ice cream truck","ip":"aɪs kriːm trʌk","w":[["ice","aɪs"],["cream","kriːm"],["truck","trʌk"]]},{"t":153,"en":"and these people are waiting in a queue","ip":"ænd ðiːz ˈpiːpᵊl ɑː ˈweɪtɪŋ ɪn ə kjuː","w":[["and","ænd"],["these","ðiːz"],["people","ˈpiːpᵊl"],["are","ɑː"],["waiting","ˈweɪtɪŋ"],["in","ɪn"],["a","ə"],["queue","kjuː"]]},{"t":158,"en":"a long queue","ip":"ə lɒŋ kjuː","w":[["a","ə"],["long","lɒŋ"],["queue","kjuː"]]},{"t":161,"en":"it's a gazebo","ip":"ɪts ə ɡəˈziːbəʊ","w":[["it's","ɪts"],["a","ə"],["gazebo","ɡəˈziːbəʊ"]]},{"t":163,"en":"gazebo","ip":"ɡəˈziːbəʊ","w":[["gazebo","ɡəˈziːbəʊ"]]},{"t":166,"en":"photo booth","ip":"ˈfəʊtəʊ buːð","w":[["photo","ˈfəʊtəʊ"],["boot
