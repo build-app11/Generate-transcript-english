@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Learning Fun: latihan shadowing English dengan IPA</title>
+<meta name="description" content="Latihan shadowing dengan video asli. Ikuti transkrip baris demi baris dan lihat cara baca setiap kata lewat IPA.">
+<meta property="og:title" content="Learning Fun: latihan shadowing English dengan IPA">
+<meta property="og:description" content="Ikuti transkrip baris demi baris dan lihat cara baca setiap kata lewat IPA.">
+<meta name="theme-color" content="#EDEFF2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0B1120" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>
+:root {
+  --bg: #EDEFF2;
+  --surface: #FFFFFF;
+  --ink: #0E1626;
+  --muted: #5A6577;
+  --rule: #D9DEE6;
+  --accent: #D8281F;
+  --accent-ink: #FFFFFF;
+  --tint: #FCEAE8;
+  --ipa: #1F5FB8;
+  --ipa-tint: #E4ECF9;
+  --font: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF; --ipa-tint: #1A2744;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF; --ipa-tint: #1A2744;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+button, input { font: inherit; color: inherit; }
+a { color: inherit; }
+
+.wrap { width: min(1080px, 100% - 2 * clamp(16px, 4vw, 40px)); margin-inline: auto; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.skip { position: absolute; left: 12px; top: -48px; background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; z-index: 10; }
+.skip:focus { top: 12px; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Header */
+.bar { display: flex; align-items: center; justify-content: space-between; padding-block: 20px; }
+.brand { font-weight: 700; font-size: 1.1rem; letter-spacing: -0.01em; text-decoration: none; }
+.icon-btn {
+  display: grid; place-items: center; width: 40px; height: 40px;
+  border: 1px solid var(--rule); border-radius: 50%; background: var(--surface); cursor: pointer;
+}
+.icon-btn:hover { border-color: var(--muted); }
+
+/* Hero */
+.hero { padding-block: clamp(32px, 7vw, 88px) clamp(32px, 5vw, 56px); }
+.line {
+  display: flex; flex-wrap: wrap; gap: 0.12em 0.34em;
+  margin: 0; max-width: 14ch;
+  font-size: clamp(2.5rem, 9vw, 6rem);
+  font-weight: 700; letter-spacing: -0.03em; line-height: 1;
+  cursor: pointer;
+}
+.line .br { display: none; }
+@media (min-width: 900px) {
+  .line { max-width: none; }
+  .line .br { display: block; flex-basis: 100%; height: 0; }
+}
+.w {
+  display: inline-flex; flex-direction: column; align-items: flex-start;
+  padding: 0.04em 0.1em 0.12em; margin-inline: -0.1em;
+  border-radius: 0.14em;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+.w .t { transition: color 0.25s ease; }
+.w .p {
+  margin-top: 0.12em;
+  font-family: var(--font-ipa); font-weight: 400; font-style: normal; letter-spacing: 0;
+  font-size: clamp(11px, 0.27em, 26px); line-height: 1.3;
+  color: var(--ipa);
+}
+.w.on { background: var(--tint); }
+.w.on .t { color: var(--accent); }
+.lede { max-width: 50ch; margin: 32px 0 0; font-size: 1.15rem; color: var(--muted); text-wrap: pretty; }
+
+/* Browse */
+.browse { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 48px; align-items: start; padding-top: 8px; }
+.filters { position: sticky; top: 20px; }
+.search { position: relative; display: block; }
+.search svg { position: absolute; left: 12px; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
+.search input {
+  width: 100%; padding: 10px 12px 10px 38px;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+}
+.search input::placeholder { color: var(--muted); }
+.search input:hover { border-color: var(--muted); }
+.cats { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.cat {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%;
+  padding: 8px 12px; border: 0; border-radius: 8px; background: transparent;
+  font-weight: 500; text-align: left; cursor: pointer;
+}
+.cat:hover { background: var(--surface); }
+.cat[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.cat .n { font-variant-numeric: tabular-nums; color: var(--muted); font-weight: 400; }
+.cat[aria-pressed="true"] .n { color: inherit; opacity: 0.7; }
+
+.status { margin: 0 0 8px; min-height: 1.5em; color: var(--muted); font-size: 0.95rem; }
+.list { list-style: none; margin: 0; padding: 0; border-bottom: 1px solid var(--rule); }
+.list > li { border-top: 1px solid var(--rule); }
+.row {
+  position: relative; display: grid; grid-template-columns: 56px minmax(0, 1fr) auto; gap: 20px; align-items: center;
+  padding: 20px 16px; text-decoration: none;
+}
+.row::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--accent); transform: scaleY(0); transition: transform 0.18s ease;
+}
+.row:hover, .row:focus-visible { background: var(--surface); }
+.row:hover::before, .row:focus-visible::before { transform: scaleY(1); }
+.row:focus-visible { outline-offset: -2px; }
+.glyph {
+  display: grid; place-items: center; width: 56px; height: 56px; border-radius: 14px;
+  background: var(--ipa-tint); color: var(--ipa);
+  font-family: var(--font-ipa); font-size: 1.9rem; line-height: 1;
+}
+.body { display: flex; flex-direction: column; min-width: 0; }
+.name { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.name .t { font-size: 1.25rem; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; }
+.new { padding: 1px 9px; border-radius: 999px; background: var(--tint); color: var(--accent); font-size: 0.8rem; font-weight: 600; }
+.desc { margin-top: 4px; max-width: 62ch; color: var(--muted); font-size: 0.975rem; }
+.kind { margin-top: 6px; color: var(--muted); font-size: 0.85rem; }
+.open {
+  padding: 6px 16px; border: 1px solid var(--rule); border-radius: 999px;
+  font-size: 0.9rem; font-weight: 600; transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+.row:hover .open, .row:focus-visible .open { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+
+.sk .row { pointer-events: none; }
+.sk .glyph { background: var(--rule); }
+.sk .bar-a, .sk .bar-b { display: block; height: 12px; border-radius: 6px; background: var(--rule); }
+.sk .bar-a { width: 40%; height: 16px; }
+.sk .bar-b { width: 70%; margin-top: 10px; }
+.sk .glyph, .sk .bar-a, .sk .bar-b { animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: 0.45; } }
+
+.empty { padding: 36px 16px; color: var(--muted); }
+.empty p { margin: 0 0 12px; }
+.link-btn { padding: 8px 16px; border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); font-weight: 600; cursor: pointer; }
+.link-btn:hover { border-color: var(--muted); }
+
+/* How it works */
+.how { margin-top: clamp(64px, 10vw, 112px); }
+.how h2 { margin: 0 0 28px; font-size: 1.6rem; font-weight: 700; letter-spacing: -0.015em; }
+.steps { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; counter-reset: step; }
+.steps li { counter-increment: step; padding-top: 16px; border-top: 2px solid var(--ink); }
+.steps li::before {
+  content: counter(step); display: block; margin-bottom: 8px;
+  font-family: var(--font-ipa); font-size: 2.4rem; line-height: 1; color: var(--ipa);
+}
+.steps h3 { margin: 0 0 6px; font-size: 1.1rem; font-weight: 600; }
+.steps p { margin: 0; color: var(--muted); max-width: 36ch; }
+
+.foot { padding-block: 72px 56px; color: var(--muted); font-size: 0.9rem; }
+
+@media (max-width: 780px) {
+  .browse { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .filters { position: static; }
+  .cats { flex-direction: row; overflow-x: auto; margin-top: 12px; padding-bottom: 4px; gap: 6px; }
+  .cat { width: auto; flex: none; border: 1px solid var(--rule); border-radius: 999px; padding: 6px 14px; }
+  .cat[aria-pressed="true"] { border-color: var(--ink); }
+  .steps { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+}
+@media (max-width: 560px) {
+  .row { grid-template-columns: 48px minmax(0, 1fr); gap: 14px; padding: 18px 8px; }
+  .glyph { width: 48px; height: 48px; font-size: 1.6rem; border-radius: 12px; }
+  .open { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#halaman">Lewati ke daftar halaman</a>
+
+<header class="wrap bar">
+  <a class="brand" href="./">Learning Fun</a>
+  <button id="theme" class="icon-btn" type="button" aria-label="Ganti tema terang atau gelap">
+    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+  </button>
+</header>
+
+<main>
+  <section class="wrap hero">
+    <h1 id="hero-line" class="line" title="Klik untuk memutar ulang sorotan">
+      <span class="w"><span class="t">Speak</span><span class="p" aria-hidden="true">/spiːk/</span></span>
+      <span class="w"><span class="t">it</span><span class="p" aria-hidden="true">/ɪt/</span></span>
+      <span class="w"><span class="t">the</span><span class="p" aria-hidden="true">/ðə/</span></span>
+      <span class="w"><span class="t">way</span><span class="p" aria-hidden="true">/weɪ/</span></span>
+      <span class="br" aria-hidden="true"></span>
+      <span class="w"><span class="t">they</span><span class="p" aria-hidden="true">/ðeɪ/</span></span>
+      <span class="w"><span class="t">say</span><span class="p" aria-hidden="true">/seɪ/</span></span>
+      <span class="w"><span class="t">it</span><span class="p" aria-hidden="true">/ɪt/</span></span>
+    </h1>
+    <p class="lede">Latihan shadowing dengan video asli. Ikuti transkrip baris demi baris, dan lihat cara baca setiap kata lewat IPA.</p>
+  </section>
+
+  <section id="halaman" class="wrap browse">
+    <div class="filters">
+      <label class="search">
+        <span class="sr">Cari halaman</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" type="search" placeholder="Cari halaman" autocomplete="off">
+      </label>
+      <ul id="cats" class="cats"></ul>
+    </div>
+    <div class="results">
+      <p id="status" class="status" role="status" aria-live="polite"></p>
+      <ul id="list" class="list"></ul>
+    </div>
+  </section>
+
+  <section class="wrap how">
+    <h2>Cara berlatih</h2>
+    <ol class="steps">
+      <li>
+        <h3>Pilih satu halaman</h3>
+        <p>Buka salah satu video latihan dari daftar di atas.</p>
+      </li>
+      <li>
+        <h3>Ikuti tiap baris</h3>
+        <p>Putar video, baca baris yang menyala, lalu tirukan ucapannya dengan bantuan IPA di bawah setiap kata.</p>
+      </li>
+      <li>
+        <h3>Ulangi yang sulit</h3>
+        <p>Pin baris yang belum lancar, turunkan kecepatan, dan ulangi sampai terasa wajar.</p>
+      </li>
+    </ol>
+  </section>
+</main>
+
+<footer class="wrap foot">learningfun.zone.id</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  /* Pengaturan: ubah di sini jika nama repositori atau struktur folder berubah. */
+  const CONFIG = {
+    owner: 'build-app11',
+    repo: 'Generate-transcript-english',
+    branch: 'main',
+    folders: [''],                       // contoh jika nanti memakai folder: ['', 'posts']
+    manifest: 'posts.json',              // opsional: judul, deskripsi, kategori, urutan
+    exclude: ['index.html', '404.html'], // file yang tidak ditampilkan
+    listTtlMin: 10                       // daftar file di-cache sekian menit
+  };
+  const GLYPHS = ['ʃ', 'θ', 'ə', 'ŋ', 'ð', 'ʒ', 'æ', 'ɔː', 'ɪ', 'ʊ', 'tʃ', 'dʒ'];
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const store = {
+    get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch { /* abaikan */ } }
+  };
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  /* ---------- Tema ---------- */
+  const root = document.documentElement;
+  $('#theme').addEventListener('click', () => {
+    const cur = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    store.set('lf:theme', next);
+  });
+
+  /* ---------- Sorotan kata di hero ---------- */
+  const words = [...document.querySelectorAll('#hero-line .w')];
+  const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let sweepTimer = null;
+  function sweep() {
+    clearInterval(sweepTimer);
+    words.forEach(w => w.classList.remove('on'));
+    if (reduceMotion) return;
+    let i = 0;
+    sweepTimer = setInterval(() => {
+      if (i >= words.length) { clearInterval(sweepTimer); words.forEach(w => w.classList.remove('on')); return; }
+      words.forEach((w, j) => w.classList.toggle('on', j === i));
+      i++;
+    }, 420);
+  }
+  setTimeout(sweep, 500);
+  $('#hero-line').addEventListener('click', sweep);
+
+  /* ---------- Helper ---------- */
+  const pathUrl = p => p.split('/').map(encodeURIComponent).join('/');
+  const stem = p => p.split('/').pop().replace(/\.html?$/i, '');
+  const pretty = p => {
+    const s = stem(p).replace(/[()]/g, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  };
+  const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.codePointAt(0)) >>> 0; return h; };
+
+  /* ---------- Sumber data ---------- */
+  async function getManifest() {
+    try {
+      const r = await fetch(CONFIG.manifest, { cache: 'no-cache' });
+      if (!r.ok) return {};
+      const j = await r.json();
+      return (j && typeof j.pages === 'object' && j.pages) || {};
+    } catch { return {}; }
+  }
+
+  // Daftar file .html di repositori lewat GitHub API (publik, tanpa token).
+  async function listFiles() {
+    const cached = store.get('lf:list');
+    if (cached && Date.now() - cached.t < CONFIG.listTtlMin * 60000) return cached.files;
+    try {
+      const out = [];
+      await Promise.all(CONFIG.folders.map(async folder => {
+        const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${folder}?ref=${CONFIG.branch}`;
+        const r = await fetch(url, { headers: { Accept: 'application/vnd.github+json' } });
+        if (r.status === 404) return;
+        if (!r.ok) throw new Error('api ' + r.status);
+        for (const it of await r.json()) {
+          if (it.type !== 'file' || !/\.html?$/i.test(it.name)) continue;
+          if (CONFIG.exclude.includes(it.path) || it.name.startsWith('_')) continue;
+          out.push({ path: it.path, sha: it.sha });
+        }
+      }));
+      store.set('lf:list', { t: Date.now(), files: out });
+      return out;
+    } catch {
+      return cached ? cached.files : null;
+    }
+  }
+
+  // Judul dan deskripsi dibaca langsung dari halaman, lalu di-cache per versi file.
+  async function pageMeta(path, sha) {
+    const key = 'lf:meta:' + path;
+    const c = store.get(key);
+    if (c && c.sha === (sha || null)) return c;
+    try {
+      const r = await fetch(pathUrl(path));
+      if (!r.ok) throw new Error('page ' + r.status);
+      const doc = new DOMParser().parseFromString(await r.text(), 'text/html');
+      const m = n => (doc.querySelector(`meta[name="${n}"]`)?.content || '').trim();
+      const meta = { sha: sha || null, title: (doc.title || '').trim(), description: m('description'), category: m('landing:category') };
+      store.set(key, meta);
+      return meta;
+    } catch {
+      return c || { sha: sha || null, title: '', description: '', category: '' };
+    }
+  }
+
+  /* ---------- Susun daftar ---------- */
+  const state = { items: [], q: '', cat: '*', loaded: false };
+
+  function toItems(files, manifest) {
+    const map = new Map();
+    if (files) files.forEach(f => map.set(f.path, { path: f.path, sha: f.sha }));
+    else Object.keys(manifest).forEach(p => map.set(p, { path: p, sha: null }));
+    const items = [];
+    for (const it of map.values()) {
+      const m = manifest[it.path] || {};
+      if (m.hidden) continue;
+      items.push({ ...it, m, listed: Object.keys(m).length > 0, page: {} });
+    }
+    return items;
+  }
+
+  function view() {
+    const rows = state.items.map(it => {
+      const { m, page } = it;
+      return {
+        path: it.path,
+        title: m.title || page.title || pretty(it.path),
+        description: m.description || page.description || '',
+        category: m.category || page.category || 'Postingan',
+        order: Number.isFinite(m.order) ? m.order : null,
+        glyph: m.glyph || GLYPHS[hash(it.path) % GLYPHS.length],
+        isNew: !it.listed
+      };
+    });
+    const seen = {};
+    rows.forEach(r => { const k = r.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; });
+    rows.forEach(r => {
+      if (seen[r.title.toLowerCase()] > 1 && pretty(r.path).toLowerCase() !== r.title.toLowerCase()) r.title += ` (${pretty(r.path)})`;
+    });
+    const rank = r => (r.isNew ? -1 : (r.order ?? 1000));
+    rows.sort((a, b) => rank(a) - rank(b) || a.title.localeCompare(b.title, 'id'));
+    return rows;
+  }
+
+  /* ---------- Tampilan ---------- */
+  const elList = $('#list'), elCats = $('#cats'), elStatus = $('#status'), elQ = $('#q');
+
+  function renderSkeleton() {
+    elList.innerHTML = Array.from({ length: 3 }, () =>
+      '<li class="sk"><div class="row"><span class="glyph"></span><span class="body"><span class="bar-a"></span><span class="bar-b"></span></span></div></li>').join('');
+    elStatus.textContent = 'Memuat daftar halaman';
+  }
+
+  function renderError() {
+    elCats.innerHTML = '';
+    elStatus.textContent = '';
+    elList.innerHTML = '<li class="empty"><p>Daftar halaman belum bisa dimuat. Muat ulang halaman ini untuk mencoba lagi.</p><button class="link-btn" type="button" data-act="reload">Muat ulang</button></li>';
+  }
+
+  function render() {
+    const all = view();
+    const counts = {};
+    all.forEach(r => { counts[r.category] = (counts[r.category] || 0) + 1; });
+    const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b, 'id'));
+    if (state.cat !== '*' && !counts[state.cat]) state.cat = '*';
+
+    const btn = (key, label, n) =>
+      `<li><button class="cat" type="button" data-cat="${esc(key)}" aria-pressed="${state.cat === key}"><span>${esc(label)}</span><span class="n">${n}</span></button></li>`;
+    elCats.innerHTML = all.length > 0 && cats.length > 1
+      ? btn('*', 'Semua', all.length) + cats.map(c => btn(c, c, counts[c])).join('')
+      : '';
+
+    const q = state.q.trim().toLowerCase();
+    const shown = all.filter(r =>
+      (state.cat === '*' || r.category === state.cat) &&
+      (!q || (r.title + ' ' + r.description + ' ' + r.category).toLowerCase().includes(q)));
+
+    if (!all.length) {
+      elStatus.textContent = '';
+      elList.innerHTML = '<li class="empty"><p>Belum ada halaman latihan.</p></li>';
+      return;
+    }
+    elStatus.textContent = shown.length === all.length ? `${all.length} halaman` : `${shown.length} dari ${all.length} halaman`;
+
+    if (!shown.length) {
+      elList.innerHTML = `<li class="empty"><p>Tidak ada halaman yang cocok${q ? ` dengan “${esc(state.q.trim())}”` : ''}.</p><button class="link-btn" type="button" data-act="clear">Hapus pencarian dan filter</button></li>`;
+      return;
+    }
+    elList.innerHTML = shown.map(r => `
+      <li><a class="row" href="${esc(pathUrl(r.path))}">
+        <span class="glyph" aria-hidden="true">${esc(r.glyph)}</span>
+        <span class="body">
+          <span class="name"><span class="t">${esc(r.title)}</span>${r.isNew ? '<span class="new">Baru</span>' : ''}</span>
+          ${r.description ? `<span class="desc">${esc(r.description)}</span>` : ''}
+          <span class="kind">${esc(r.category)}</span>
+        </span>
+        <span class="open" aria-hidden="true">Buka</span>
+      </a></li>`).join('');
+  }
+
+  elQ.addEventListener('input', () => { state.q = elQ.value; if (state.loaded) render(); });
+  elCats.addEventListener('click', e => {
+    const b = e.target.closest('[data-cat]');
+    if (!b) return;
+    state.cat = b.dataset.cat;
+    render();
+  });
+  elList.addEventListener('click', e => {
+    const a = e.target.closest('[data-act]');
+    if (!a) return;
+    if (a.dataset.act === 'reload') location.reload();
+    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; elQ.value = ''; render(); elQ.focus(); }
+  });
+
+  /* ---------- Mulai ---------- */
+  async function init() {
+    renderSkeleton();
+    const [manifest, files] = await Promise.all([getManifest(), listFiles()]);
+    if (files === null && !Object.keys(manifest).length) { renderError(); return; }
+
+    state.items = toItems(files, manifest);
+    state.loaded = true;
+    render();
+
+    // Halaman yang belum punya judul/deskripsi/kategori di posts.json dibaca dari file-nya.
+    const need = state.items.filter(it => !(it.m.title && it.m.description && it.m.category));
+    if (need.length) {
+      const metas = await Promise.all(need.map(it => pageMeta(it.path, it.sha)));
+      need.forEach((it, k) => { it.page = metas[k]; });
+      render();
+    }
+  }
+  init();
+})();
+</script>
+</body>
+</html>
