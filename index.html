@@ -161,6 +161,18 @@ h1, h2, h3, p { margin: 0; }
 .search svg { position: absolute; left: 15px; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
 .search input { width: 100%; padding: 11px 16px 11px 44px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
 .search input::placeholder { color: var(--muted); }
+.tagrow { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 12px; margin-top: 18px; }
+.tagrow-label { font-weight: 700; color: var(--muted); }
+.tagchips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.tagchip {
+  display: inline-flex; align-items: center; gap: 6px; padding: 3px 12px;
+  border: 2px solid var(--line); border-radius: 999px; background: transparent; color: var(--ink);
+  font-weight: 600; font-size: 0.92rem; cursor: pointer;
+}
+.tagchip .n { color: var(--muted); font-weight: 500; }
+.tagchip:hover { background: var(--surface); }
+.tagchip[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.tagchip[aria-pressed="true"] .n { color: inherit; opacity: 0.75; }
 .hint { min-height: 1.5em; margin-top: 14px; color: var(--muted); }
 .status { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; font-weight: 600; }
 
@@ -185,6 +197,8 @@ h1, h2, h3, p { margin: 0; }
 .pill.seen { background: color-mix(in srgb, var(--mint) 38%, var(--surface)); }
 .card .t { font-family: var(--font-display); font-weight: 600; font-size: 1.35rem; line-height: 1.2; }
 .card .desc { margin-bottom: 10px; color: var(--muted); font-size: 0.97rem; }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; margin: -6px 0 10px; }
+.tag { padding: 0 10px; border: 2px solid var(--rule); border-radius: 999px; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
 .go { align-self: flex-start; margin-top: auto; padding: 8px 20px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--c); color: var(--on); font-family: var(--font-display); font-weight: 600; }
 
 .sk .media { background: var(--rule); }
@@ -317,6 +331,10 @@ h1, h2, h3, p { margin: 0; }
         <input id="q" type="search" placeholder="Cari latihan" autocomplete="off">
       </label>
     </div>
+    <div id="tagrow" class="tagrow" hidden>
+      <span class="tagrow-label">Tag</span>
+      <ul id="tags" class="tagchips"></ul>
+    </div>
     <p id="hint" class="hint"></p>
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <ul id="list" class="grid"></ul>
@@ -353,6 +371,16 @@ h1, h2, h3, p { margin: 0; }
   };
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const hash = s => { let h = 0; for (const c of s) h = (h * 31 + c.codePointAt(0)) >>> 0; return h; };
+  // Tag boleh berupa array atau teks dipisah koma; duplikat (tanpa memandang huruf besar/kecil) dibuang.
+  const parseTags = v => {
+    const raw = Array.isArray(v) ? v : String(v || '').split(',');
+    const seen = new Set(), out = [];
+    for (const t of raw) {
+      const s = String(t).trim().replace(/\s+/g, ' ');
+      if (s && !seen.has(s.toLowerCase())) { seen.add(s.toLowerCase()); out.push(s); }
+    }
+    return out.slice(0, 6);
+  };
   const catInfo = c => CATS[c] || { color: SPARE_COLORS[hash(c) % SPARE_COLORS.length], verb: 'Buka', hint: '' };
   const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -447,7 +475,7 @@ h1, h2, h3, p { margin: 0; }
   const YT_RE = /(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:[^"'\s]*&)?v=|embed\/)|ytimg\.com\/vi\/)([A-Za-z0-9_-]{11})/;
   const YT_VAR_RE = /(?:video_?id|yt_?id|youtube_?id)["']?\s*[:=]\s*["']([A-Za-z0-9_-]{11})["']/i;
   async function pageMeta(path, sha) {
-    const key = 'lf2:meta:' + path;
+    const key = 'lf3:meta:' + path;
     const c = store.get(key);
     if (c && c.sha === (sha || null)) return c;
     try {
@@ -457,16 +485,16 @@ h1, h2, h3, p { margin: 0; }
       const doc = new DOMParser().parseFromString(text, 'text/html');
       const m = n => (doc.querySelector(`meta[name="${n}"]`)?.content || '').trim();
       const yt = (text.match(YT_RE) || text.match(YT_VAR_RE) || [])[1] || '';
-      const meta = { sha: sha || null, title: (doc.title || '').trim(), description: m('description'), category: m('landing:category'), youtube: yt };
+      const meta = { sha: sha || null, title: (doc.title || '').trim(), description: m('description'), category: m('landing:category'), youtube: yt, tags: parseTags(m('landing:tags')) };
       store.set(key, meta);
       return meta;
     } catch {
-      return c || { sha: sha || null, title: '', description: '', category: '', youtube: '' };
+      return c || { sha: sha || null, title: '', description: '', category: '', youtube: '', tags: [] };
     }
   }
 
   /* ---------- Susun daftar ---------- */
-  const state = { items: [], q: '', cat: '*', loaded: false };
+  const state = { items: [], q: '', cat: '*', tag: '', loaded: false };
 
   function toItems(files, manifest) {
     const map = new Map();
@@ -493,6 +521,7 @@ h1, h2, h3, p { margin: 0; }
         order: Number.isFinite(m.order) ? m.order : null,
         glyph: m.glyph || GLYPHS[hash(it.path) % GLYPHS.length],
         youtube: /^[A-Za-z0-9_-]{11}$/.test(yt) ? yt : '',
+        tags: m.tags !== undefined ? parseTags(m.tags) : parseTags(page.tags),
         isNew: !it.listed
       };
     });
@@ -508,7 +537,7 @@ h1, h2, h3, p { margin: 0; }
 
   /* ---------- Tampilan ---------- */
   const elList = $('#list'), elCats = $('#cats'), elStatus = $('#status'), elQ = $('#q'), elHint = $('#hint');
-  const elProg = $('#progress');
+  const elProg = $('#progress'), elTagRow = $('#tagrow'), elTags = $('#tags');
   const PLAY_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
 
   const getSeen = () => new Set(store.get('lf:seen') || []);
@@ -551,10 +580,25 @@ h1, h2, h3, p { margin: 0; }
     elHint.textContent = state.cat !== '*' ? catInfo(state.cat).hint : '';
     renderProgress(all);
 
+    // Tag yang ditampilkan hanya milik kategori yang sedang dipilih.
+    const pool = all.filter(r => state.cat === '*' || r.category === state.cat);
+    const tagInfo = new Map();
+    pool.forEach(r => r.tags.forEach(t => {
+      const k = t.toLowerCase();
+      const e = tagInfo.get(k) || { label: t, n: 0 };
+      e.n++;
+      tagInfo.set(k, e);
+    }));
+    if (state.tag && !tagInfo.has(state.tag)) state.tag = '';
+    const tagList = [...tagInfo.entries()].sort((a, b) => b[1].n - a[1].n || a[1].label.localeCompare(b[1].label, 'id'));
+    elTagRow.hidden = !tagList.length;
+    elTags.innerHTML = tagList.map(([k, e]) =>
+      `<li><button class="tagchip" type="button" data-tag="${esc(k)}" aria-pressed="${state.tag === k}">${esc(e.label)}<span class="n">${e.n}</span></button></li>`).join('');
+
     const q = state.q.trim().toLowerCase();
-    const shown = all.filter(r =>
-      (state.cat === '*' || r.category === state.cat) &&
-      (!q || (r.title + ' ' + r.description + ' ' + r.category).toLowerCase().includes(q)));
+    const shown = pool.filter(r =>
+      (!state.tag || r.tags.some(t => t.toLowerCase() === state.tag)) &&
+      (!q || (r.title + ' ' + r.description + ' ' + r.category + ' ' + r.tags.join(' ')).toLowerCase().includes(q)));
 
     if (!all.length) {
       elStatus.textContent = '';
@@ -584,6 +628,7 @@ h1, h2, h3, p { margin: 0; }
           </span>
           <span class="t">${esc(r.title)}</span>
           ${r.description ? `<span class="desc">${esc(r.description)}</span>` : ''}
+          ${r.tags.length ? `<span class="tags">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</span>` : ''}
           <span class="go">${esc(info.verb)}</span>
         </span>
       </a></li>`;
@@ -597,13 +642,19 @@ h1, h2, h3, p { margin: 0; }
     state.cat = b.dataset.cat;
     render();
   });
+  elTags.addEventListener('click', e => {
+    const b = e.target.closest('[data-tag]');
+    if (!b) return;
+    state.tag = state.tag === b.dataset.tag ? '' : b.dataset.tag;
+    render();
+  });
   const onCardOpen = e => { const a = e.target.closest('a.card'); if (a) markSeen(a.dataset.path); };
   elList.addEventListener('click', e => {
     onCardOpen(e);
     const a = e.target.closest('[data-act]');
     if (!a) return;
     if (a.dataset.act === 'reload') location.reload();
-    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; elQ.value = ''; render(); elQ.focus(); }
+    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; state.tag = ''; elQ.value = ''; render(); elQ.focus(); }
   });
   elList.addEventListener('auxclick', onCardOpen);
   // Jika thumbnail gagal dimuat, tampilkan simbol IPA sebagai gantinya.
@@ -626,7 +677,7 @@ h1, h2, h3, p { margin: 0; }
     render();
 
     // Halaman yang belum lengkap datanya di posts.json dibaca dari file-nya.
-    const need = state.items.filter(it => !(it.m.title && it.m.description && it.m.category) || typeof it.m.youtube !== 'string');
+    const need = state.items.filter(it => !(it.m.title && it.m.description && it.m.category) || typeof it.m.youtube !== 'string' || it.m.tags === undefined);
     if (need.length) {
       const metas = await Promise.all(need.map(it => pageMeta(it.path, it.sha)));
       need.forEach((it, k) => { it.page = metas[k]; });
