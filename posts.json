@@ -1,28 +1,32 @@
 {
-  "_catatan": "File ini opsional. Halaman .html baru yang diunggah ke repositori otomatis muncul di landing page dengan tanda 'Baru'. Tambahkan entri di bawah hanya jika ingin mengatur judul, deskripsi, kategori, urutan (order, angka kecil tampil lebih dulu), glyph, atau menyembunyikan halaman (hidden: true).",
+  "_catatan": "File ini opsional. Halaman .html baru yang diunggah ke repositori otomatis muncul di landing page dengan tanda 'Baru'. Tambahkan entri di bawah hanya jika ingin mengatur judul, deskripsi, kategori, urutan (order, angka kecil tampil lebih dulu), glyph, atau menyembunyikan halaman (hidden: true). 'youtube' berisi ID video untuk thumbnail; kosongkan (\"\") jika halaman tidak punya video.",
   "pages": {
     "uk-travel-shadowing.html": {
       "title": "UK Travel Shadowing",
       "description": "Vlog perjalanan ke Inggris. Transkrip menyala mengikuti video, dengan IPA di bawah setiap kata.",
       "category": "Latihan",
+      "youtube": "52t241OQ7Ec",
       "order": 1
     },
     "transcript-video.html": {
       "title": "A Walk Through the Village",
       "description": "Seorang vlogger berjalan melewati desanya bersama dua teman. Sekitar 200 baris transkrip dengan IPA.",
       "category": "Latihan",
+      "youtube": "0-O869Sqvhg",
       "order": 2
     },
     "shadowing-halaman (4).html": {
       "title": "Life on the Farm",
       "description": "Keliling kebun dan peternakan keluarga: menutup gerbang, memetik ceri, mencabut wortel. Bahasa Inggris tingkat pemula.",
       "category": "Latihan",
+      "youtube": "ofPPsEXbEKM",
       "order": 3
     },
     "shadowing-halaman (3).html": {
       "title": "A Walk Through the Village (salinan)",
       "description": "Video yang sama dengan transcript-video.html.",
       "category": "Latihan",
+      "youtube": "0-O869Sqvhg",
       "order": 4,
       "hidden": true
     },
@@ -30,12 +34,14 @@
       "title": "Pembuat halaman shadowing",
       "description": "Buat halaman latihan sendiri dari link YouTube dan transkrip dari toPhonetics, lalu unduh sebagai satu file HTML.",
       "category": "Alat",
+      "youtube": "",
       "order": 10
     },
     "audiobook_generator.html": {
       "title": "Sync Reader",
       "description": "Unggah ebook, audio, dan file timestamp. Kata yang sedang dibacakan menyala mengikuti audio.",
       "category": "Alat",
+      "youtube": "",
       "order": 11
     }
   }
