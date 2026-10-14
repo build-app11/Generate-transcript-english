@@ -372,8 +372,53 @@
     {
       "start": 24,
       "text": "Yes, and people should remember that they can get a free",
-      "ipa": "jɛs, ænd ˈpiːpᵊl ʃʊd rɪˈmɛmbə ðæt ðeɪ kæn ɡɛt ə friː worksheet ˈwɜːkˌʃiːt",
-      "words": null,
+      "ipa": "jɛs, ænd ˈpiːpᵊl ʃʊd rɪˈmɛmbə ðæt ðeɪ kæn ɡɛt ə friː",
+      "words": [
+        {
+          "text": "Yes,",
+          "ipa": "jɛs,"
+        },
+        {
+          "text": "and",
+          "ipa": "ænd"
+        },
+        {
+          "text": "people",
+          "ipa": "ˈpiːpᵊl"
+        },
+        {
+          "text": "should",
+          "ipa": "ʃʊd"
+        },
+        {
+          "text": "remember",
+          "ipa": "rɪˈmɛmbə"
+        },
+        {
+          "text": "that",
+          "ipa": "ðæt"
+        },
+        {
+          "text": "they",
+          "ipa": "ðeɪ"
+        },
+        {
+          "text": "can",
+          "ipa": "kæn"
+        },
+        {
+          "text": "get",
+          "ipa": "ɡɛt"
+        },
+        {
+          "text": "a",
+          "ipa": "ə"
+        },
+        {
+          "text": "free",
+          "ipa": "friː"
+        }
+      ],
       "music": false
     },
     {
@@ -479,8 +524,57 @@
     {
       "start": 44,
       "text": "Well, what happened was I found a job picking beans on a",
-      "ipa": "wɛl, wɒt ˈhæpᵊnd wɒz aɪ faʊnd ə ʤɒb ˈpɪkɪŋ biːnz ɒn ə student holiday ˈstjuːdᵊnt ˈhɒlədeɪ",
-      "words": null,
+      "ipa": "wɛl, wɒt ˈhæpᵊnd wɒz aɪ faʊnd ə ʤɒb ˈpɪkɪŋ biːnz ɒn ə",
+      "words": [
+        {
+          "text": "Well,",
+          "ipa": "wɛl,"
+        },
+        {
+          "text": "what",
+          "ipa": "wɒt"
+        },
+        {
+          "text": "happened",
+          "ipa": "ˈhæpᵊnd"
+        },
+        {
+          "text": "was",
+          "ipa": "wɒz"
+        },
+        {
+          "text": "I",
+          "ipa": "aɪ"
+        },
+        {
+          "text": "found",
+          "ipa": "faʊnd"
+        },
+        {
+          "text": "a",
+          "ipa": "ə"
+        },
+        {
+          "text": "job",
+          "ipa": "ʤɒb"
+        },
+        {
+          "text": "picking",
+          "ipa": "ˈpɪkɪŋ"
+        },
+        {
+          "text": "beans",
+          "ipa": "biːnz"
+        },
+        {
+          "text": "on",
+          "ipa": "ɒn"
+        },
+        {
+          "text": "a",
+          "ipa": "ə"
+        }
+      ],
       "music": false
     },
     {
@@ -1206,14 +1300,67 @@
     {
       "start": 108,
       "text": "I was working in customer service, so I had to pick up calls",
-      "ipa": "aɪ wɒz ˈwɜːkɪŋ ɪn ˈkʌstəmə ˈsɜːvɪs, səʊ aɪ hæd tuː pɪk ʌp kɔːlz from customers frɒm ˈkʌstəməz",
-      "words": null,
+      "ipa": "aɪ wɒz ˈwɜːkɪŋ ɪn ˈkʌstəmə ˈsɜːvɪs, səʊ aɪ hæd tuː pɪk ʌp kɔːlz",
+      "words": [
+        {
+          "text": "I",
+          "ipa": "aɪ"
+        },
+        {
+          "text": "was",
+          "ipa": "wɒz"
+        },
+        {
+          "text": "working",
+          "ipa": "ˈwɜːkɪŋ"
+        },
+        {
+          "text": "in",
+          "ipa": "ɪn"
+        },
+        {
+          "text": "customer",
+          "ipa": "ˈkʌstəmə"
+        },
+        {
+          "text": "service,",
+          "ipa": "ˈsɜːvɪs,"
+        },
+        {
+          "text": "so",
+          "ipa": "səʊ"
+        },
+        {
+          "text": "I",
+          "ipa": "aɪ"
+        },
+        {
+          "text": "had",
+          "ipa": "hæd"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "pick",
+          "ipa": "pɪk"
+        },
+        {
+          "text": "up",
+          "ipa": "ʌp"
+        },
+        {
+          "text": "calls",
+          "ipa": "kɔːlz"
+        }
+      ],
       "music": false
     },
     {
       "start": 115,
       "text": "who were needing help or were unhappy about the service they had",
-      "ipa": "huː wɜː ˈniːdɪŋ hɛlp ɔː wɜːr ʌnˈhæpi əˈbaʊt ðə ˈsɜːvɪs ðeɪ hæd..",
+      "ipa": "huː wɜː ˈniːdɪŋ hɛlp ɔː wɜːr ʌnˈhæpi əˈbaʊt ðə ˈsɜːvɪs ðeɪ hæd",
       "words": [
         {
           "text": "who",
@@ -1261,7 +1408,7 @@
         },
         {
           "text": "had",
-          "ipa": "hæd.."
+          "ipa": "hæd"
         }
       ],
       "music": false
@@ -1493,8 +1640,61 @@
     {
       "start": 140,
       "text": "and it felt like they were angry with me, even though it wasn't",
-      "ipa": "ænd ɪt fɛlt laɪk ðeɪ wɜːr ˈæŋɡri wɪð miː, ˈiːvᵊn ðəʊ ɪt ˈwɒzᵊnt my fault. maɪ fɔːlt.",
-      "words": null,
+      "ipa": "ænd ɪt fɛlt laɪk ðeɪ wɜːr ˈæŋɡri wɪð miː, ˈiːvᵊn ðəʊ ɪt ˈwɒzᵊnt",
+      "words": [
+        {
+          "text": "and",
+          "ipa": "ænd"
+        },
+        {
+          "text": "it",
+          "ipa": "ɪt"
+        },
+        {
+          "text": "felt",
+          "ipa": "fɛlt"
+        },
+        {
+          "text": "like",
+          "ipa": "laɪk"
+        },
+        {
+          "text": "they",
+          "ipa": "ðeɪ"
+        },
+        {
+          "text": "were",
+          "ipa": "wɜːr"
+        },
+        {
+          "text": "angry",
+          "ipa": "ˈæŋɡri"
+        },
+        {
+          "text": "with",
+          "ipa": "wɪð"
+        },
+        {
+          "text": "me,",
+          "ipa": "miː,"
+        },
+        {
+          "text": "even",
+          "ipa": "ˈiːvᵊn"
+        },
+        {
+          "text": "though",
+          "ipa": "ðəʊ"
+        },
+        {
+          "text": "it",
+          "ipa": "ɪt"
+        },
+        {
+          "text": "wasn't",
+          "ipa": "ˈwɒzᵊnt"
+        }
+      ],
       "music": false
     },
     {
@@ -2092,8 +2292,61 @@
     {
       "start": 197,
       "text": "And at the end of the day, you can go home and enjoy",
-      "ipa": "ænd æt ði ɛnd ɒv ðə deɪ, juː kæn ɡəʊ həʊm ænd ɪnˈʤɔɪ yourself, relax, jɔːˈsɛlf, rɪˈlæks,",
-      "words": null,
+      "ipa": "ænd æt ði ɛnd ɒv ðə deɪ, juː kæn ɡəʊ həʊm ænd ɪnˈʤɔɪ",
+      "words": [
+        {
+          "text": "And",
+          "ipa": "ænd"
+        },
+        {
+          "text": "at",
+          "ipa": "æt"
+        },
+        {
+          "text": "the",
+          "ipa": "ði"
+        },
+        {
+          "text": "end",
+          "ipa": "ɛnd"
+        },
+        {
+          "text": "of",
+          "ipa": "ɒv"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        },
+        {
+          "text": "day,",
+          "ipa": "deɪ,"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "can",
+          "ipa": "kæn"
+        },
+        {
+          "text": "go",
+          "ipa": "ɡəʊ"
+        },
+        {
+          "text": "home",
+          "ipa": "həʊm"
+        },
+        {
+          "text": "and",
+          "ipa": "ænd"
+        },
+        {
+          "text": "enjoy",
+          "ipa": "ɪnˈʤɔɪ"
+        }
+      ],
       "music": false
     },
     {
@@ -2171,15 +2424,113 @@
     {
       "start": 207.6,
       "text": "What advice would you give to people doing the job that you",
-      "ipa": "wɒt ədˈvaɪs wʊd juː ɡɪv tuː ˈpiːpᵊl ˈduːɪŋ ðə ʤɒb ðæt juː had in Canada? hæd ɪn ˈkænədə?",
-      "words": null,
+      "ipa": "wɒt ədˈvaɪs wʊd juː ɡɪv tuː ˈpiːpᵊl ˈduːɪŋ ðə ʤɒb ðæt juː",
+      "words": [
+        {
+          "text": "What",
+          "ipa": "wɒt"
+        },
+        {
+          "text": "advice",
+          "ipa": "ədˈvaɪs"
+        },
+        {
+          "text": "would",
+          "ipa": "wʊd"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "give",
+          "ipa": "ɡɪv"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "people",
+          "ipa": "ˈpiːpᵊl"
+        },
+        {
+          "text": "doing",
+          "ipa": "ˈduːɪŋ"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        },
+        {
+          "text": "job",
+          "ipa": "ʤɒb"
+        },
+        {
+          "text": "that",
+          "ipa": "ðæt"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        }
+      ],
       "music": false
     },
     {
       "start": 213,
       "text": "I think it's really important to do some research before you say",
-      "ipa": "aɪ θɪŋk ɪts ˈrɪəli ɪmˈpɔːtᵊnt tuː duː sʌm rɪˈsɜːʧ bɪˈfɔː juː seɪ yes to a job, jɛs tuː ə ʤɒb,",
-      "words": null,
+      "ipa": "aɪ θɪŋk ɪts ˈrɪəli ɪmˈpɔːtᵊnt tuː duː sʌm rɪˈsɜːʧ bɪˈfɔː juː seɪ",
+      "words": [
+        {
+          "text": "I",
+          "ipa": "aɪ"
+        },
+        {
+          "text": "think",
+          "ipa": "θɪŋk"
+        },
+        {
+          "text": "it's",
+          "ipa": "ɪts"
+        },
+        {
+          "text": "really",
+          "ipa": "ˈrɪəli"
+        },
+        {
+          "text": "important",
+          "ipa": "ɪmˈpɔːtᵊnt"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "do",
+          "ipa": "duː"
+        },
+        {
+          "text": "some",
+          "ipa": "sʌm"
+        },
+        {
+          "text": "research",
+          "ipa": "rɪˈsɜːʧ"
+        },
+        {
+          "text": "before",
+          "ipa": "bɪˈfɔː"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "say",
+          "ipa": "seɪ"
+        }
+      ],
       "music": false
     },
     {
@@ -2225,15 +2576,125 @@
     {
       "start": 224,
       "text": "So, probably find out how much you're going to get paid, what",
-      "ipa": "səʊ, ˈprɒbəbli faɪnd aʊt haʊ mʌʧ jɔː ˈɡəʊɪŋ tuː ɡɛt peɪd, wɒt it means, ɪt miːnz,",
-      "words": null,
+      "ipa": "səʊ, ˈprɒbəbli faɪnd aʊt haʊ mʌʧ jɔː ˈɡəʊɪŋ tuː ɡɛt peɪd, wɒt",
+      "words": [
+        {
+          "text": "So,",
+          "ipa": "səʊ,"
+        },
+        {
+          "text": "probably",
+          "ipa": "ˈprɒbəbli"
+        },
+        {
+          "text": "find",
+          "ipa": "faɪnd"
+        },
+        {
+          "text": "out",
+          "ipa": "aʊt"
+        },
+        {
+          "text": "how",
+          "ipa": "haʊ"
+        },
+        {
+          "text": "much",
+          "ipa": "mʌʧ"
+        },
+        {
+          "text": "you're",
+          "ipa": "jɔː"
+        },
+        {
+          "text": "going",
+          "ipa": "ˈɡəʊɪŋ"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "get",
+          "ipa": "ɡɛt"
+        },
+        {
+          "text": "paid,",
+          "ipa": "peɪd,"
+        },
+        {
+          "text": "what",
+          "ipa": "wɒt"
+        }
+      ],
       "music": false
     },
     {
       "start": 231,
       "text": "and how much you have to pay to get to the place to do the",
-      "ipa": "ænd haʊ mʌʧ juː hæv tuː peɪ tuː ɡɛt tuː ðə pleɪs tuː duː ðə job. ʤɒb.",
-      "words": null,
+      "ipa": "ænd haʊ mʌʧ juː hæv tuː peɪ tuː ɡɛt tuː ðə pleɪs tuː duː ðə",
+      "words": [
+        {
+          "text": "and",
+          "ipa": "ænd"
+        },
+        {
+          "text": "how",
+          "ipa": "haʊ"
+        },
+        {
+          "text": "much",
+          "ipa": "mʌʧ"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "have",
+          "ipa": "hæv"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "pay",
+          "ipa": "peɪ"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "get",
+          "ipa": "ɡɛt"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        },
+        {
+          "text": "place",
+          "ipa": "pleɪs"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "do",
+          "ipa": "duː"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        }
+      ],
       "music": false
     },
     {
@@ -2291,8 +2752,53 @@
     {
       "start": 246,
       "text": "OK. So, let's recap the vocabulary that we used in the",
-      "ipa": "ˌəʊˈkeɪ. səʊ, lɛts ˈriːkæp ðə vəˈkæbjəlᵊri ðæt wiː juːzd ɪn ðə conversation. ˌkɒnvəˈseɪʃᵊn.",
-      "words": null,
+      "ipa": "ˌəʊˈkeɪ. səʊ, lɛts ˈriːkæp ðə vəˈkæbjəlᵊri ðæt wiː juːzd ɪn ðə",
+      "words": [
+        {
+          "text": "OK.",
+          "ipa": "ˌəʊˈkeɪ."
+        },
+        {
+          "text": "So,",
+          "ipa": "səʊ,"
+        },
+        {
+          "text": "let's",
+          "ipa": "lɛts"
+        },
+        {
+          "text": "recap",
+          "ipa": "ˈriːkæp"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        },
+        {
+          "text": "vocabulary",
+          "ipa": "vəˈkæbjəlᵊri"
+        },
+        {
+          "text": "that",
+          "ipa": "ðæt"
+        },
+        {
+          "text": "we",
+          "ipa": "wiː"
+        },
+        {
+          "text": "used",
+          "ipa": "juːzd"
+        },
+        {
+          "text": "in",
+          "ipa": "ɪn"
+        },
+        {
+          "text": "the",
+          "ipa": "ðə"
+        }
+      ],
       "music": false
     },
     {
@@ -2718,8 +3224,49 @@
     {
       "start": 288,
       "text": "Yes, that's right. I also used the expression 'take something",
-      "ipa": "jɛs, ðæts raɪt. aɪ ˈɔːlsəʊ juːzd ði ɪkˈsprɛʃᵊn teɪk ˈsʌmθɪŋ personally', ˈpɜːsᵊnᵊli,",
-      "words": null,
+      "ipa": "jɛs, ðæts raɪt. aɪ ˈɔːlsəʊ juːzd ði ɪkˈsprɛʃᵊn teɪk ˈsʌmθɪŋ",
+      "words": [
+        {
+          "text": "Yes,",
+          "ipa": "jɛs,"
+        },
+        {
+          "text": "that's",
+          "ipa": "ðæts"
+        },
+        {
+          "text": "right.",
+          "ipa": "raɪt."
+        },
+        {
+          "text": "I",
+          "ipa": "aɪ"
+        },
+        {
+          "text": "also",
+          "ipa": "ˈɔːlsəʊ"
+        },
+        {
+          "text": "used",
+          "ipa": "juːzd"
+        },
+        {
+          "text": "the",
+          "ipa": "ði"
+        },
+        {
+          "text": "expression",
+          "ipa": "ɪkˈsprɛʃᵊn"
+        },
+        {
+          "text": "'take",
+          "ipa": "teɪk"
+        },
+        {
+          "text": "something",
+          "ipa": "ˈsʌmθɪŋ"
+        }
+      ],
       "music": false
     },
     {
@@ -2889,8 +3436,57 @@
     {
       "start": 305,
       "text": "If you take something to heart, just as you explained, you feel",
-      "ipa": "ɪf juː teɪk ˈsʌmθɪŋ tuː hɑːt, ʤʌst æz juː ɪkˈspleɪnd, juː fiːl bad. bæd.",
-      "words": null,
+      "ipa": "ɪf juː teɪk ˈsʌmθɪŋ tuː hɑːt, ʤʌst æz juː ɪkˈspleɪnd, juː fiːl",
+      "words": [
+        {
+          "text": "If",
+          "ipa": "ɪf"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "take",
+          "ipa": "teɪk"
+        },
+        {
+          "text": "something",
+          "ipa": "ˈsʌmθɪŋ"
+        },
+        {
+          "text": "to",
+          "ipa": "tuː"
+        },
+        {
+          "text": "heart,",
+          "ipa": "hɑːt,"
+        },
+        {
+          "text": "just",
+          "ipa": "ʤʌst"
+        },
+        {
+          "text": "as",
+          "ipa": "æz"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "explained,",
+          "ipa": "ɪkˈspleɪnd,"
+        },
+        {
+          "text": "you",
+          "ipa": "juː"
+        },
+        {
+          "text": "feel",
+          "ipa": "fiːl"
+        }
+      ],
       "music": false
     },
     {
