@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Audio Ebook</title>
+<title>Memuat…</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Sans:wght@400;500&display=swap">
 <style>:root{--bg:#fbf9f6;--fg:#26262e;--muted:#8b8a93;--accent:#e07b00;--accent-soft:#f6e6d3;--line:#e9e4dc;--bar:#ffffff;--head:#17171d;--field:#ffffff;--font-read:"Literata",Georgia,serif;--font-ui:"Figtree",system-ui,sans-serif}@media (prefers-color-scheme:dark){:root{--bg:#16151a;--fg:#e6e3de;--muted:#8a8791;--accent:#ff9d2e;--accent-soft:#3a2a17;--line:#2b2931;--bar:#1e1d23;--head:#f5f2ee;--field:#1e1d23;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}
 .rd{position:relative;--col:34rem;--fs:22;--font-ipa:"Noto Sans","Segoe UI","DejaVu Sans",system-ui,sans-serif;padding-bottom:300px}
@@ -15,6 +15,12 @@
 .racts{display:flex;gap:8px;flex:none}
 .rtb{display:inline-flex;align-items:center;gap:6px;font:700 .8rem var(--font-ui);color:var(--accent);background:var(--accent-soft);border:1.5px solid transparent;border-radius:9px;padding:8px 11px;cursor:pointer;white-space:nowrap}
 .rtb svg{width:17px;height:17px}
+.rinfo{margin-top:6px}
+.rtitle{flex:1}
+.rback{text-decoration:none;flex:none}
+.rtitle{min-width:0;font:600 .95rem/1.35 var(--font-ui);color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.rtitle.open{white-space:normal;overflow:visible}
+@media (max-width:420px){.rback span{display:none}}
 .rtb[aria-expanded=true]{background:var(--accent);color:#fff}
 .rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .rpanel{position:absolute;left:0;right:0;top:calc(100% - 4px);background:var(--bar);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.16);padding:16px;max-height:calc(100vh - 180px);max-height:calc(100dvh - 180px);overflow:auto;display:flex;flex-direction:column;gap:18px}
@@ -59,11 +65,17 @@
 .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .rnote{line-height:1.45}
 .rssrow{display:flex;gap:8px;margin-top:8px}.rssrow input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:inherit}
+#setup .fl{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--head)}
+#setup .fl input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:400 .95rem var(--font-ui)}
 #rss-list{max-height:260px;overflow:auto;margin-top:6px}.rss-ep{padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.9rem;line-height:1.35}.rss-ep:hover{background:var(--accent-soft)}.rss-ep.sel{background:var(--accent-soft);outline:2px solid var(--accent)}.rss-ep small{display:block;color:var(--muted)}
+
+html,body{min-height:100%}
+.ld{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--muted);font:500 1rem/1.5 var(--font-ui)}
+.ld a{color:var(--accent);font-weight:700;text-decoration:none;padding:8px 14px;border-radius:9px;background:var(--accent-soft)}
 </style>
 </head>
 <body>
-<div id="app"></div>
+<div id="app"><div class="ld"><p>Memuat halaman…</p><a href="/index.html">Kembali</a></div></div>
 <script>function createReader(root,cfg){
   const WORDS=cfg.words,TERM=/[.!?]["')\]]*$/;
   const LS='syncreader:'+(cfg.key||'page');
@@ -77,9 +89,11 @@
   const ICON_EXP='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l4.5 4.5-1.4 1.4L13 6.8V15h-2V6.8L8.9 8.9 7.5 7.5zM5 17h14v4H5z"/></svg>';
   root.innerHTML=`<div class="rd">
   <div class="rtop"><div class="rhead">
-    <div class="rinfo"></div>
-    <div class="racts"><button class="rtb" data-a="pset" aria-expanded="false">${ICON_SET}<span>Setelan</span></button>${cfg.exportEl?`<button class="rtb" data-a="pexp" aria-expanded="false">${ICON_EXP}<span>Ekspor</span></button>`:''}</div>
+    ${cfg.back===null?'':`<a class="rtb rback" href="${cfg.back||'/index.html'}" aria-label="Kembali ke beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></a>`}
+    <div class="rtitle" role="button" tabindex="0" aria-expanded="false" hidden></div>
+    <div class="racts"><button class="rtb" data-a="pset" aria-expanded="false" aria-label="Setelan" title="Setelan">${ICON_SET}</button>${cfg.exportEl?`<button class="rtb" data-a="pexp" aria-expanded="false">${ICON_EXP}<span>Ekspor</span></button>`:''}</div>
   </div>
+  <div class="rinfo" hidden></div>
   <div class="rpanel" data-p="pset" hidden>
       <div class="g"><div class="gh"><b>Ukuran huruf</b><span data-v="fs"></span></div>
         <div class="rr"><button class="chip" data-a="fs-" aria-label="Perkecil huruf">A−</button><input type="range" data-r="fs" min="14" max="44" step="1" aria-label="Ukuran huruf"><button class="chip" data-a="fs+" aria-label="Perbesar huruf">A+</button></div></div>
@@ -113,7 +127,11 @@
   const $q=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
   const rd=$q('.rd'),art=$q('.rtxt'),au=$q('audio'),seek=$q('.rseek');
   au.src=cfg.audio;
-  const infoEl=$q('.rinfo');infoEl.textContent=cfg.info||'';
+  const infoEl=$q('.rinfo');infoEl.textContent=cfg.info||'';infoEl.hidden=!cfg.info;
+  const tEl=$q('.rtitle');
+  if(cfg.title){tEl.textContent=cfg.title;tEl.hidden=false;
+    const tg=()=>{const o=tEl.classList.toggle('open');tEl.setAttribute('aria-expanded',String(o))};
+    tEl.addEventListener('click',tg);tEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}})}
   if(cfg.exportEl)$q('.rexp').appendChild(cfg.exportEl);
   $q('.rnote').textContent=cfg.phNote||'';
   const phBtn=$q('.rpanel [data-a=ph]');if(!cfg.hasPh){phBtn.disabled=true;phBtn.style.opacity='.5'}
@@ -173,7 +191,7 @@
   au.addEventListener('pause',()=>{$q('.rpi').setAttribute('d',PLAY);$q('[data-a=play]').setAttribute('aria-label','Putar')});
   au.addEventListener('loadedmetadata',()=>{au.playbackRate=pref.speed;ui()});
   au.addEventListener('seeked',()=>{if(!gapTimer){paintAll(find(au.currentTime));ui()}});
-  au.addEventListener('error',()=>{infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
+  au.addEventListener('error',()=>{infoEl.hidden=false;infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
   seek.addEventListener('input',()=>jump(seek.value/1000*dur()));
   /* setelan */
   function setP(el,v,min,max){el.style.setProperty('--p',((v-min)/(max-min)*100)+'%')}
@@ -198,7 +216,7 @@
     $$('.rpanel').forEach(p=>{const open=p.dataset.p===id&&p.hidden;p.hidden=!open;
       const b=$q('[data-a="'+p.dataset.p+'"]');if(b)b.setAttribute('aria-expanded',String(open))});
   }
-  function closePanels(){$$('.rpanel').forEach(p=>{p.hidden=true});$$('[aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'))}
+  function closePanels(){$$('.rpanel').forEach(p=>{p.hidden=true});$$('.rtb[aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'))}
   root.addEventListener('input',e=>{const r=e.target.closest('[data-r]');if(!r)return;
     if(r.dataset.r==='fs')setFs(+r.value);else setSpeed(+r.value);applyPref()});
   root.addEventListener('click',e=>{
@@ -232,17 +250,21 @@
     destroy:()=>{cancelGap();au.pause();cancelAnimationFrame(raf);removeEventListener('scroll',onScroll);removeEventListener('keydown',onKey);root.innerHTML=''}
   };
 }
+
 (async()=>{
   const app=document.getElementById("app"),q=new URLSearchParams(location.search);
+  const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="/index.html">Kembali</a></div>';app.querySelector("p").textContent=m};
   let f=q.get("f")||q.get("d")||location.hash.slice(1);
   f=(f||"").replace(/\.json$/i,"").replace(/[^\w.-]+/g,"-");
-  if(!f){app.textContent="Tambahkan nama data pada alamat, contoh: ?f=namafile";return}
+  if(!f)return fail("Alamat tidak lengkap. Tambahkan ?f=namafile");
   try{
     const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
     const j=await r.json();
     document.title=j.title||document.title;
-    createReader(app,{words:j.words.map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5]})),audio:j.audio,key:f,info:"Audio ebook · ketuk kata untuk loncat",hasPh:!!j.hasPh,phNote:j.phNote||""});
-  }catch(e){app.textContent='Data "data/'+f+'.json" tidak bisa dimuat.'}
+    const T=(j.transcript||j.words||[]).map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5]}));
+    if(!T.length||!j.audio)throw new Error("kosong");
+    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p)});
+  }catch(e){fail('Data "'+f+'" tidak bisa dimuat.')}
 })();</script>
 </body>
 </html>
