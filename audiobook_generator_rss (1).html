@@ -153,6 +153,8 @@ body.reading #reader{display:block}
     <div id="exp">
       <h2>Ekspor ke server</h2>
       <div class="row"><button class="b" id="ex-dl">Unduh HTML</button><button class="b alt" id="ex-copy">Salin kode</button></div>
+      <div class="row"><button class="b alt" id="ex-json">Unduh JSON data</button><button class="b alt" id="ex-tpl">Unduh template kosong</button></div>
+      <p class="sub">Mode data: unggah <b>template.html</b> sekali di domainmu, taruh JSON di <b>data/namafile.json</b>, lalu buka <b>template.html?f=namafile</b>. Isi kolom nama audio di bawah dengan alamat audio relatif terhadap template (mis. <b>audio/ep1.mp3</b>) atau URL penuh.</p>
       <div class="ok" id="ex-msg" role="status"></div>
       <textarea id="ex-code" readonly aria-label="Kode HTML hasil ekspor"></textarea>
       <div class="grp">
@@ -492,6 +494,8 @@ async function buildSync(blocks,tsWords,au,say){
     {let bR=[],bT=[];const flush=()=>{const n=Math.min(bR.length,bT.length);for(let q=0;q<n;q++){const p=tsWords[bT[q]-1].p;if(p)units[bR[q]-1].p=p}bR=[];bT=[]};
       for(const o of ops){if(o[0]==='m'){flush();const p=tsWords[o[1]-1].p;if(p)units[o[2]-1].p=p}else if(o[0]==='r')bR.push(o[1]);else bT.push(o[1])}
       flush()}
+    {const sylP=p=>{const m=String(p).match(/[aeiouyɑɒɔəɛɪʊʌæɜɐɚɝᵊ]+/g);return m?m.length:0};
+      merged.forEach(u=>{if(u.p){const n=sylP(u.p);if(n>0)u.wt=n+.35}})}
     let lt=-1,li=-1;
     tsWords.forEach((o,k)=>{if(o.t!=null&&o.t>lt&&t2m[k]>li){anchors.push({mi:t2m[k],t:o.t});lt=o.t;li=t2m[k]}});
   }
@@ -809,6 +813,33 @@ async function doCopy(make,what){
 }
 $('ex-dl').onclick=()=>doSave(baseName()+'-sync.html',buildExport);
 $('ex-copy').onclick=()=>doCopy(buildExport,'Kode HTML');
+
+/* ---------- ekspor JSON + template kosong ---------- */
+function exTitle(){const f=WORDS.find(w=>w.h);return f?WORDS.filter(w=>w.b===f.b).map(w=>w.w).join(' ').slice(0,60):'Audio Ebook'}
+function exAudioPath(){const av=$('ex-audio').value.trim()||'audio.mp3';return /^https?:\/\//.test(av)?av:av.split('/').map(encodeURIComponent).join('/')}
+function buildJson(){
+  return JSON.stringify({v:1,title:exTitle(),audio:exAudioPath(),hasPh:!!hasPh,phNote:phNote||'',
+    words:WORDS.map(w=>[w.w,r2(w.s),r2(w.e),w.b,w.h?1:0,w.p||''])});
+}
+function buildTemplate(){
+  const O='<'+'script>',C='<'+'/script>';
+  const boot=createReader.toString()+`
+(async()=>{
+  const app=document.getElementById("app"),q=new URLSearchParams(location.search);
+  let f=q.get("f")||q.get("d")||location.hash.slice(1);
+  f=(f||"").replace(/\\.json$/i,"").replace(/[^\\w.-]+/g,"-");
+  if(!f){app.textContent="Tambahkan nama data pada alamat, contoh: ?f=namafile";return}
+  try{
+    const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
+    const j=await r.json();
+    document.title=j.title||document.title;
+    createReader(app,{words:j.words.map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5]})),audio:j.audio,key:f,info:"Audio ebook · ketuk kata untuk loncat",hasPh:!!j.hasPh,phNote:j.phNote||""});
+  }catch(e){app.textContent='Data "data/'+f+'.json" tidak bisa dimuat.'}
+})();`;
+  return '<!doctype html>\n<html lang="id">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>Audio Ebook</title>\n<link rel="stylesheet" href="'+FONTS+'">\n<style>'+STANDALONE_TOKENS+$('reader-css').textContent+'</style>\n</head>\n<body>\n<div id="app"></div>\n'+O+boot+C+'\n</body>\n</html>\n';
+}
+$('ex-json').onclick=()=>doSave(baseName()+'.json',async()=>buildJson());
+$('ex-tpl').onclick=()=>doSave('template.html',async()=>buildTemplate());
 
 </script>
 </body>
