@@ -1,0 +1,344 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pembuat index.json</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<style>
+:root {
+  --bg: #EDEFF2; --surface: #FFFFFF; --ink: #0E1626; --muted: #5A6577; --rule: #D9DEE6;
+  --accent: #D8281F; --accent-ink: #FFFFFF; --tint: #FCEAE8;
+  --ok: #1B7F4B; --warn: #94600A; --bad: #C0261D;
+  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618;
+    --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
+  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618;
+  --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.45; }
+.wrap { max-width: 720px; margin: 0 auto; padding: 22px 16px 64px; display: flex; flex-direction: column; gap: 26px; }
+h1 { margin: 0; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
+.lead { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; max-width: 60ch; }
+.step { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+.step > h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 700; }
+.step > h2 .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, summary:focus-visible, .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--rule); background: var(--surface); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.drop { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 132px; padding: 18px; text-align: center; border: 2px dashed var(--rule); border-radius: 16px; background: var(--surface); cursor: pointer; }
+.drop.over { border-color: var(--accent); background: var(--tint); }
+.drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.drop b { font-size: 1rem; }
+.drop span { color: var(--muted); font-size: 0.86rem; max-width: 46ch; }
+.note { margin: 0; font-size: 0.84rem; color: var(--muted); }
+.note.warn { color: var(--warn); } .note.bad { color: var(--bad); }
+.sum { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.88rem; font-weight: 600; }
+.sum span { color: var(--muted); font-weight: 500; }
+
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.item { display: flex; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+.item.off { opacity: 0.5; }
+.item.err { border-color: color-mix(in srgb, var(--bad) 50%, var(--rule)); }
+.chk { flex: none; display: grid; place-items: start center; width: 28px; padding-top: 1px; }
+.chk input { width: 22px; height: 22px; accent-color: var(--accent); }
+.body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.t { font-weight: 700; overflow-wrap: anywhere; }
+.m { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); overflow-wrap: anywhere; }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.b { padding: 1px 9px; border-radius: 999px; border: 1px solid var(--rule); font-size: 0.74rem; font-weight: 700; color: var(--muted); }
+.b.new { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, var(--rule)); }
+.b.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, var(--rule)); }
+.b.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 55%, var(--rule)); }
+.edit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+.edit label { display: flex; flex-direction: column; gap: 3px; font-size: 0.74rem; font-weight: 600; color: var(--muted); min-width: 0; }
+.edit input { width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: 0.9rem; font-weight: 400; }
+@media (max-width: 460px) { .edit { grid-template-columns: 1fr; } }
+
+details { border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); padding: 0 14px; }
+details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
+details[open] > summary { border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
+details .inner { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
+details ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
+textarea { width: 100%; min-height: 200px; padding: 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--ink); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; resize: vertical; }
+.toast { min-height: 1.3em; font-size: 0.88rem; font-weight: 600; color: var(--ok); }
+.toast.bad { color: var(--bad); }
+code { font-family: var(--font-mono); font-size: 0.9em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Pembuat index.json</h1>
+    <p class="lead">Pilih semua file JSON pelajaran sekaligus, lalu unduh <code>index.json</code> yang sudah diperbarui secara keseluruhan untuk daftar di <code>index.html</code>.</p>
+  </header>
+
+  <section class="step" aria-labelledby="h1s">
+    <h2 id="h1s"><span class="n">1</span>Pilih file JSON</h2>
+    <label class="drop" id="drop">
+      <b>Pilih beberapa file sekaligus</b>
+      <span>Semua file pelajaran (<code>nama.json</code>). Kalau punya <code>index.json</code> lama, ikutkan juga supaya tanggal tambah, kategori, dan tag tetap terjaga. Bisa juga diseret ke sini.</span>
+      <input type="file" id="files" accept=".json,application/json" multiple>
+    </label>
+    <div class="row">
+      <button class="btn" id="bClear" type="button" disabled>Kosongkan</button>
+    </div>
+  </section>
+
+  <section class="step" id="s2" aria-labelledby="h2s" hidden>
+    <h2 id="h2s"><span class="n">2</span>Periksa daftar</h2>
+    <div class="sum" id="sum"></div>
+    <p class="note" id="note"></p>
+    <ul class="list" id="list"></ul>
+  </section>
+
+  <section class="step" id="s3" aria-labelledby="h3s" hidden>
+    <h2 id="h3s"><span class="n">3</span>Unduh index.json</h2>
+    <div class="row">
+      <button class="btn primary" id="bDl" type="button">Unduh index.json</button>
+      <button class="btn" id="bCopy" type="button">Salin isinya</button>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <details>
+      <summary>Lihat isi file</summary>
+      <div class="inner"><textarea id="out" readonly spellcheck="false" aria-label="Isi index.json"></textarea></div>
+    </details>
+    <details>
+      <summary>Setelah itu</summary>
+      <div class="inner">
+        <ol>
+          <li>Buka repositori di GitHub, folder <code>data/</code>.</li>
+          <li>Upload <code>index.json</code> ini dan timpa yang lama. Pelajaran baru juga di-upload ke folder yang sama.</li>
+          <li>Tunggu beberapa saat, lalu muat ulang <code>index.html</code>.</li>
+        </ol>
+        <p class="note">Centang di daftar menentukan pelajaran mana yang masuk. Entri dari index lama yang filenya tidak dipilih tetap dipertahankan; hilangkan centangnya untuk menghapusnya dari daftar.</p>
+      </div>
+    </details>
+  </section>
+</div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s) => document.querySelector(s);
+  const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
+  const NOW = new Date().toISOString();
+  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'added'];
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const str = (v) => (typeof v === 'string' ? v.trim() : '');
+  const tagsOf = (v) => {
+    const raw = Array.isArray(v) ? v : String(v || '').split(',');
+    const seen = new Set(), out = [];
+    raw.forEach((t) => { const s = String(t).trim().replace(/\s+/g, ' '); if (s && !seen.has(s.toLowerCase())) { seen.add(s.toLowerCase()); out.push(s); } });
+    return out;
+  };
+
+  /* ---- state ---- */
+  const fileLessons = new Map();   // slug -> data dari file pelajaran
+  let oldIndex = new Map();        // slug -> entri dari index.json lama
+  let indexName = '';
+  const errors = [];
+  const ui = new Map();            // slug -> { include, category, tags } hasil ubahan di layar
+
+  /* ---- membaca file ---- */
+  async function addFiles(list) {
+    const dup = [];
+    for (const f of Array.from(list)) {
+      if (!/\.json$/i.test(f.name)) { errors.push({ name: f.name, msg: 'Bukan file .json.' }); continue; }
+      let j;
+      try { j = JSON.parse(await f.text()); } catch (e) { errors.push({ name: f.name, msg: 'Bukan JSON yang valid.' }); continue; }
+      if (j && Array.isArray(j.lessons) && !Array.isArray(j.lines)) { loadIndex(j, f.name); continue; }
+      const slug = f.name.replace(/\.json$/i, '');
+      if (!SLUG_RE.test(slug)) {
+        const fixed = slug.replace(/\s*\(\d+\)$/, '').replace(/[^A-Za-z0-9_.-]+/g, '-').replace(/-+/g, '-').replace(/^[-.]+|-+$/g, '');
+        const hint = (j && SLUG_RE.test(str(j.slug))) ? str(j.slug) : fixed;
+        errors.push({ name: f.name, msg: 'Nama file tidak valid (spasi atau tanda kurung seperti "(1)" tambahan Chrome tidak boleh). Ganti nama menjadi ' + (hint || 'nama-pelajaran') + '.json, lalu pilih lagi.' });
+        continue;
+      }
+      // format audio (transcript / words dari generator) atau format lama (lines)
+      const tr = j && Array.isArray(j.transcript) ? j.transcript : (j && Array.isArray(j.words) ? j.words : null);
+      const src = j && Array.isArray(j.lines) && j.lines.length ? j.lines : tr;
+      if (!src || !src.length) { errors.push({ name: f.name, msg: 'Tidak berisi baris transkrip (butuh "transcript" atau "lines").' }); continue; }
+      const nLines = src === tr
+        ? Math.max(1, new Set(tr.map((w) => (Array.isArray(w) ? w[3] : w && w.b))).size)
+        : src.length;
+      if (fileLessons.has(slug)) dup.push(f.name);
+      fileLessons.set(slug, {
+        slug,
+        title: str(j.title) || slug,
+        videoId: /^[\w-]{11}$/.test(j.videoId || '') ? j.videoId : '',
+        audio: str(j.audio),
+        lines: nLines,
+        description: str(j.description),
+        category: str(j.category),
+        tags: tagsOf(j.tags),
+        order: Number.isFinite(j.order) ? j.order : undefined
+      });
+    }
+    if (dup.length) errors.push({ name: dup.join(', '), msg: 'Dipilih lebih dari sekali. Yang terakhir dipakai.', soft: true });
+    render();
+  }
+  function loadIndex(j, name) {
+    oldIndex = new Map();
+    j.lessons.forEach((l) => { if (l && typeof l.slug === 'string' && SLUG_RE.test(l.slug)) oldIndex.set(l.slug, l); });
+    indexName = name;
+  }
+
+  /* ---- menyusun daftar akhir ---- */
+  function rows() {
+    const out = [];
+    const slugs = new Set([...fileLessons.keys(), ...oldIndex.keys()]);
+    for (const slug of slugs) {
+      const f = fileLessons.get(slug), o = oldIndex.get(slug);
+      const st = ui.get(slug) || {};
+      let base, status;
+      if (f) {
+        base = {
+          slug, title: f.title, videoId: f.videoId, audio: f.audio || str(o && o.audio), lines: f.lines,
+          description: f.description || str(o && o.description),
+          category: f.category || str(o && o.category),
+          tags: f.tags.length ? f.tags : tagsOf(o && o.tags),
+          order: f.order !== undefined ? f.order : (o && Number.isFinite(o.order) ? o.order : undefined),
+          added: (o && typeof o.added === 'string' && o.added) || NOW
+        };
+        status = !oldIndex.size ? '' : (o ? 'update' : 'new');
+      } else {
+        base = {
+          slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', audio: str(o.audio), lines: Number(o.lines) || 0,
+          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags),
+          order: Number.isFinite(o.order) ? o.order : undefined,
+          added: (typeof o.added === 'string' && o.added) || ''
+        };
+        status = 'kept';
+      }
+      const extra = {};
+      if (o) Object.keys(o).forEach((k) => { if (KNOWN.indexOf(k) < 0) extra[k] = o[k]; });
+      out.push({ slug, status, base, extra, include: st.include !== false,
+        category: st.category !== undefined ? st.category.trim() : base.category,
+        tags: st.tags !== undefined ? tagsOf(st.tags) : base.tags });
+    }
+    return out.sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
+  }
+  function buildJson() {
+    const lessons = rows().filter((r) => r.include).map((r) => {
+      const b = r.base, e = { slug: r.slug, title: b.title, videoId: b.videoId, lines: b.lines };
+      if (b.audio) e.audio = b.audio;
+      if (b.description) e.description = b.description;
+      if (r.category) e.category = r.category;
+      if (r.tags.length) e.tags = r.tags;
+      if (b.order !== undefined) e.order = b.order;
+      Object.assign(e, r.extra);
+      if (b.added) e.added = b.added;
+      return e;
+    });
+    return { text: JSON.stringify({ version: 1, lessons }, null, 2) + '\n', count: lessons.length };
+  }
+
+  /* ---- tampilan ---- */
+  const list = $('#list');
+  function render() {
+    const rs = rows();
+    const has = rs.length > 0 || errors.length > 0;
+    $('#s2').hidden = !has;
+    $('#bClear').disabled = !has && !indexName;
+    if (!has) { $('#s3').hidden = true; return; }
+    const cnt = (s) => rs.filter((r) => r.status === s).length;
+    const bits = [];
+    bits.push('<b>' + rs.length + '</b> pelajaran');
+    if (oldIndex.size) bits.push('<span>baru ' + cnt('new') + ' · diperbarui ' + cnt('update') + ' · dari index lama ' + cnt('kept') + '</span>');
+    if (errors.some((e) => !e.soft)) bits.push('<span style="color:var(--bad)">' + errors.filter((e) => !e.soft).length + ' file gagal</span>');
+    $('#sum').innerHTML = bits.join('');
+    $('#note').className = 'note' + (oldIndex.size ? '' : ' warn');
+    $('#note').textContent = oldIndex.size
+      ? 'Index lama dipakai: ' + indexName + '.'
+      : 'Tidak ada index.json lama yang dipilih. Semua pelajaran dianggap baru dan tanggal tambahnya diisi hari ini.';
+    list.innerHTML = rs.map((r) => {
+      const b = r.base;
+      const badges = [];
+      if (r.status === 'new') badges.push('<span class="b new">Baru</span>');
+      if (r.status === 'update') badges.push('<span class="b">Diperbarui</span>');
+      if (r.status === 'kept') badges.push('<span class="b warn">Dari index lama, file tidak dipilih</span>');
+      if (!b.videoId && !b.audio) badges.push('<span class="b warn">Tanpa audio/video</span>');
+      return '<li class="item' + (r.include ? '' : ' off') + '" data-slug="' + esc(r.slug) + '">' +
+        '<label class="chk"><input type="checkbox" ' + (r.include ? 'checked' : '') + ' aria-label="Masukkan ' + esc(b.title) + '"></label>' +
+        '<div class="body"><div class="t">' + esc(b.title) + '</div>' +
+        '<div class="m">' + esc(r.slug) + '.json · ' + b.lines + ' baris' + (b.videoId ? ' · ' + esc(b.videoId) : (b.audio ? ' · audio' : '')) + '</div>' +
+        (badges.length ? '<div class="badges">' + badges.join('') + '</div>' : '') +
+        '<div class="edit"><label>Kategori<input type="text" data-f="category" value="' + esc(r.category) + '" placeholder="Latihan" autocomplete="off"></label>' +
+        '<label>Tag (pisahkan koma)<input type="text" data-f="tags" value="' + esc(r.tags.join(', ')) + '" placeholder="travel, airport" autocomplete="off"></label></div>' +
+        '</div></li>';
+    }).join('') + errors.map((e) =>
+      '<li class="item err"><div class="chk"></div><div class="body"><div class="t">' + esc(e.name) + '</div><div class="badges"><span class="b ' + (e.soft ? 'warn' : 'bad') + '">' + (e.soft ? 'Perhatian' : 'Gagal') + '</span></div><div class="m" style="font-family:inherit">' + esc(e.msg) + '</div></div></li>').join('');
+    refreshOut();
+  }
+  function refreshOut() {
+    const { text, count } = buildJson();
+    $('#s3').hidden = rows().length === 0;
+    $('#out').value = text;
+    $('#bDl').disabled = $('#bCopy').disabled = count === 0;
+    $('#bDl').textContent = 'Unduh index.json (' + count + ')';
+  }
+
+  list.addEventListener('change', (e) => {
+    const li = e.target.closest('.item[data-slug]');
+    if (!li || e.target.type !== 'checkbox') return;
+    const s = ui.get(li.dataset.slug) || {}; s.include = e.target.checked; ui.set(li.dataset.slug, s);
+    li.classList.toggle('off', !e.target.checked);
+    refreshOut();
+  });
+  list.addEventListener('input', (e) => {
+    const li = e.target.closest('.item[data-slug]');
+    if (!li || !e.target.dataset.f) return;
+    const s = ui.get(li.dataset.slug) || {}; s[e.target.dataset.f] = e.target.value; ui.set(li.dataset.slug, s);
+    refreshOut();
+  });
+
+  /* ---- input file, seret-lepas, tombol ---- */
+  const input = $('#files'), drop = $('#drop');
+  input.addEventListener('change', async () => { await addFiles(input.files); input.value = ''; });
+  ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
+  $('#bClear').addEventListener('click', () => { fileLessons.clear(); oldIndex = new Map(); indexName = ''; errors.length = 0; ui.clear(); toast(''); render(); });
+
+  let tt = null;
+  function toast(msg, bad) { const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); clearTimeout(tt); if (msg) tt = setTimeout(() => { t.textContent = ''; }, 5000); }
+  $('#bDl').addEventListener('click', () => {
+    try {
+      const blob = new Blob([buildJson().text], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'index.json'; a.style.display = 'none';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 8000);
+      toast('File diunduh: index.json');
+    } catch (e) { toast('Unduh gagal. Pakai tombol Salin lalu tempel ke file index.json.', true); }
+  });
+  $('#bCopy').addEventListener('click', async () => {
+    const text = buildJson().text;
+    try { await navigator.clipboard.writeText(text); toast('Isi index.json disalin.'); }
+    catch (e) {
+      const t = $('#out'); t.closest('details').open = true; t.focus(); t.select();
+      toast('Salin otomatis ditolak. Isinya sudah dipilih, salin manual.', true);
+    }
+  });
+})();
+</script>
+</body>
+</html>
