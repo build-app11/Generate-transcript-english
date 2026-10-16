@@ -1,0 +1,14 @@
+{
+  "pages": {
+    "contoh-halaman.html": {
+      "hidden": true,
+      "title": "Contoh Halaman",
+      "description": "Salin blok ini untuk menambah halaman baru. Hapus baris hidden agar tampil.",
+      "category": "Alat",
+      "youtube": "",
+      "tags": ["alat"],
+      "order": 1004,
+      "image": ""
+    }
+  }
+}
