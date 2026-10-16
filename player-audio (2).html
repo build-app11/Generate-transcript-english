@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Memuat…</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>:root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-read:"Albert Sans",system-ui,sans-serif;--font-ui:"Albert Sans",system-ui,sans-serif;--font-display:"Fredoka","Albert Sans",system-ui,sans-serif;}@media (prefers-color-scheme:dark){:root{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent:#FFD23F;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--on:#14162B;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}
+.rd{position:relative;--col:34rem;--fs:22;--font-ipa:"Noto Sans","Segoe UI","DejaVu Sans",system-ui,sans-serif;padding-bottom:300px}
+@media (min-width:760px){.rd{--col:46rem}}
+.rd *{box-sizing:border-box}
+.rtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);margin:0 auto;max-width:var(--col);padding-block:14px 10px}
+.rhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.rinfo{font:600 .72rem/1.35 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+.racts{display:flex;gap:8px;flex:none}
+.rtb{display:inline-flex;align-items:center;gap:6px;font:700 .8rem var(--font-ui);color:var(--accent);background:var(--accent-soft);border:1.5px solid transparent;border-radius:9px;padding:8px 11px;cursor:pointer;white-space:nowrap}
+.rtb svg{width:17px;height:17px}
+.rinfo{margin-top:6px}
+.rtitle{flex:1}
+.rback{text-decoration:none;flex:none}
+.rtitle{min-width:0;font:600 .95rem/1.35 var(--font-ui);color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.rtitle.open{white-space:normal;overflow:visible}
+@media (max-width:420px){.rback span{display:none}}
+.rtb[aria-expanded=true]{background:var(--accent);color:#fff}
+.rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.rpanel{position:absolute;left:0;right:0;top:calc(100% - 4px);background:var(--bar);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.16);padding:16px;max-height:calc(100vh - 180px);max-height:calc(100dvh - 180px);overflow:auto;display:flex;flex-direction:column;gap:18px}
+.rpanel[hidden]{display:none}
+@media (min-width:760px){.rpanel{left:auto;width:28rem}}
+.rslot{max-width:var(--col);margin:0 auto}
+.rtxt{max-width:var(--col);margin:0 auto;font-size:calc(var(--fs)*1px)}
+.rtxt p{margin:0 0 1.5em;font:400 1em/1.9 var(--font-read);text-wrap:pretty}
+.rtxt p.h{margin:2em 0 .6em;font-family:var(--font-ui);font-weight:700;color:var(--head);font-size:1.1em;line-height:1.45}
+.rtxt p.big{font-size:1.45em;line-height:1.3;margin-top:0}
+.w{cursor:pointer;color:var(--fg);border-radius:3px}
+.w.f .t{color:var(--muted)}
+.w.on .t{color:var(--accent);font-weight:600;text-decoration:underline;text-decoration-thickness:3px;text-underline-offset:5px}
+.w.on{background:var(--accent-soft)}
+.w:hover{background:var(--accent-soft)}
+.ph{display:none;font:500 .52em/1.25 var(--font-ipa);color:var(--muted);letter-spacing:0}
+.rd.phon .ph{display:block}
+.rd.phon .w{display:inline-block;vertical-align:top;text-align:center;margin:0 .06em .55em}
+.rd.phon .rtxt p{line-height:1.5}
+
+.rbar{position:fixed;left:0;right:0;bottom:0;background:var(--bar);border-top:1px solid var(--line);padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));z-index:5}
+.rin{max-width:var(--col);margin:0 auto}
+.rd input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;margin:8px 0;background:linear-gradient(to right,var(--accent) var(--p,0%),var(--line) var(--p,0%));outline-offset:6px}
+.rd input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--accent);border:0}
+.rd input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--accent);border:0}
+.rtm{display:flex;justify-content:space-between;gap:8px;font:600 .8rem var(--font-ui);color:var(--accent);font-variant-numeric:tabular-nums}
+.rlab{color:var(--muted);text-align:center;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc{display:flex;align-items:center;justify-content:center;gap:clamp(8px,3vw,20px);margin-top:6px}
+.rb{font:inherit;border:0;cursor:pointer;color:var(--fg);background:var(--accent-soft);border-radius:50%;width:46px;height:46px;display:grid;place-items:center;flex:none}
+.rb.sm{width:38px;height:38px}
+.rb.big{width:62px;height:62px;background:var(--accent);color:#fff}
+.rb svg{width:22px;height:22px}
+.rb.big svg{width:28px;height:28px}
+.g{display:flex;flex-direction:column;gap:8px;min-width:0}
+.gh{display:flex;justify-content:space-between;gap:8px;font:700 .88rem var(--font-ui);color:var(--head)}
+.gh span{color:var(--accent);font-variant-numeric:tabular-nums}
+.gl{font:500 .78rem var(--font-ui);color:var(--muted);margin-top:2px}
+.rr{display:flex;align-items:center;gap:10px}
+.rr input{flex:1;min-width:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1.5px solid var(--line);background:var(--field);color:var(--fg);border-radius:999px;padding:7px 12px;font:600 .8rem var(--font-ui);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
+.rnote{line-height:1.45}
+.dp{position:fixed;left:12px;right:12px;bottom:170px;max-width:34rem;margin:0 auto;height:min(44vh,28rem);z-index:8;display:flex;flex-direction:column;background:var(--bar);color:var(--fg);border:2.5px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--shadow);overflow:hidden;font-family:var(--font-ui)}
+.dp[hidden]{display:none}
+.dph{display:flex;align-items:center;gap:8px;padding:12px 14px 6px;flex:none}
+.dpw{flex:1;min-width:0}
+.dwd{display:block;font:700 1.55rem/1.2 var(--font-ui);color:var(--head);overflow-wrap:anywhere}
+.dip{display:block;font:400 1.05rem/1.4 var(--font-ipa);color:var(--accent-text);overflow-wrap:anywhere}
+.dpb{flex:none;width:40px;height:40px;padding:0;border-radius:50%;border:2.5px solid var(--ink);background:var(--accent);color:var(--on);display:grid;place-items:center;cursor:pointer;box-shadow:2px 2px 0 var(--shadow)}
+.dpb.alt{background:var(--bar);color:var(--head)}
+.dpb svg{width:20px;height:20px}
+.dpb:focus-visible,.dtab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dpbody{flex:1;min-height:0;overflow:auto;padding:4px 14px 12px;display:flex;flex-direction:column;gap:12px}
+.dpid{background:var(--accent-soft);border-radius:12px;padding:10px 14px;font-size:.92rem;line-height:1.5;color:var(--fg)}
+.dpid small{display:block;font:600 .7rem var(--font-ui);letter-spacing:.14em;color:var(--accent-text);margin-bottom:2px}
+.dtabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--line);flex:none}
+.dtab{flex:1;border:0;border-radius:9px;padding:9px 6px;font:700 .9rem var(--font-ui);background:transparent;color:var(--muted);cursor:pointer}
+.dtab[aria-selected=true]{background:var(--bar);color:var(--head);box-shadow:inset 0 -3px 0 var(--accent)}
+.dlist{display:flex;flex-direction:column;gap:12px}
+.dpos{display:flex;align-items:baseline;gap:8px;margin-top:4px}
+.dpos b{font:600 .85rem ui-monospace,Menlo,monospace;background:var(--line);color:var(--head);border-radius:999px;padding:3px 10px}
+.dpos span{font-size:.82rem;color:var(--muted)}
+.dsn{display:flex;gap:10px;align-items:flex-start}
+.dn{flex:none;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--muted);font:600 .75rem var(--font-ui);display:grid;place-items:center;margin-top:3px}
+.dsb{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.dtx{font-size:1rem;line-height:1.5}
+.den{font-size:.82rem;color:var(--muted);line-height:1.4}
+.dex{border-left:3px solid var(--accent);padding-left:10px;font-style:italic;color:var(--muted);font-size:.92rem;line-height:1.45}
+.dmsg{color:var(--muted);font-size:.92rem;line-height:1.5}
+.dfoot{flex:none;border-top:1px solid var(--line);padding:8px 14px;font-size:.8rem;color:var(--muted)}
+.dfoot a{color:var(--accent-text)}
+.dsel{width:100%;flex:none;font:600 .9rem var(--font-ui);padding:9px 10px;border:2px solid var(--ink);border-radius:10px;background:var(--bar);color:var(--head)}
+.rd{--font-ipa:"Gentium Plus","Charis SIL","Noto Serif",serif}
+.rtb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);border-radius:999px;background:var(--bar);color:var(--head);font-family:var(--font-display)}
+.rtb[aria-expanded=true]{background:var(--accent);color:var(--on)}
+.rtitle{font-family:var(--font-display);font-weight:600}
+.rpanel{border:2.5px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.rbar{border-top:2.5px solid var(--ink)}
+.rb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);background:var(--bar)}
+.rb.big{background:var(--accent);color:var(--on)}
+.rtm,.gh span{color:var(--accent-text)}
+.chip{border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--shadow);font-family:var(--font-display)}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--on);border-color:var(--ink)}
+.w.on{background:var(--accent);box-shadow:0 0 0 2px var(--ink)}
+.w.on .t{color:var(--on);text-decoration-color:var(--ink)}
+.rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline-color:var(--ink)}
+.rd input[type=range]::-webkit-slider-thumb{border:2.5px solid var(--ink)}
+.rd input[type=range]::-moz-range-thumb{border:2.5px solid var(--ink)}
+
+.ld{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;color:var(--muted);font:500 1.05rem/1.5 var(--font-ui)}
+.ld p{margin:0}
+.ld a{color:var(--head);font:600 1rem var(--font-display);text-decoration:none;padding:10px 22px;border:2.5px solid var(--ink);border-radius:999px;background:var(--bar);box-shadow:3px 3px 0 var(--shadow)}
+</style>
+</head>
+<body>
+<div id="app"><div class="ld"><p>Memuat halaman…</p><a href="/index.html">Kembali</a></div></div>
+<script>function createReader(root,cfg){
+  const WORDS=cfg.words,TERM=/[.!?]["')\]]*$/;
+  const LS='syncreader:'+(cfg.key||'page');
+  const pref={fs:innerWidth<520?20:22,speed:1,rep:'off',cnt:2,gap:0};
+  let saved={};try{saved=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){}
+  Object.assign(pref,saved);
+  pref.ph=cfg.hasPh?(saved.ph===undefined?true:!!saved.ph):false;
+  const save=()=>{try{localStorage.setItem(LS,JSON.stringify(pref))}catch(e){}};
+  const SPEEDS=[0.5,0.75,1,1.25,1.5,2];
+  const ICON_SET='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6a.5.5 0 0 0 .1-.6l-1.9-3.3a.5.5 0 0 0-.6-.2l-2.4 1a7.4 7.4 0 0 0-1.7-1l-.4-2.5a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1a.5.5 0 0 0-.6.2L2.6 8.8a.5.5 0 0 0 .1.6l2 1.6a7.5 7.5 0 0 0 0 2l-2 1.6a.5.5 0 0 0-.1.6l1.9 3.3c.1.2.4.3.6.2l2.4-1c.5.4 1.1.7 1.7 1l.4 2.5c0 .2.2.4.5.4h3.8c.3 0 .5-.2.5-.4l.4-2.5c.6-.3 1.2-.6 1.7-1l2.4 1c.2.1.5 0 .6-.2l1.9-3.3a.5.5 0 0 0-.1-.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>';
+  const ICON_EXP='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l4.5 4.5-1.4 1.4L13 6.8V15h-2V6.8L8.9 8.9 7.5 7.5zM5 17h14v4H5z"/></svg>';
+  root.innerHTML=`<div class="rd">
+  <div class="rtop"><div class="rhead">
+    ${cfg.back===null?'':`<a class="rtb rback" href="${cfg.back||'/index.html'}" aria-label="Kembali ke beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></a>`}
+    <div class="rtitle" role="button" tabindex="0" aria-expanded="false" hidden></div>
+    <div class="racts"><button class="rtb" data-a="pset" aria-expanded="false" aria-label="Setelan" title="Setelan">${ICON_SET}</button>${cfg.exportEl?`<button class="rtb" data-a="pexp" aria-expanded="false">${ICON_EXP}<span>Ekspor</span></button>`:''}</div>
+  </div>
+  <div class="rinfo" hidden></div>
+  <div class="rpanel" data-p="pset" hidden>
+      <div class="g"><div class="gh"><b>Ukuran huruf</b><span data-v="fs"></span></div>
+        <div class="rr"><button class="chip" data-a="fs-" aria-label="Perkecil huruf">A−</button><input type="range" data-r="fs" min="14" max="44" step="1" aria-label="Ukuran huruf"><button class="chip" data-a="fs+" aria-label="Perbesar huruf">A+</button></div></div>
+      <div class="g"><div class="gh"><b>Kecepatan</b><span data-v="speed"></span></div>
+        <input type="range" data-r="speed" min="0.5" max="2" step="0.05" aria-label="Kecepatan audio">
+        <div class="chips">${SPEEDS.map(v=>`<button class="chip" data-a="speed" data-v="${v}">${v}×</button>`).join('')}</div></div>
+      <div class="g"><div class="gh"><b>Pengulangan</b></div>
+        <div class="chips"><button class="chip" data-a="rep" data-v="off">Mati</button><button class="chip" data-a="rep" data-v="sentence">Ulang kalimat</button><button class="chip" data-a="rep" data-v="all">Ulang semua</button></div>
+        <div class="gl">Berapa kali tiap kalimat diputar</div>
+        <div class="chips"><button class="chip" data-a="cnt" data-v="2">2×</button><button class="chip" data-a="cnt" data-v="3">3×</button><button class="chip" data-a="cnt" data-v="5">5×</button><button class="chip" data-a="cnt" data-v="0">Terus</button></div>
+        <div class="gl">Jeda sebelum mengulang</div>
+        <div class="chips"><button class="chip" data-a="gap" data-v="0">Tanpa jeda</button><button class="chip" data-a="gap" data-v="1">1 detik</button><button class="chip" data-a="gap" data-v="2">2 detik</button><button class="chip" data-a="gap" data-v="3">3 detik</button></div></div>
+      <div class="g"><div class="gh"><b>Fonetik Inggris</b></div>
+        <div class="chips"><button class="chip" data-a="ph">Tampilkan fonetik</button></div>
+        <div class="gl rnote"></div></div>
+  </div>
+  <div class="rpanel rexp" data-p="pexp" hidden></div></div>
+  <article class="rtxt"></article>
+  <div class="rbar"><div class="rin">
+      <input type="range" class="rseek" min="0" max="1000" value="0" step="1" aria-label="Posisi audio">
+      <div class="rtm"><span class="rcur">00:00</span><span class="rlab"></span><span class="rdur">00:00</span></div>
+      <div class="rc">
+        <button class="rb sm" data-a="prevs" aria-label="Kalimat sebelumnya"><svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6L18 6v12z" fill="currentColor"/></svg></button>
+        <button class="rb" data-a="back" aria-label="Mundur 10 detik"><svg viewBox="0 0 24 24"><path d="M11 6v12L2 12zm11 0v12l-9-6z" fill="currentColor"/></svg></button>
+        <button class="rb big" data-a="play" aria-label="Putar"><svg viewBox="0 0 24 24"><path class="rpi" d="M8 5v14l11-7z" fill="currentColor"/></svg></button>
+        <button class="rb" data-a="fwd" aria-label="Maju 10 detik"><svg viewBox="0 0 24 24"><path d="M13 6v12l9-6zM2 6v12l9-6z" fill="currentColor"/></svg></button>
+        <button class="rb sm" data-a="nexts" aria-label="Kalimat berikutnya"><svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18V6l8.5 6z" fill="currentColor"/></svg></button>
+      </div>
+  </div></div>
+  <audio preload="auto"></audio></div>`;
+  const $q=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
+  const rd=$q('.rd'),art=$q('.rtxt'),au=$q('audio'),seek=$q('.rseek');
+  au.src=cfg.audio;
+  const infoEl=$q('.rinfo');infoEl.textContent=cfg.info||'';infoEl.hidden=!cfg.info;
+  const tEl=$q('.rtitle');
+  if(cfg.title){tEl.textContent=cfg.title;tEl.hidden=false;
+    const tg=()=>{const o=tEl.classList.toggle('open');tEl.setAttribute('aria-expanded',String(o))};
+    tEl.addEventListener('click',tg);tEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}})}
+  if(cfg.exportEl)$q('.rexp').appendChild(cfg.exportEl);
+  $q('.rnote').textContent=cfg.phNote||'';
+  const phBtn=$q('.rpanel [data-a=ph]');if(!cfg.hasPh){phBtn.disabled=true;phBtn.style.opacity='.5'}
+  /* kalimat */
+  const SEG=[],segOf=new Array(WORDS.length).fill(0);
+  (function(){let a=0;for(let i=0;i<WORDS.length;i++){const w=WORDS[i];
+    const last=i===WORDS.length-1||WORDS[i+1].b!==w.b||(TERM.test(w.w)&&!/^\d+[.)]$/.test(w.w));
+    if(last){SEG.push({a,z:i,s:WORDS[a].s,e:WORDS[i].e});a=i+1}}
+    SEG.forEach((g,k)=>{for(let i=g.a;i<=g.z;i++)segOf[i]=k})})();
+  const segStart=k=>Math.max(0,SEG[k].s-0.04);
+  const segEnd=k=>Math.max(SEG[k].e+0.02,Math.min(SEG[k].e+0.15,k+1<SEG.length?SEG[k+1].s-0.03:1e9));
+  const fmt=t=>{t=Math.max(0,Math.floor(t));const h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60,p=n=>String(n).padStart(2,'0');return (h?h+':':'')+p(m)+':'+p(s)};
+  /* teks */
+  let spans=[],idx=-1,follow=true,lastScroll=0,raf=0,loopK=-1,reps=0,gapTimer=0;
+  (function(){let curB=-1,p;
+    WORDS.forEach((w,i)=>{
+      if(w.b!==curB){p=document.createElement('p');if(w.h)p.className='h'+(w.b===0?' big':'');art.appendChild(p);curB=w.b}
+      const s=document.createElement('span');s.className='w f';s.dataset.i=i;
+      const t=document.createElement('span');t.className='t';t.textContent=w.w;s.appendChild(t);
+      if(w.p){const q=document.createElement('span');q.className='ph';q.textContent=w.p;s.appendChild(q)}
+      spans[i]=s;p.appendChild(s);p.appendChild(document.createTextNode(' '))})})();
+  function find(t){let lo=0,hi=WORDS.length-1,r=-1;while(lo<=hi){const m=(lo+hi)>>1;if(WORDS[m].s<=t){r=m;lo=m+1}else hi=m-1}return r}
+  function paintAll(n){idx=n;for(let i=0;i<spans.length;i++){spans[i].classList.toggle('on',i===n);spans[i].classList.toggle('f',i>n)}}
+  function mark(n){
+    if(n===idx)return;
+    if(Math.abs(n-idx)>3)paintAll(n);else{
+      const a=Math.max(0,Math.min(idx,n)-1),b=Math.min(spans.length-1,Math.max(idx,n)+1);idx=n;
+      for(let i=a;i<=b;i++){spans[i].classList.toggle('on',i===n);spans[i].classList.toggle('f',i>n)}}
+    if(n>=0&&follow){const r=spans[n].getBoundingClientRect(),h=innerHeight;
+      if(r.top<h*.22||r.bottom>h*.5){lastScroll=performance.now();
+        scrollBy({top:r.top-h*.3,behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})}}
+  }
+  const dur=()=>au.duration||WORDS[WORDS.length-1].e||1;
+  function ui(){const t=au.currentTime,d=dur();
+    $q('.rcur').textContent=fmt(t);$q('.rdur').textContent=fmt(d);
+    seek.value=Math.round(t/d*1000);seek.style.setProperty('--p',(t/d*100)+'%');mark(find(t))}
+  function segAt(t){const w=find(t);return segOf[w<0?0:w]}
+  function syncLoop(){loopK=segAt(au.currentTime);reps=0}
+  function replay(ts){
+    if(pref.gap>0){au.pause();gapTimer=setTimeout(()=>{gapTimer=0;au.currentTime=ts;au.play()},pref.gap*1000)}
+    else au.currentTime=ts}
+  function repeatCheck(t){
+    if(pref.rep!=='sentence'||au.paused||gapTimer)return;
+    if(loopK<0)syncLoop();
+    if(t>=segEnd(loopK)){
+      reps++;
+      if(pref.cnt===0||reps<pref.cnt)replay(segStart(loopK));
+      else{reps=0;if(loopK<SEG.length-1)loopK++;else au.pause()}
+    }
+  }
+  function tick(){ui();repeatCheck(au.currentTime);if(!au.paused)raf=requestAnimationFrame(tick)}
+  function cancelGap(){if(gapTimer){clearTimeout(gapTimer);gapTimer=0}}
+  function jump(t){cancelGap();au.currentTime=Math.min(Math.max(0,t),dur());follow=true;syncLoop();ui()}
+  const PLAY='M8 5v14l11-7z',PAUSE='M6 5h4v14H6zm8 0h4v14h-4z';
+  au.addEventListener('play',()=>{$q('.rpi').setAttribute('d',PAUSE);$q('[data-a=play]').setAttribute('aria-label','Jeda');
+    const k=segAt(au.currentTime);if(k!==loopK){loopK=k;reps=0}cancelAnimationFrame(raf);tick()});
+  au.addEventListener('pause',()=>{$q('.rpi').setAttribute('d',PLAY);$q('[data-a=play]').setAttribute('aria-label','Putar')});
+  au.addEventListener('loadedmetadata',()=>{au.playbackRate=pref.speed;ui()});
+  au.addEventListener('seeked',()=>{if(!gapTimer){paintAll(find(au.currentTime));ui()}});
+  au.addEventListener('error',()=>{infoEl.hidden=false;infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
+  seek.addEventListener('input',()=>jump(seek.value/1000*dur()));
+  /* setelan */
+  function setP(el,v,min,max){el.style.setProperty('--p',((v-min)/(max-min)*100)+'%')}
+  function applyPref(){
+    rd.style.setProperty('--fs',pref.fs);
+    rd.classList.toggle('phon',!!pref.ph&&!!cfg.hasPh);
+    au.playbackRate=pref.speed;au.loop=pref.rep==='all';
+    const fsr=$q('[data-r=fs]'),spr=$q('[data-r=speed]');
+    fsr.value=pref.fs;setP(fsr,pref.fs,14,44);spr.value=pref.speed;setP(spr,pref.speed,.5,2);
+    $q('[data-v=fs]').textContent=pref.fs+' px';$q('[data-v=speed]').textContent=(Math.round(pref.speed*100)/100)+'×';
+    $$('[data-a=speed]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===pref.speed)));
+    $$('[data-a=rep]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.v===pref.rep)));
+    $$('[data-a=cnt]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===pref.cnt)));
+    $$('[data-a=gap]').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===pref.gap)));
+    phBtn.setAttribute('aria-pressed',String(!!pref.ph&&!!cfg.hasPh));
+    $q('.rlab').textContent=pref.rep==='sentence'?('Ulang kalimat'+(pref.cnt?' '+pref.cnt+'×':' ∞')):pref.rep==='all'?'Ulang semua':(pref.speed!==1?pref.speed+'×':'');
+    save();
+  }
+  const setFs=v=>{pref.fs=Math.min(44,Math.max(14,Math.round(v)))};
+  const setSpeed=v=>{pref.speed=Math.min(2,Math.max(.5,Math.round(v*100)/100))};
+  function togglePanel(id){
+    $$('.rpanel').forEach(p=>{const open=p.dataset.p===id&&p.hidden;p.hidden=!open;
+      const b=$q('[data-a="'+p.dataset.p+'"]');if(b)b.setAttribute('aria-expanded',String(open))});
+  }
+  function closePanels(){$$('.rpanel').forEach(p=>{p.hidden=true});$$('.rtb[aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'))}
+  root.addEventListener('input',e=>{const r=e.target.closest('[data-r]');if(!r)return;
+    if(r.dataset.r==='fs')setFs(+r.value);else setSpeed(+r.value);applyPref()});
+  root.addEventListener('click',e=>{
+    const w=e.target.closest('.w');
+    if(w){closePanels();const i=+w.dataset.i;
+    if(DICT&&dpEl){cancelGap();au.pause();au.currentTime=Math.min(WORDS[i].s+.01,dur());follow=false;loopK=segOf[i];reps=0;paintAll(i);ui();openDict(WORDS[i].w,i);return}
+    jump(WORDS[i].s+.01);loopK=segOf[i];reps=0;if(au.paused)au.play();return}
+    const b=e.target.closest('[data-a]');
+    if(!b){if(!e.target.closest('.rpanel'))closePanels();return}
+    const a=b.dataset.a,v=b.dataset.v;
+    if(a==='pset'||a==='pexp'){togglePanel(a);return}
+    if(a==='ph'){if(cfg.hasPh)pref.ph=!pref.ph}
+    else if(a==='fs-')setFs(pref.fs-1);else if(a==='fs+')setFs(pref.fs+1);
+    else if(a==='speed')setSpeed(+v);
+    else if(a==='rep'){pref.rep=v;syncLoop()}
+    else if(a==='cnt')pref.cnt=+v;else if(a==='gap')pref.gap=+v;
+    else if(a==='play'){cancelGap();follow=true;au.paused?au.play():au.pause()}
+    else if(a==='back')jump(au.currentTime-10);
+    else if(a==='fwd')jump(au.currentTime+10);
+    else if(a==='prevs'){const k=segAt(au.currentTime);jump(segStart(au.currentTime-SEG[k].s>1.5?k:Math.max(0,k-1)))}
+    else if(a==='nexts'){const k=Math.min(SEG.length-1,segAt(au.currentTime)+1);jump(segStart(k))}
+    applyPref();
+  });
+  const onKey=e=>{if(e.key==='Escape'){closePanels();closeDict()}};
+  const onScroll=()=>{if(performance.now()-lastScroll>900&&!au.paused)follow=false};
+  addEventListener('scroll',onScroll,{passive:true});addEventListener('keydown',onKey);
+  /* kamus: klik kata -> popup arti (FreeDictionaryAPI.com / Wiktionary) + terjemah ke bahasa pilihan */
+  const DICT=cfg.dict!==false;
+  const POS={noun:'kata benda',verb:'kata kerja',adjective:'kata sifat',adverb:'kata keterangan',pronoun:'kata ganti',preposition:'kata depan',conjunction:'kata sambung',determiner:'penentu',interjection:'kata seru',numeral:'bilangan',article:'artikel',particle:'partikel',prefix:'awalan',suffix:'akhiran',phrase:'frasa',proverb:'peribahasa',contraction:'kontraksi',symbol:'simbol',name:'nama','proper noun':'nama diri',abbreviation:'singkatan',initialism:'singkatan',acronym:'akronim',idiom:'idiom','phrasal verb':'kata kerja frasal'};
+  const LANGS=[['id','Indonesia',['id']],['ms','Melayu',['ms']],['jv','Jawa',['jv']],['su','Sunda',['su']],['es','Spanyol',['es']],['fr','Prancis',['fr']],['de','Jerman',['de']],['it','Italia',['it']],['pt','Portugis',['pt']],['nl','Belanda',['nl']],['ru','Rusia',['ru']],['ar','Arab',['ar']],['hi','Hindi',['hi']],['ja','Jepang',['ja']],['ko','Korea',['ko']],['zh-CN','Mandarin',['cmn','zh']],['th','Thai',['th']],['vi','Vietnam',['vi']],['tr','Turki',['tr']]];
+  const langOf=()=>LANGS.find(l=>l[0]===pref.tl)||LANGS[0];
+  const DC={};
+  let dpEl=null,dTok=0,dSt=null;
+  const mk=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n};
+  function cands(q){
+    const a=[q],add=x=>{if(x&&x.length>2&&!a.includes(x))a.push(x)};
+    if(/'s$/.test(q))add(q.slice(0,-2));
+    if(/n't$/.test(q))add(q.slice(0,-3));
+    if(/ies$/.test(q))add(q.slice(0,-3)+'y');
+    if(/(ches|shes|sses|xes|zes)$/.test(q))add(q.slice(0,-2));
+    if(/s$/.test(q))add(q.slice(0,-1));
+    if(/ing$/.test(q)){const b=q.slice(0,-3);add(b);add(b+'e');if(/(.)\1$/.test(b))add(b.slice(0,-1))}
+    if(/ied$/.test(q))add(q.slice(0,-3)+'y');
+    if(/ed$/.test(q)){const b=q.slice(0,-2);add(b);add(q.slice(0,-1));if(/(.)\1$/.test(b))add(b.slice(0,-1))}
+    if(/ly$/.test(q))add(q.slice(0,-2));
+    return a.slice(0,5)}
+  function dFetch(q){
+    const key='e:'+q;if(DC[key])return DC[key];
+    const c=cands(q);
+    return DC[key]=(async()=>{
+      for(const w of c){
+        const r=await fetch('https://freedictionaryapi.com/api/v1/entries/en/'+encodeURIComponent(w)+'?translations=true');
+        if(r.status===404)continue;
+        if(!r.ok)throw new Error(r.status===429?'Batas permintaan kamus tercapai. Coba lagi nanti.':'Kamus tidak bisa dimuat ('+r.status+').');
+        const j=await r.json();
+        if(j&&j.entries&&j.entries.length)return{word:w,entries:j.entries}}
+      return null})().catch(e=>{delete DC[key];throw e})}
+  function mt(t,tl){
+    const key='t:'+tl+':'+t;if(DC[key])return DC[key];
+    return DC[key]=(async()=>{
+      try{
+        const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(tl)+'&dt=t&q='+encodeURIComponent(t));
+        if(!r.ok)throw 0;const j=await r.json();const s=j[0].map(x=>x[0]).join('');if(!s)throw 0;return s}
+      catch(e){
+        try{const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|'+encodeURIComponent(tl)+'&q='+encodeURIComponent(t));
+          const j=await r.json();const s=j.responseData&&j.responseData.translatedText;
+          if(!s||/MYMEMORY WARNING/i.test(s))throw 0;return s}
+        catch(e2){delete DC[key];return ''}}})()}
+  function idWords(entries,codes){
+    const s=new Set();
+    const walk=x=>{(x.translations||[]).forEach(t=>{if(t.language&&codes.includes(t.language.code)&&t.word)s.add(t.word)});(x.subsenses||[]).forEach(walk)};
+    entries.forEach(e=>(e.senses||[]).forEach(walk));
+    return[...s].slice(0,8)}
+  const sensesOf=e=>(e.senses||[]).filter(s=>s&&s.definition).slice(0,8);
+  function dArti(){
+    const st=dSt;if(!st||!st.res)return;
+    const did=dpEl.querySelector('.did'),L=langOf(),tl=L[0];
+    dpEl.querySelector('.dpid small').textContent='ARTI'+(tl==='id'?'':' · '+L[1].toUpperCase());
+    const w=idWords(st.res.entries,L[2]);
+    if(w.length){did.textContent=w.join(', ');return}
+    const base='Belum ada arti '+L[1]+' di kamus. Lihat definisi di bawah.';
+    did.textContent=base;
+    mt(st.res.word,tl).then(t=>{if(dSt===st&&langOf()[0]===tl&&t&&t.toLowerCase()!==st.res.word.toLowerCase())did.textContent='Terjemahan otomatis: '+t+'. '+base})}
+  function dRender(){
+    const st=dSt;if(!st||!st.res)return;
+    const L=dpEl.querySelector('.dlist');L.textContent='';
+    if(st.res.word!==st.q)L.appendChild(mk('div','dmsg','Menampilkan “'+st.res.word+'” (bentuk dasar dari “'+st.q+'”).'));
+    st.res.entries.forEach(e=>{
+      const ss=sensesOf(e);if(!ss.length)return;
+      const pos=e.partOfSpeech||'';
+      const h=mk('div','dpos');h.appendChild(mk('b',null,pos));if(POS[pos])h.appendChild(mk('span',null,POS[pos]));L.appendChild(h);
+      ss.forEach((s,i)=>{
+        const row=mk('div','dsn');row.appendChild(mk('span','dn',i+1));
+        const bd=mk('div','dsb');
+        if(st.tab==='tr'){
+          const tr=st.tr[s.definition];
+          bd.appendChild(mk('div','dtx',tr===undefined?'Menerjemahkan…':(tr||'(terjemahan gagal dimuat)')));
+          bd.appendChild(mk('div','den',s.definition));
+        }else bd.appendChild(mk('div','dtx',s.definition));
+        (s.examples||[]).slice(0,2).forEach(x=>{const t=typeof x==='string'?x:(x&&x.text)||'';if(t)bd.appendChild(mk('div','dex','“'+t+'”'))});
+        row.appendChild(bd);L.appendChild(row)})});
+    if(!L.querySelector('.dsn'))L.appendChild(mk('div','dmsg','Tidak ada definisi untuk kata ini.'))}
+  function dTranslate(){
+    const st=dSt;if(!st||!st.res||st.trStarted)return;st.trStarted=true;
+    const tl=langOf()[0];st.trLang=tl;
+    const defs=[];st.res.entries.forEach(e=>sensesOf(e).forEach(s=>{if(!defs.includes(s.definition))defs.push(s.definition)}));
+    let n=0;
+    const run=async()=>{while(n<defs.length){const d=defs[n++];const r=await mt(d,tl);if(dSt!==st||st.trLang!==tl)return;st.tr[d]=r;if(st.tab==='tr')dRender()}};
+    run();run();run()}
+  function setTab(t){
+    if(!dSt)return;dSt.tab=t;
+    dpEl.querySelectorAll('.dtab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.d===t)));
+    dpEl.querySelector('.dsel').hidden=t!=='tr';
+    if(t==='tr')dTranslate();
+    dRender()}
+  function closeDict(){if(dpEl&&!dpEl.hidden){dpEl.hidden=true;dSt=null;dTok++}}
+  function openDict(raw,wi){
+    const q=String(raw).replace(/[’‘]/g,"'").toLowerCase().replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,'');
+    if(!q)return;
+    const my=++dTok,d=dpEl,st=dSt={q,i:wi,tab:'en',tr:{},res:null,trStarted:false,trLang:''};
+    const did=d.querySelector('.did'),list=d.querySelector('.dlist');
+    d.hidden=false;
+    d.style.bottom=(root.querySelector('.rbar').offsetHeight+10)+'px';
+    d.querySelector('.dwd').textContent=q;d.querySelector('.dip').textContent='';
+    d.querySelector('.dpid small').textContent='ARTI';
+    did.textContent='Memuat…';
+    list.textContent='';list.appendChild(mk('div','dmsg','Memuat arti…'));
+    d.querySelector('.dpbody').scrollTop=0;
+    setTab('en');
+    requestAnimationFrame(()=>{
+      if(my!==dTok||wi==null||!spans[wi])return;
+      const r=spans[wi].getBoundingClientRect(),pt=d.getBoundingClientRect().top;
+      if(r.bottom>pt-12)scrollBy({top:r.bottom-(pt-12),behavior:matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'})});
+    dFetch(q).then(res=>{
+      if(my!==dTok)return;
+      if(!res){
+        did.textContent='Kata tidak ditemukan di kamus.';
+        list.textContent='';list.appendChild(mk('div','dmsg','Tidak ada definisi untuk kata ini.'));
+        const tl=langOf()[0];
+        mt(q,tl).then(t=>{if(my===dTok&&t&&t.toLowerCase()!==q)did.textContent='Terjemahan otomatis: '+t+'. Kata tidak ditemukan di kamus.'});
+        return}
+      st.res=res;
+      d.querySelector('.dwd').textContent=res.word;
+      const pr=res.entries.flatMap(e=>e.pronunciations||[]).find(p=>p&&p.text);
+      if(pr)d.querySelector('.dip').textContent=/^[\/\[]/.test(pr.text)?pr.text:'/'+pr.text+'/';
+      dArti();dRender();
+      if(st.tab==='tr')dTranslate()
+    }).catch(e=>{
+      if(my!==dTok)return;
+      const m=e&&/^(Batas|Kamus)/.test(e.message||'')?e.message:'Tidak bisa terhubung ke kamus. Periksa koneksi internetmu.';
+      did.textContent='-';list.textContent='';list.appendChild(mk('div','dmsg',m))})}
+  if(DICT){
+    dpEl=mk('div','dp');dpEl.hidden=true;dpEl.setAttribute('role','dialog');dpEl.setAttribute('aria-label','Arti kata');
+    dpEl.innerHTML='<div class="dph"><div class="dpw"><b class="dwd"></b><span class="dip"></span></div>'
+      +'<button class="dpb" data-d="say" aria-label="Ucapkan kata" title="Ucapkan"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg></button>'
+      +'<button class="dpb alt" data-d="x" aria-label="Tutup" title="Tutup"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19 6.4 17.6 5 12 10.6 6.4 5 5 6.4 10.6 12 5 17.6 6.4 19 12 13.4 17.6 19 19 17.6 13.4 12z"/></svg></button></div>'
+      +'<div class="dpbody"><div class="dpid"><small>ARTI</small><div class="did"></div></div>'
+      +'<div class="dtabs" role="tablist"><button class="dtab" role="tab" data-d="en" aria-selected="true">EN</button><button class="dtab" role="tab" data-d="tr" aria-selected="false">Terjemah</button></div>'
+      +'<select class="dsel" data-d="lang" aria-label="Bahasa terjemahan" hidden></select>'
+      +'<div class="dlist"></div></div>'
+      +'<div class="dfoot"><a href="https://en.wiktionary.org" target="_blank" rel="noopener">Wiktionary</a> via <a href="https://freedictionaryapi.com" target="_blank" rel="noopener">FreeDictionaryAPI.com</a></div>';
+    rd.appendChild(dpEl);
+    const sel=dpEl.querySelector('.dsel');
+    LANGS.forEach(l=>{const o=document.createElement('option');o.value=l[0];o.textContent=l[1];sel.appendChild(o)});
+    sel.value=langOf()[0];
+    sel.addEventListener('change',()=>{
+      pref.tl=sel.value;save();
+      if(dSt){dSt.tr={};dSt.trStarted=false;dArti();if(dSt.tab==='tr'){dTranslate();dRender()}}});
+    dpEl.addEventListener('click',e=>{
+      const b=e.target.closest('[data-d]');if(!b)return;const a=b.dataset.d;
+      if(a==='x')closeDict();
+      else if(a==='en'||a==='tr')setTab(a);
+      else if(a==='say'&&dSt){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(dSt.q);u.lang='en-US';speechSynthesis.speak(u)}catch(_){}}});
+    au.addEventListener('play',closeDict);
+    addEventListener('resize',()=>{if(!dpEl.hidden)dpEl.style.bottom=(root.querySelector('.rbar').offsetHeight+10)+'px'})}
+  applyPref();paintAll(-1);
+  if(cfg.startAt){au.addEventListener('loadedmetadata',()=>{au.currentTime=cfg.startAt},{once:true})}
+  ui();
+  return{
+    getTime:()=>au.currentTime,
+    pause:()=>{cancelGap();au.pause()},
+    destroy:()=>{cancelGap();au.pause();cancelAnimationFrame(raf);removeEventListener('scroll',onScroll);removeEventListener('keydown',onKey);root.innerHTML=''}
+  };
+}
+
+(async()=>{
+  const app=document.getElementById("app"),q=new URLSearchParams(location.search);
+  const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="/index.html">Kembali</a></div>';app.querySelector("p").textContent=m};
+  let f=q.get("q")||q.get("f")||location.hash.slice(1);
+  f=(f||"").replace(/\.json$/i,"").replace(/[^\w.-]+/g,"-");
+  if(!f)return fail("Alamat tidak lengkap. Tambahkan ?q=namafile");
+  try{
+    const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
+    const j=await r.json();
+    document.title=j.title||document.title;
+    const T=(j.transcript||j.words||[]).map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5]}));
+    if(!T.length||!j.audio)throw new Error("kosong");
+    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p)});
+  }catch(e){fail('Data "'+f+'" tidak bisa dimuat.')}
+})();</script>
+</body>
+</html>
