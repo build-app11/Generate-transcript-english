@@ -6,18 +6,18 @@
 <title>Shadowing</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=DM+Mono:wght@400;500&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
 <style>
 /* Layout: one-screen practice app. Player/timer strip on top, transcript scrolls in the middle, control dock pinned at the bottom. Active line is tinted, its time chip turns red like a Tube line marker. */
 :root {
-  --bg: #EDEFF2;
+  --bg: #EEF2FF;
   --surface: #FFFFFF;
-  --ink: #0E1626;
-  --muted: #5A6577;
-  --rule: #D9DEE6;
-  --accent: #D8281F;
-  --accent-ink: #FFFFFF;
-  --tint: #FCEAE8;
+  --ink: #14162B;
+  --muted: #4F5575;
+  --rule: #D3D9F2;
+  --accent: #FFD23F;
+  --accent-ink: #14162B;
+  --tint: #FFF1B8;
   --ipa: #1F5FB8;
   --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-ipa: 'Gentium Plus', 'Charis SIL', 'Noto Serif', 'DejaVu Serif', serif;
@@ -27,14 +27,14 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
-    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+    --bg: #101226; --surface: #1B1E3A; --ink: #F2F3FF; --muted: #A9AED6; --rule: #2A2F55;
+    --accent: #FFD23F; --accent-ink: #14162B; --tint: #3B3416; --ipa: #8DB8FF;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
-  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618; --ipa: #7DB1FF;
+  --bg: #101226; --surface: #1B1E3A; --ink: #F2F3FF; --muted: #A9AED6; --rule: #2A2F55;
+  --accent: #FFD23F; --accent-ink: #14162B; --tint: #3B3416; --ipa: #8DB8FF;
   color-scheme: dark;
 }
 
@@ -43,7 +43,7 @@
 html, body { height: 100%; margin: 0; }
 body { background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.35; overflow: hidden; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+:focus-visible { outline: 2px solid var(--line); outline-offset: 2px; }
 
 .app { height: 100%; max-width: none; margin: 0 auto; position: relative; --gx: clamp(12px, 3vw, 32px); padding-inline: var(--gx); padding-block: 12px 10px; display: flex; flex-direction: column; gap: 10px; min-height: 0; }
 .side { display: contents; }
@@ -86,7 +86,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pinb { flex: none; width: 36px; height: 36px; margin: -4px -4px 0 0; display: grid; place-items: center; color: var(--muted); opacity: 0; border-radius: 10px; }
 .line:hover .pinb, .line.pinned .pinb { opacity: 1; }
 @media (hover: none) { .pinb { opacity: 0.45; } .line.pinned .pinb { opacity: 1; } }
-.line.pinned .pinb { color: var(--accent); }
+.line.pinned .pinb { color: var(--accent-text); }
 .line.pinned .pinb svg { fill: currentColor; }
 .line.active { background: var(--tint); }
 .line.active .tm { background: var(--accent); color: var(--accent-ink); }
@@ -106,7 +106,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
 .tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }
-.tool[aria-pressed="true"] { color: var(--accent); }
+.tool[aria-pressed="true"] { color: var(--accent-text); }
 .play { flex: none; width: 62px; height: 52px; margin-left: 4px; border-radius: 18px; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
 .play svg { width: 26px; height: 26px; fill: currentColor; stroke: none; }
 .pop { position: absolute; right: 78px; bottom: calc(100% - 6px); display: flex; gap: 6px; padding: 8px; background: var(--surface); border: 1px solid var(--rule); border-radius: 16px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.18); }
@@ -174,7 +174,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .xbtn svg { width: 16px; height: 16px; }
 .xbtn:hover { background: var(--bg); }
 .arti { flex: none; margin: 0 14px 8px; padding: 9px 12px 10px; border-radius: 12px; background: var(--tint); display: flex; flex-direction: column; gap: 2px; }
-.arti .al { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.arti .al { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-text); }
 .arti .aw { font-size: 1.25rem; font-weight: 700; line-height: 1.25; }
 .arti .aw i { font-style: normal; font-weight: 400; color: var(--muted); }
 .arti .no { font-size: 0.8rem; color: var(--muted); }
@@ -231,7 +231,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .pmenu { position: absolute; right: 0; top: calc(100% + 6px); z-index: 25; min-width: 190px; padding: 6px; display: flex; flex-direction: column; gap: 2px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2); }
 .pitem { min-height: 44px; padding: 0 12px; border-radius: 10px; display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 0.88rem; font-weight: 600; text-align: left; }
 .pitem:hover:not(:disabled) { background: var(--bg); }
-.pitem[aria-pressed="true"] { background: var(--tint); color: var(--accent); }
+.pitem[aria-pressed="true"] { background: var(--tint); color: var(--accent-text); }
 .pitem:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* mode audio: video disembunyikan tapi tetap berjalan, transkrip naik ke atas */
@@ -252,11 +252,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .drb svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .line:hover .drb, .line.drilled .drb { opacity: 1; }
 @media (hover: none) { .drb { opacity: 0.45; } .line.drilled .drb { opacity: 1; } }
-.line.drilled .drb { color: var(--accent); }
+.line.drilled .drb { color: var(--accent-text); }
 .line.drilled { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 .line.drilled .body > .ws { filter: blur(9px); transition: filter 0.12s; }
 .line.drilled.reveal .body > .ws { filter: none; }
-.line.hasrec .tm::before { content: '\25CF'; display: block; font-size: 0.55rem; line-height: 1; color: var(--accent); }
+.line.hasrec .tm::before { content: '\25CF'; display: block; font-size: 0.55rem; line-height: 1; color: var(--accent-text); }
 .line.active.hasrec .tm::before { color: var(--accent-ink); }
 
 /* shadowing otomatis: tiap baris bergilir (dengar, echo, rekam, putar) */
@@ -283,7 +283,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dtk .row { display: flex; align-items: center; gap: 3px; }
 .dpt { font-size: 1.15rem; font-weight: 600; color: var(--muted); }
 .dw { min-width: 3.4rem; height: 46px; padding: 0 8px; text-align: center; border: 2px solid color-mix(in srgb, var(--ipa) 55%, transparent); border-radius: 12px; background: color-mix(in srgb, var(--ipa) 9%, var(--surface)); color: var(--ink); font: inherit; font-size: 1.05rem; font-weight: 600; }
-.dw:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.dw:focus-visible { outline: 2px solid var(--line); outline-offset: 1px; }
 .dw.ok { border-color: var(--ok); background: color-mix(in srgb, var(--ok) 16%, var(--surface)); color: var(--ok); }
 .dw.bad { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 14%, var(--surface)); color: var(--bad); }
 .dans { font-size: 0.85rem; font-weight: 700; color: var(--ok); }
@@ -294,22 +294,43 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dbtn.ghost { flex: none; width: 60px; }
 .dbtn.main { flex: 1; background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-size: 1rem; }
 .dbtn svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== selaras index.html: garis tebal, bayangan keras, bentuk kapsul ===== */
+:root{--accent-text:#1F5FB8;--line:#14162B;--shadow:#14162B;--font-display:'Fredoka','Albert Sans',system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--accent-text:#8DB8FF;--line:#7A80C4;--shadow:#04050E}}
+:root[data-theme="dark"]{--accent-text:#8DB8FF;--line:#7A80C4;--shadow:#04050E}
+:focus-visible{outline:3px solid var(--line)!important}
+.top h1,.timerbox .big{font-family:var(--font-display)}
+.chip,.hback{border:2.5px solid var(--line);box-shadow:3px 3px 0 var(--shadow);font-family:var(--font-display)}
+.chip[aria-pressed="true"],.seg button[aria-pressed="true"]{color:var(--accent-ink)}
+.timerbox{border:2.5px solid var(--line);border-radius:18px;box-shadow:4px 4px 0 var(--shadow)}
+.timerbox a{border:2.5px solid var(--line);background:var(--surface);color:var(--ink);font-family:var(--font-display)}
+.ytbox{border:2.5px solid var(--line);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.play{border:2.5px solid var(--line);box-shadow:3px 3px 0 var(--shadow);border-radius:999px}
+.pop,.vpop,.pmenu{border:2.5px solid var(--line);box-shadow:5px 5px 0 var(--shadow);border-radius:18px}
+.line{border-radius:18px}
+.line.active{background:var(--tint);box-shadow:inset 0 0 0 2.5px var(--line)}
+.line.active .tm{border:2px solid var(--line);color:var(--accent-ink)}
+.tool[aria-pressed="true"]{color:var(--ink);background:var(--tint)}
+.dock{border:2.5px solid var(--line)!important;box-shadow:4px 4px 0 var(--shadow)!important;border-radius:22px!important}
 </style>
 </head>
 <body>
 <style>
 #boot { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px; background: var(--bg); color: var(--ink); font-family: var(--font-en, system-ui, sans-serif); }
-#boot .bx { max-width: 420px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
-#boot h2 { margin: 0; font-size: 1.15rem; }
+#boot .bx { max-width: 420px; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
+#boot h2 { margin: 0; font: 500 1.05rem/1.5 var(--font-en); color: var(--muted); }
+#boot h2.err { color: var(--ink); font-weight: 700; }
+#boot p:empty { display: none; }
 #boot p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.5; }
 #boot .pick { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border-radius: 14px; background: var(--accent); color: var(--accent-ink); font-weight: 700; cursor: pointer; }
 #boot .pick input { display: none; }
-#boot a.bk { color: var(--muted); font-size: 0.9rem; }
+#boot a.bk { color: var(--ink); font: 600 1rem var(--font-display, var(--font-en)); text-decoration: none; padding: 10px 22px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
 </style>
-<div id="boot" role="status"><div class="bx"><h2 id="bootT">Memuat pelajaran...</h2><p id="bootP"></p><div id="bootA" hidden><label class="pick">Pilih file JSON<input type="file" id="bootFile" accept=".json,application/json"></label></div><a class="bk" href="https://learningfun.zone.id/">Kembali</a></div></div>
+<div id="boot" role="status"><div class="bx"><h2 id="bootT">Memuat halaman…</h2><p id="bootP"></p><div id="bootA" hidden><label class="pick">Pilih file JSON<input type="file" id="bootFile" accept=".json,application/json"></label></div><a class="bk" href="/index.html">Kembali</a></div></div>
 <script>
 /* KERANGKA KOSONG: data pelajaran dimuat dari file JSON.
-   Alamat: halaman.html?v=nama-pelajaran  ->  data/nama-pelajaran.json */
+   Alamat: player-video.html?q=nama-pelajaran  ->  data/nama-pelajaran.json */
 let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
 (function () {
   var DIR = 'data/';
@@ -328,7 +349,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     if (!out.length) throw new Error('Tidak ada baris yang valid di JSON.');
     return out.join('\n');
   }
-  function show(title, msg, pick) { $b('bootT').textContent = title; $b('bootP').textContent = msg; $b('bootA').hidden = !pick; }
+  function show(title, msg, pick) { $b('bootT').className = 'err'; $b('bootT').textContent = title; $b('bootP').textContent = msg; $b('bootA').hidden = !pick; }
   function start(j) {
     TRANSKRIP = convert(j);
     VIDEO_ID = /^[\w-]{11}$/.test(j.videoId || '') ? j.videoId : '';
@@ -353,8 +374,8 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
   }
   ready(function () {
     $b('bootFile').addEventListener('change', function () { var f = this.files[0]; if (f) f.text().then(fromText); });
-    var v = new URLSearchParams(location.search).get('v');
-    if (!v) { show('Pilih pelajaran', 'Buka halaman ini dengan alamat ...?v=nama-pelajaran, atau pilih file JSON dari perangkatmu.', true); return; }
+    var sp = new URLSearchParams(location.search), v = sp.get('q') || sp.get('v');
+    if (!v) { show('Pilih pelajaran', 'Buka halaman ini dengan alamat ...?q=nama-pelajaran, atau pilih file JSON dari perangkatmu.', true); return; }
     if (v.indexOf('..') >= 0 || !/^[A-Za-z0-9_][A-Za-z0-9_.\-]*(\/[A-Za-z0-9_][A-Za-z0-9_.\-]*)*$/.test(v)) {
       show('Nama pelajaran tidak valid', 'Pakai huruf, angka, tanda minus, atau garis bawah.', true); return;
     }
