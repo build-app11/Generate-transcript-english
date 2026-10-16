@@ -122,6 +122,11 @@ body.pv { margin: 0; overflow: hidden; }
       <span class="hint" id="titleHint" hidden></span>
     </div>
     <div class="field">
+      <label for="slugIn">Slug (nama file)</label>
+      <input type="text" id="slugIn" placeholder="Otomatis dari judul, bisa diubah" autocomplete="off" autocapitalize="none" spellcheck="false">
+      <span class="hint" id="slugHint">Nama file: halaman.json</span>
+    </div>
+    <div class="field">
       <label for="cat">Kategori</label>
       <input type="text" id="cat" placeholder="Contoh: Vlog" autocomplete="off" list="catList">
       <datalist id="catList"><option value="Percakapan"><option value="Vlog"><option value="Berita"><option value="Pidato"><option value="Film &amp; Serial"><option value="Lagu"><option value="Pelajaran"></datalist>
@@ -242,6 +247,14 @@ function slug(s) {
   const x = s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
   return x || 'halaman';
 }
+/* Slug halaman: otomatis dari judul sampai diubah manual. Dipakai untuk nama file dan field "slug" di JSON. */
+let slugManual = false;
+const curSlug = () => slug($('#slugIn').value || $('#title').value);
+function syncSlug() {
+  const el = $('#slugIn');
+  if (!slugManual) el.value = $('#title').value.trim() ? slug($('#title').value) : '';
+  $('#slugHint').textContent = 'Nama file: ' + curSlug() + '.json';
+}
 
 /* Ukuran font yang sedang dipakai di preview (diatur lewat tombol Aa di dalam halaman hasil). */
 function readScale() {
@@ -312,6 +325,7 @@ function buildJson() {
   const J = JSON.stringify;
   const head = {
     version: 2,
+    slug: curSlug(),
     videoId: id,
     videoUrl: id ? 'https://youtu.be/' + id : '',
     title: $('#title').value.trim() || 'Shadowing',
@@ -376,6 +390,7 @@ function setPill(el, cls, text) {
 }
 
 function refresh() {
+  syncSlug();
   state.id = extractId($('#url').value);
   if (state.id !== lastId) { lastId = state.id; if (state.id) fetchTitle(state.id); else { fetchSeq++; setTitleHint(''); } }
   const hasUrl = $('#url').value.trim().length > 0;
@@ -459,8 +474,8 @@ async function doSave(name, data, mime) {
   if (r) toast('File diunduh: ' + name);
   else toast('Unduh gagal di tampilan ini. Pakai tombol Salin.', true);
 }
-$('#bDl').addEventListener('click', () => doSave('shadowing-' + slug($('#title').value) + '.html', build(), 'text/html'));
-$('#bJson').addEventListener('click', () => doSave('shadowing-' + slug($('#title').value) + '.json', buildJson(), 'application/json'));
+$('#bDl').addEventListener('click', () => doSave(curSlug() + '.html', build(), 'text/html'));
+$('#bJson').addEventListener('click', () => doSave(curSlug() + '.json', buildJson(), 'application/json'));
 $('#bCopyJson').addEventListener('click', () => copyText(buildJson(), 'JSON disalin.'));
 $('#bCopy').addEventListener('click', () => copyText(build(), 'Kode disalin. Tempel ke file bernama index.html.'));
 
@@ -511,6 +526,16 @@ function route() {
   window.scrollTo(0, 0);
 }
 $('#title').addEventListener('input', () => { titleManual = $('#title').value.trim() !== ''; });
+$('#slugIn').addEventListener('input', () => {
+  slugManual = $('#slugIn').value.trim() !== '';
+  $('#slugHint').textContent = 'Nama file: ' + curSlug() + '.json';
+});
+$('#slugIn').addEventListener('change', () => {
+  const v = $('#slugIn').value.trim();
+  $('#slugIn').value = v ? slug(v) : '';
+  slugManual = v !== '';
+  syncSlug();
+});
 $('#bSync').addEventListener('click', () => { refresh(); if (isReady()) location.hash = '#preview'; });
 $('#bBack').addEventListener('click', () => { location.hash = ''; });
 window.addEventListener('hashchange', route);
