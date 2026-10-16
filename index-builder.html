@@ -139,7 +139,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
   const $ = (s) => document.querySelector(s);
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
   const NOW = new Date().toISOString();
-  const KNOWN = ['slug', 'title', 'videoId', 'lines', 'description', 'category', 'tags', 'order', 'added'];
+  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'added'];
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const str = (v) => (typeof v === 'string' ? v.trim() : '');
   const tagsOf = (v) => {
@@ -165,14 +165,26 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       try { j = JSON.parse(await f.text()); } catch (e) { errors.push({ name: f.name, msg: 'Bukan JSON yang valid.' }); continue; }
       if (j && Array.isArray(j.lessons) && !Array.isArray(j.lines)) { loadIndex(j, f.name); continue; }
       const slug = f.name.replace(/\.json$/i, '');
-      if (!SLUG_RE.test(slug)) { errors.push({ name: f.name, msg: 'Nama file tidak valid. Pakai huruf, angka, tanda minus, atau garis bawah tanpa spasi.' }); continue; }
-      if (!j || !Array.isArray(j.lines) || !j.lines.length) { errors.push({ name: f.name, msg: 'Tidak berisi baris transkrip.' }); continue; }
+      if (!SLUG_RE.test(slug)) {
+        const fixed = slug.replace(/\s*\(\d+\)$/, '').replace(/[^A-Za-z0-9_.-]+/g, '-').replace(/-+/g, '-').replace(/^[-.]+|-+$/g, '');
+        const hint = (j && SLUG_RE.test(str(j.slug))) ? str(j.slug) : fixed;
+        errors.push({ name: f.name, msg: 'Nama file tidak valid (spasi atau tanda kurung seperti "(1)" tambahan Chrome tidak boleh). Ganti nama menjadi ' + (hint || 'nama-pelajaran') + '.json, lalu pilih lagi.' });
+        continue;
+      }
+      // format audio (transcript / words dari generator) atau format lama (lines)
+      const tr = j && Array.isArray(j.transcript) ? j.transcript : (j && Array.isArray(j.words) ? j.words : null);
+      const src = j && Array.isArray(j.lines) && j.lines.length ? j.lines : tr;
+      if (!src || !src.length) { errors.push({ name: f.name, msg: 'Tidak berisi baris transkrip (butuh "transcript" atau "lines").' }); continue; }
+      const nLines = src === tr
+        ? Math.max(1, new Set(tr.map((w) => (Array.isArray(w) ? w[3] : w && w.b))).size)
+        : src.length;
       if (fileLessons.has(slug)) dup.push(f.name);
       fileLessons.set(slug, {
         slug,
         title: str(j.title) || slug,
         videoId: /^[\w-]{11}$/.test(j.videoId || '') ? j.videoId : '',
-        lines: j.lines.length,
+        audio: str(j.audio),
+        lines: nLines,
         description: str(j.description),
         category: str(j.category),
         tags: tagsOf(j.tags),
@@ -198,7 +210,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       let base, status;
       if (f) {
         base = {
-          slug, title: f.title, videoId: f.videoId, lines: f.lines,
+          slug, title: f.title, videoId: f.videoId, audio: f.audio || str(o && o.audio), lines: f.lines,
           description: f.description || str(o && o.description),
           category: f.category || str(o && o.category),
           tags: f.tags.length ? f.tags : tagsOf(o && o.tags),
@@ -208,7 +220,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
         status = !oldIndex.size ? '' : (o ? 'update' : 'new');
       } else {
         base = {
-          slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', lines: Number(o.lines) || 0,
+          slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', audio: str(o.audio), lines: Number(o.lines) || 0,
           description: str(o.description), category: str(o.category), tags: tagsOf(o.tags),
           order: Number.isFinite(o.order) ? o.order : undefined,
           added: (typeof o.added === 'string' && o.added) || ''
@@ -226,6 +238,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
   function buildJson() {
     const lessons = rows().filter((r) => r.include).map((r) => {
       const b = r.base, e = { slug: r.slug, title: b.title, videoId: b.videoId, lines: b.lines };
+      if (b.audio) e.audio = b.audio;
       if (b.description) e.description = b.description;
       if (r.category) e.category = r.category;
       if (r.tags.length) e.tags = r.tags;
@@ -261,11 +274,11 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       if (r.status === 'new') badges.push('<span class="b new">Baru</span>');
       if (r.status === 'update') badges.push('<span class="b">Diperbarui</span>');
       if (r.status === 'kept') badges.push('<span class="b warn">Dari index lama, file tidak dipilih</span>');
-      if (!b.videoId) badges.push('<span class="b warn">Tanpa video</span>');
+      if (!b.videoId && !b.audio) badges.push('<span class="b warn">Tanpa audio/video</span>');
       return '<li class="item' + (r.include ? '' : ' off') + '" data-slug="' + esc(r.slug) + '">' +
         '<label class="chk"><input type="checkbox" ' + (r.include ? 'checked' : '') + ' aria-label="Masukkan ' + esc(b.title) + '"></label>' +
         '<div class="body"><div class="t">' + esc(b.title) + '</div>' +
-        '<div class="m">' + esc(r.slug) + '.json · ' + b.lines + ' baris' + (b.videoId ? ' · ' + esc(b.videoId) : '') + '</div>' +
+        '<div class="m">' + esc(r.slug) + '.json · ' + b.lines + ' baris' + (b.videoId ? ' · ' + esc(b.videoId) : (b.audio ? ' · audio' : '')) + '</div>' +
         (badges.length ? '<div class="badges">' + badges.join('') + '</div>' : '') +
         '<div class="edit"><label>Kategori<input type="text" data-f="category" value="' + esc(r.category) + '" placeholder="Latihan" autocomplete="off"></label>' +
         '<label>Tag (pisahkan koma)<input type="text" data-f="tags" value="' + esc(r.tags.join(', ')) + '" placeholder="travel, airport" autocomplete="off"></label></div>' +
