@@ -356,9 +356,10 @@ h1, h2, h3, p { margin: 0; }
     github: false,                       // true = jika index.json tidak ada, daftar dibaca lewat GitHub API (cadangan)
     folders: ['', 'data'],               // hanya dipakai jika github: true
     dataDir: 'data',                     // folder file JSON pelajaran
-    viewer: 'pelajaran.html',            // halaman template yang menampilkan satu pelajaran
+    viewer: 'pelajaran.html',            // pemutar video: pelajaran.html?v=nama
+    audioViewer: 'template.html',        // pemutar audio: template.html?f=nama (pelajaran yang punya kolom "audio")
     manifest: 'posts.json',              // opsional: judul, deskripsi, kategori, urutan, ID video
-    exclude: ['index.html', '404.html', 'pelajaran.html', 'data/index.json'], // file yang tidak ditampilkan
+    exclude: ['index.html', '404.html', 'pelajaran.html', 'template.html', 'data/index.json'], // file yang tidak ditampilkan
     listTtlMin: 10                       // daftar file di-cache sekian menit
   };
   const GLYPHS = ['ʃ', 'θ', 'ə', 'ŋ', 'ð', 'ʒ', 'æ', 'ɔː', 'ɪ', 'ʊ', 'tʃ', 'dʒ'];
@@ -438,7 +439,7 @@ h1, h2, h3, p { margin: 0; }
   // File .json di folder data = pelajaran, dibuka lewat halaman template: pelajaran.html?v=nama
   const isLesson = p => /\.json$/i.test(p);
   const slugOf = p => p.replace(/^.*\//, '').replace(/\.json$/i, '');
-  const hrefOf = p => isLesson(p) ? CONFIG.viewer + '?v=' + encodeURIComponent(slugOf(p)) : pathUrl(p);
+  const hrefOf = (p, audio) => isLesson(p) ? (audio ? CONFIG.audioViewer + '?f=' : CONFIG.viewer + '?v=') + encodeURIComponent(slugOf(p)) : pathUrl(p);
   const stem = p => p.split('/').pop().replace(/\.(html?|json)$/i, '');
   const pretty = p => {
     const s = stem(p).replace(/[()]/g, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
@@ -478,6 +479,7 @@ h1, h2, h3, p { margin: 0; }
           description: String(l.description || '').trim() || (n ? n + ' baris latihan dengan IPA di setiap kata.' : ''),
           category: String(l.category || '').trim() || 'Latihan',
           youtube: /^[A-Za-z0-9_-]{11}$/.test(l.videoId || '') ? l.videoId : '',
+          audio: typeof l.audio === 'string' && l.audio.trim() !== '',
           tags: parseTags(l.tags)
         }
       });
@@ -525,13 +527,15 @@ h1, h2, h3, p { margin: 0; }
       if (isLesson(path)) {
         // Pelajaran: datanya diambil dari JSON (hanya beberapa KB), bukan dari halaman HTML.
         const j = await r.json();
-        const n = Array.isArray(j.lines) ? j.lines.length : 0;
+        const tr = Array.isArray(j.transcript) ? j.transcript : (Array.isArray(j.words) ? j.words : null);
+        const n = Array.isArray(j.lines) ? j.lines.length : (tr ? new Set(tr.map(w => Array.isArray(w) ? w[3] : w && w.b)).size : 0);
         const meta = {
           sha: sha || null,
           title: String(j.title || '').trim(),
           description: String(j.description || '').trim() || (n ? n + ' baris latihan dengan IPA di setiap kata.' : ''),
           category: String(j.category || '').trim() || 'Latihan',
           youtube: /^[A-Za-z0-9_-]{11}$/.test(j.videoId || '') ? j.videoId : '',
+          audio: !Array.isArray(j.lines) && typeof j.audio === 'string' && j.audio.trim() !== '',
           tags: parseTags(j.tags)
         };
         store.set(key, meta);
@@ -579,6 +583,7 @@ h1, h2, h3, p { margin: 0; }
         order: Number.isFinite(m.order) ? m.order : null,
         glyph: m.glyph || GLYPHS[hash(it.path) % GLYPHS.length],
         youtube: /^[A-Za-z0-9_-]{11}$/.test(yt) ? yt : '',
+        audio: !!page.audio && !/^[A-Za-z0-9_-]{11}$/.test(yt),
         tags: m.tags !== undefined ? parseTags(m.tags) : parseTags(page.tags),
         added: it.added || '',
         isNew: it.indexed ? isRecent(it.added) : !it.listed
@@ -677,11 +682,12 @@ h1, h2, h3, p { margin: 0; }
         ? `<span class="media"><img src="https://i.ytimg.com/vi/${esc(r.youtube)}/mqdefault.jpg" alt="" width="320" height="180" loading="lazy"><span class="play" aria-hidden="true">${PLAY_SVG}</span></span>`
         : `<span class="media"><span class="big" aria-hidden="true">${esc(r.glyph)}</span></span>`;
       return `
-      <li><a class="card c-${info.color}" href="${esc(hrefOf(r.path))}" data-path="${esc(r.path)}" data-glyph="${esc(r.glyph)}">
+      <li><a class="card c-${info.color}" href="${esc(hrefOf(r.path, r.audio))}" data-path="${esc(r.path)}" data-glyph="${esc(r.glyph)}">
         ${media}
         <span class="info">
           <span class="pills">
             <span class="pill">${esc(r.category)}</span>
+            ${r.audio ? '<span class="pill">Audio</span>' : ''}
             ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
             ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
           </span>
