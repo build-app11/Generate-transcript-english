@@ -72,6 +72,12 @@ body.reading #reader{display:block}
 .racts{display:flex;gap:8px;flex:none}
 .rtb{display:inline-flex;align-items:center;gap:6px;font:700 .8rem var(--font-ui);color:var(--accent);background:var(--accent-soft);border:1.5px solid transparent;border-radius:9px;padding:8px 11px;cursor:pointer;white-space:nowrap}
 .rtb svg{width:17px;height:17px}
+.rinfo{margin-top:6px}
+.rtitle{flex:1}
+.rback{text-decoration:none;flex:none}
+.rtitle{min-width:0;font:600 .95rem/1.35 var(--font-ui);color:var(--head);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.rtitle.open{white-space:normal;overflow:visible}
+@media (max-width:420px){.rback span{display:none}}
 .rtb[aria-expanded=true]{background:var(--accent);color:#fff}
 .rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .rpanel{position:absolute;left:0;right:0;top:calc(100% - 4px);background:var(--bar);border:1px solid var(--line);border-radius:14px;box-shadow:0 14px 36px rgba(0,0,0,.16);padding:16px;max-height:calc(100vh - 180px);max-height:calc(100dvh - 180px);overflow:auto;display:flex;flex-direction:column;gap:18px}
@@ -115,6 +121,10 @@ body.reading #reader{display:block}
 .chip{border:1.5px solid var(--line);background:var(--field);color:var(--fg);border-radius:999px;padding:7px 12px;font:600 .8rem var(--font-ui);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .rnote{line-height:1.45}
+.rssrow{display:flex;gap:8px;margin-top:8px}.rssrow input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:inherit}
+#setup .fl{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--head)}
+#setup .fl input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:400 .95rem var(--font-ui)}
+#rss-list{max-height:260px;overflow:auto;margin-top:6px}.rss-ep{padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.9rem;line-height:1.35}.rss-ep:hover{background:var(--accent-soft)}.rss-ep.sel{background:var(--accent-soft);outline:2px solid var(--accent)}.rss-ep small{display:block;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -125,18 +135,30 @@ body.reading #reader{display:block}
     <p class="lead">Unggah ebook, audio, dan timestamp. Hasilnya halaman baca dengan kata yang di-highlight mengikuti suara, dan fonetik Inggris dari file timestamp-mu.</p>
   </div>
   <div class="field">
-    <span class="lab">1. Ebook</span>
+    <span class="lab">1. Ebook <span class="hint">(boleh dikosongkan: teks diambil dari timestamp)</span></span>
     <label class="pick" id="p-book"><span class="btn">Pilih file</span><span class="name">PDF, TXT, atau MD</span><input id="f-book" type="file" accept=".pdf,.txt,.md,application/pdf,text/plain"></label>
     <details><summary>Atau tempel teks langsung</summary><textarea id="paste" placeholder="Pisahkan paragraf dengan baris kosong. Judul bab cukup satu baris pendek."></textarea></details>
   </div>
   <div class="field">
     <span class="lab">2. Audio</span>
     <label class="pick" id="p-audio"><span class="btn">Pilih file</span><span class="name">MP3, M4A, WAV</span><input id="f-audio" type="file" accept="audio/*,.mp3,.m4a,.wav,.ogg"></label>
+    <details id="rss"><summary>Atau ambil dari RSS podcast</summary>
+      <div class="rssrow"><input id="rss-url" value="https://feeds.acast.com/public/shows/67587e77c705e441797aff96" placeholder="URL feed RSS" spellcheck="false" autocomplete="off"><button class="b" id="rss-load" type="button">Muat</button></div>
+      <div class="hint" id="rss-msg" role="status"></div><div id="rss-list"></div>
+    </details>
   </div>
   <div class="field">
     <span class="lab">3. Timestamp</span>
     <label class="pick" id="p-ts"><span class="btn">Pilih file</span><span class="name">TXT, SRT, VTT, atau JSON Whisper</span><input id="f-ts" type="file" accept=".txt,.srt,.vtt,.json,text/plain"></label>
+    <details><summary>Atau tempel timestamp langsung</summary><textarea id="ts-paste" placeholder="[00:00:05.480] kalimat… atau isi SRT/VTT"></textarea></details>
     <span class="hint">Contoh: <b>[00:00:05.480] kalimat…</b>. Fonetik ikut dibaca dari file ini: tulis di baris sesudah kalimatnya, diapit garis miring, misalnya <b>/ˈmʌni hɛlps/</b>, atau diawali <b>IPA:</b>. Satu kata fonetik untuk satu kata teks. Tanpa timestamp, waktu hanya diperkirakan dari jeda audio.</span>
+  </div>
+  <div class="field">
+    <span class="lab">4. Info <span class="hint">(judul terisi otomatis dari ebook atau feed podcast)</span></span>
+    <label class="fl" for="f-title">Judul<input id="f-title" type="text" autocomplete="off" placeholder="Otomatis, bisa diubah"></label>
+    <label class="fl" for="f-slug">Slug<input id="f-slug" type="text" autocomplete="off" spellcheck="false" placeholder="otomatis dari judul, mis. ai-brain-fry"></label>
+    <label class="fl" for="f-cat">Kategori<input id="f-cat" type="text" list="cats" autocomplete="off" placeholder="mis. Podcast"><datalist id="cats"><option>Podcast</option><option>Novel</option><option>Artikel</option><option>Pelajaran</option><option>Berita</option></datalist></label>
+    <label class="fl" for="f-tags">Tag<input id="f-tags" type="text" autocomplete="off" placeholder="pisahkan dengan koma, mis. bbc, sejarah"></label>
   </div>
   <button class="go" id="go">Buat sinkronisasi</button>
   <div id="msg" role="status"></div>
@@ -146,6 +168,8 @@ body.reading #reader{display:block}
     <div id="exp">
       <h2>Ekspor ke server</h2>
       <div class="row"><button class="b" id="ex-dl">Unduh HTML</button><button class="b alt" id="ex-copy">Salin kode</button></div>
+      <div class="row"><button class="b alt" id="ex-json">Unduh JSON data</button><button class="b alt" id="ex-jcopy">Salin JSON</button></div>
+      <p class="sub">JSON hanya berisi judul, slug, kategori, tag, transkrip, dan alamat audio. Simpan sebagai <b>data/slug.json</b>; fitur pembaca ada di template.html. Isi kolom nama audio di bawah dengan alamat audio (mis. <b>audio/ep1.mp3</b>) atau URL penuh.</p>
       <div class="ok" id="ex-msg" role="status"></div>
       <textarea id="ex-code" readonly aria-label="Kode HTML hasil ekspor"></textarea>
       <div class="grp">
@@ -254,6 +278,33 @@ function tokenize(blocks){
 }
 /* ---------- timestamp file ---------- */
 function stamp(h,m,s){return (+h||0)*3600+(+m)*60+parseFloat(String(s).replace(',','.'))}
+/* format toPhonetics.com: "(mm:ss)" -> "[mm:ss]", buang header dan blok "Speaker N" beserta baris fonetiknya */
+function cleanTranscript(src){
+  const t=src.replace(/^\uFEFF/,'').replace(/\u00a0/g,' ');
+  if(!/^\s*\((?:\d+:)?\d+:\d{2}(?:[.,]\d+)?\)/m.test(t)&&!/^toPhonetics\.com\s*$/im.test(t))return src;
+  const L=t.split('\n'),out=[];
+  for(let i=0;i<L.length;i++){
+    const l=L[i].trim();
+    if(/^toPhonetics\.com$/i.test(l))continue;
+    if(/^(?:speaker|pembicara)\s*\d+$/i.test(l)){let j=i+1;while(j<L.length&&!L[j].trim())j++;if(j<L.length&&/\d\s*$/.test(L[j]))i=j;continue}
+    out.push(l.replace(/\((?:(\d+):)?(\d+):(\d{2}(?:[.,]\d+)?)\)/g,(m,h,mi,sc)=>'['+(h?h+':':'')+mi+':'+sc+']'));
+  }
+  return out.join('\n');
+}
+function textFromTranscript(src){
+  const IPA=/[ˈˌɪʊɛɔəʃʒθðŋæɑɒʌːᵊ]/,TS=/\[(?:\d+:)?\d+:\d+(?:[.,]\d+)?\]/g,P=[];let c=[];
+  for(const raw of src.split('\n')){
+    const l=raw.trim();
+    if(!l||IPA.test(l)||/^\/.*\/$/.test(l)||/^(?:ipa|fonetik|phonetics?)\s*[:：-]/i.test(l))continue;
+    const has=TS.test(l);TS.lastIndex=0;
+    const txt=l.replace(TS,' ').replace(/\s+([.,!?;:])/g,'$1').replace(/\s+/g,' ').trim();
+    if(!txt)continue;
+    if(has&&c.length){P.push(c.join(' '));c=[]}
+    c.push(txt);
+  }
+  if(c.length)P.push(c.join(' '));
+  return P.join('\n\n').replace(/ +([.,!?;:])/g,'$1');
+}
 function parseTranscript(src){
   const s=src.replace(/^﻿/,'').trim();let out=[];
   const stats={lines:0,odd:0,inline:0};
@@ -458,6 +509,8 @@ async function buildSync(blocks,tsWords,au,say){
     {let bR=[],bT=[];const flush=()=>{const n=Math.min(bR.length,bT.length);for(let q=0;q<n;q++){const p=tsWords[bT[q]-1].p;if(p)units[bR[q]-1].p=p}bR=[];bT=[]};
       for(const o of ops){if(o[0]==='m'){flush();const p=tsWords[o[1]-1].p;if(p)units[o[2]-1].p=p}else if(o[0]==='r')bR.push(o[1]);else bT.push(o[1])}
       flush()}
+    {const sylP=p=>{const m=String(p).match(/[aeiouyɑɒɔəɛɪʊʌæɜɐɚɝᵊ]+/g);return m?m.length:0};
+      merged.forEach(u=>{if(u.p){const n=sylP(u.p);if(n>0)u.wt=n+.35}})}
     let lt=-1,li=-1;
     tsWords.forEach((o,k)=>{if(o.t!=null&&o.t>lt&&t2m[k]>li){anchors.push({mi:t2m[k],t:o.t});lt=o.t;li=t2m[k]}});
   }
@@ -504,9 +557,11 @@ function createReader(root,cfg){
   const ICON_EXP='<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 3l4.5 4.5-1.4 1.4L13 6.8V15h-2V6.8L8.9 8.9 7.5 7.5zM5 17h14v4H5z"/></svg>';
   root.innerHTML=`<div class="rd">
   <div class="rtop"><div class="rhead">
-    <div class="rinfo"></div>
-    <div class="racts"><button class="rtb" data-a="pset" aria-expanded="false">${ICON_SET}<span>Setelan</span></button>${cfg.exportEl?`<button class="rtb" data-a="pexp" aria-expanded="false">${ICON_EXP}<span>Ekspor</span></button>`:''}</div>
+    ${cfg.back===null?'':`<a class="rtb rback" href="${cfg.back||'/index.html'}" aria-label="Kembali ke beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></a>`}
+    <div class="rtitle" role="button" tabindex="0" aria-expanded="false" hidden></div>
+    <div class="racts"><button class="rtb" data-a="pset" aria-expanded="false" aria-label="Setelan" title="Setelan">${ICON_SET}</button>${cfg.exportEl?`<button class="rtb" data-a="pexp" aria-expanded="false">${ICON_EXP}<span>Ekspor</span></button>`:''}</div>
   </div>
+  <div class="rinfo" hidden></div>
   <div class="rpanel" data-p="pset" hidden>
       <div class="g"><div class="gh"><b>Ukuran huruf</b><span data-v="fs"></span></div>
         <div class="rr"><button class="chip" data-a="fs-" aria-label="Perkecil huruf">A−</button><input type="range" data-r="fs" min="14" max="44" step="1" aria-label="Ukuran huruf"><button class="chip" data-a="fs+" aria-label="Perbesar huruf">A+</button></div></div>
@@ -540,7 +595,11 @@ function createReader(root,cfg){
   const $q=s=>root.querySelector(s),$$=s=>[...root.querySelectorAll(s)];
   const rd=$q('.rd'),art=$q('.rtxt'),au=$q('audio'),seek=$q('.rseek');
   au.src=cfg.audio;
-  const infoEl=$q('.rinfo');infoEl.textContent=cfg.info||'';
+  const infoEl=$q('.rinfo');infoEl.textContent=cfg.info||'';infoEl.hidden=!cfg.info;
+  const tEl=$q('.rtitle');
+  if(cfg.title){tEl.textContent=cfg.title;tEl.hidden=false;
+    const tg=()=>{const o=tEl.classList.toggle('open');tEl.setAttribute('aria-expanded',String(o))};
+    tEl.addEventListener('click',tg);tEl.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();tg()}})}
   if(cfg.exportEl)$q('.rexp').appendChild(cfg.exportEl);
   $q('.rnote').textContent=cfg.phNote||'';
   const phBtn=$q('.rpanel [data-a=ph]');if(!cfg.hasPh){phBtn.disabled=true;phBtn.style.opacity='.5'}
@@ -600,7 +659,7 @@ function createReader(root,cfg){
   au.addEventListener('pause',()=>{$q('.rpi').setAttribute('d',PLAY);$q('[data-a=play]').setAttribute('aria-label','Putar')});
   au.addEventListener('loadedmetadata',()=>{au.playbackRate=pref.speed;ui()});
   au.addEventListener('seeked',()=>{if(!gapTimer){paintAll(find(au.currentTime));ui()}});
-  au.addEventListener('error',()=>{infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
+  au.addEventListener('error',()=>{infoEl.hidden=false;infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
   seek.addEventListener('input',()=>jump(seek.value/1000*dur()));
   /* setelan */
   function setP(el,v,min,max){el.style.setProperty('--p',((v-min)/(max-min)*100)+'%')}
@@ -625,7 +684,7 @@ function createReader(root,cfg){
     $$('.rpanel').forEach(p=>{const open=p.dataset.p===id&&p.hidden;p.hidden=!open;
       const b=$q('[data-a="'+p.dataset.p+'"]');if(b)b.setAttribute('aria-expanded',String(open))});
   }
-  function closePanels(){$$('.rpanel').forEach(p=>{p.hidden=true});$$('[aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'))}
+  function closePanels(){$$('.rpanel').forEach(p=>{p.hidden=true});$$('.rtb[aria-expanded]').forEach(b=>b.setAttribute('aria-expanded','false'))}
   root.addEventListener('input',e=>{const r=e.target.closest('[data-r]');if(!r)return;
     if(r.dataset.r==='fs')setFs(+r.value);else setSpeed(+r.value);applyPref()});
   root.addEventListener('click',e=>{
@@ -665,37 +724,79 @@ let WORDS=[],audioUrl=null,lastAudioFile=null,api=null,pageInfo='',phNote='',has
 function mount(startAt){
   $('exp-holder').appendChild($('exp'));
   if(api)api.destroy();
-  api=createReader($('app'),{words:WORDS,audio:audioUrl,key:'page',info:pageInfo,startAt:startAt||0,hasPh,phNote,exportEl:$('exp')});
+  api=createReader($('app'),{words:WORDS,audio:audioUrl,key:'page',info:pageInfo,title:$('f-title').value.trim()||exTitle(),back:null,startAt:startAt||0,hasPh,phNote,exportEl:$('exp')});
 }
 $('openexp')&&0;
 /* ---------- form ---------- */
 [['book','p-book'],['audio','p-audio'],['ts','p-ts']].forEach(([k,p])=>{
   $(p).dataset.ph=$(p).querySelector('.name').textContent;
   $('f-'+k).addEventListener('change',e=>{const f=e.target.files[0];const el=$(p);el.classList.toggle('has',!!f);el.querySelector('.name').textContent=f?f.name:el.dataset.ph})});
+/* ---------- judul otomatis ---------- */
+let titleTouched=false,rssChannel='';
+const baseOf=n=>n.replace(/\.[^.]+$/,'').replace(/[_]+/g,' ').trim();
+function autoTitle(){
+  if(titleTouched)return;
+  const b=$('f-book').files[0];
+  $('f-title').value=b?baseOf(b.name):rssEp?rssEp.title:rssChannel;syncSlug();
+}
+const slugify=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60).replace(/-+$/,'');
+let slugTouched=false;
+const syncSlug=()=>{if(!slugTouched)$('f-slug').value=slugify($('f-title').value)};
+$('f-title').addEventListener('input',()=>{titleTouched=!!$('f-title').value.trim();syncSlug()});
+$('f-slug').addEventListener('input',()=>{slugTouched=!!$('f-slug').value.trim();syncSlug()});
+$('f-book').addEventListener('change',autoTitle);
+/* ---------- RSS ---------- */
+let rssEp=null;
+const PROXIES=[u=>u,u=>'https://api.allorigins.win/raw?url='+encodeURIComponent(u),u=>'https://corsproxy.io/?url='+encodeURIComponent(u)];
+async function fetchVia(url,kind){let last;for(const p of PROXIES){try{const r=await fetch(p(url));if(!r.ok)throw new Error(r.status);return kind==='text'?await r.text():await r.blob()}catch(e){last=e}}throw last||new Error('gagal')}
+function metaDur(url){return new Promise((ok,no)=>{const a=new Audio();a.preload='metadata';a.onloadedmetadata=()=>ok(a.duration);a.onerror=()=>no(new Error('Audio episode tidak bisa dimuat dari browser (server podcast memblokir). Buka link "Buka/unduh mp3" di daftar episode, simpan mp3-nya, lalu pilih sebagai file audio di langkah 2.'));a.src=url})}
+$('rss-load').onclick=async()=>{
+  const m=$('rss-msg'),L=$('rss-list');m.textContent='Memuat feed…';L.innerHTML='';
+  try{
+    const x=await fetchVia($('rss-url').value.trim(),'text');
+    const d=new DOMParser().parseFromString(x,'text/xml'),q=(e,s)=>{const n=e.querySelector(s);return n?n.textContent.trim():''};
+    const items=[...d.querySelectorAll('item')].map(i=>{const en=i.querySelector('enclosure'),du=i.getElementsByTagNameNS('*','duration')[0];
+      return{title:q(i,'title'),date:q(i,'pubDate').slice(0,16),dur:du?du.textContent.trim():'',url:en?en.getAttribute('url'):''}}).filter(e=>e.url);
+    if(!items.length)throw new Error('kosong');
+    rssChannel=q(d,'channel > title');autoTitle();m.textContent=(rssChannel||'Feed')+' · '+items.length+' episode. Pilih satu.';
+    items.forEach(e=>{const el=document.createElement('div');el.className='rss-ep';el.innerHTML='<b></b><small></small>';
+      el.firstChild.textContent=e.title;el.lastChild.textContent=[e.date,e.dur].filter(Boolean).join(' · ');
+      el.onclick=()=>{rssEp=e;autoTitle();L.querySelectorAll('.rss-ep').forEach(n=>n.classList.toggle('sel',n===el));
+        $('f-audio').value='';$('p-audio').classList.remove('has');$('p-audio').querySelector('.name').textContent=$('p-audio').dataset.ph;
+        m.textContent='Dipilih: '+e.title+' · ';const dl=document.createElement('a');dl.href=e.url;dl.target='_blank';dl.rel='noopener';dl.textContent='Buka/unduh mp3';m.appendChild(dl)};
+      L.appendChild(el)});
+  }catch(e){m.textContent='Gagal memuat feed (URL salah atau diblokir CORS).'}
+};
+$('f-audio').addEventListener('change',e=>{if(e.target.files[0]){rssEp=null;autoTitle();$('rss-list').querySelectorAll('.sel').forEach(n=>n.classList.remove('sel'))}});
 const say=(t,err)=>{const m=$('msg');m.textContent=t;m.classList.toggle('err',!!err)};
 $('go').onclick=async()=>{
-  const book=$('f-book').files[0],audio=$('f-audio').files[0],ts=$('f-ts').files[0],pasted=$('paste').value.trim();
-  if(!book&&!pasted)return say('Pilih file ebook atau tempel teksnya.',true);
-  if(!audio)return say('Pilih file audio.',true);
+  const book=$('f-book').files[0],ts=$('f-ts').files[0],pasted=$('paste').value.trim();let audio=$('f-audio').files[0];
+  const tsText=cleanTranscript(ts?await ts.text():$('ts-paste').value.trim());
+  if(!book&&!pasted&&!tsText)return say('Pilih ebook, atau isi timestamp (teksnya dipakai sebagai ebook).',true);
+  if(!audio&&!rssEp)return say('Pilih file audio atau episode RSS.',true);
   $('go').disabled=true;
   try{
     say('Membaca ebook…');await tick();
     let blocks;
     if(book&&/\.pdf$/i.test(book.name)||book&&book.type==='application/pdf')blocks=await blocksFromPdf(await book.arrayBuffer());
-    else blocks=blocksFromText(book?await book.text():pasted);
+    else if(book||pasted)blocks=blocksFromText(book?await book.text():pasted);
+    else blocks=blocksFromText(textFromTranscript(tsText));
     if(!blocks.length)throw new Error('Tidak ada teks yang terbaca dari ebook.');
-    say('Menganalisis audio…');await tick();
-    const a=await analyzeAudio(audio);
-    const tw=ts?parseTranscript(await ts.text()):[];
+    if(!audio){say('Mengunduh audio episode…');await tick();
+      try{const bl=await fetchVia(rssEp.url,'blob');audio=new File([bl],(rssEp.title.replace(/[^\w]+/g,'-').slice(0,40)||'episode')+'.mp3',{type:bl.type||'audio/mpeg'})}catch(e){audio=null}}
+    say(audio?'Menganalisis audio…':'Audio tidak bisa diunduh ke browser. Memakai streaming tanpa analisis jeda…');await tick();
+    const a=audio?await analyzeAudio(audio):{sil:[],D:await metaDur(rssEp.url)};
+    const tw=tsText?parseTranscript(tsText):[];
     const r=await buildSync(blocks,tw,a,say);
     WORDS=r.words;
-    lastAudioFile=audio;$('ex-audio').value=audio.name.replace(/\s+/g,'-');$('ex-embed').checked=false;$('ex-code').classList.remove('show');$('ex-msg').textContent='';sizeHint();showHow();
-    if(audioUrl)URL.revokeObjectURL(audioUrl);audioUrl=URL.createObjectURL(audio);
+    lastAudioFile=audio;$('ex-audio').value=audio?audio.name.replace(/\s+/g,'-'):rssEp.url;$('ex-embed').checked=false;$('ex-embed').disabled=!audio;$('ex-code').classList.remove('show');$('ex-msg').textContent='';sizeHint();showHow();
+    if(audioUrl&&audioUrl.startsWith('blob:'))URL.revokeObjectURL(audioUrl);audioUrl=audio?URL.createObjectURL(audio):rssEp.url;
     const pct=r.tsCount?Math.round(r.matched/r.refCount*100):null;
     hasPh=r.phCount>0;
     const st=r.phStats||{lines:0,odd:0,inline:0};
     pageInfo=r.tsCount?('Cocok '+pct+'%'+(hasPh?' · Fonetik '+r.phCount+'/'+r.words.length:'')):'Tanpa timestamp';
     phNote=hasPh?('Fonetik dari file timestamp-mu: '+r.phCount+' dari '+r.words.length+' kata.'+(st.odd?' '+st.odd+' baris fonetik jumlah katanya tidak sama dengan teks, jadi penempatannya diperkirakan.':'')):'File timestamp tidak berisi fonetik. Tulis fonetik di baris sesudah kalimat, diapit garis miring, atau diawali "IPA:".';
+    if(!$('f-title').value.trim()){const t=exTitle();if(t!=='Audio Ebook'){$('f-title').value=t;syncSlug()}}
     mount(0);document.body.classList.add('reading');scrollTo(0,0);
     if(pct!==null&&pct<60)say('Hanya '+pct+'% kata cocok dengan timestamp. Pastikan file ebook, audio, dan timestamp berasal dari sumber yang sama.',true);else say('');
   }catch(e){say('Gagal: '+(e&&e.message?e.message:e),true)}
@@ -708,19 +809,20 @@ const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;')
 const r2=v=>Math.round(v*100)/100;
 function readDataUrl(f){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsDataURL(f)})}
 async function buildExport(){
-  const audioSrc=$('ex-embed').checked?await readDataUrl(lastAudioFile):($('ex-audio').value.trim()||'audio.mp3').split('/').map(encodeURIComponent).join('/');
+  const av=$('ex-audio').value.trim();const audioSrc=$('ex-embed').checked&&lastAudioFile?await readDataUrl(lastAudioFile):/^https?:\/\//.test(av)?av:(av||'audio.mp3').split('/').map(encodeURIComponent).join('/');
   const data=JSON.stringify(WORDS.map(w=>({w:w.w,s:r2(w.s),e:r2(w.e),b:w.b,h:w.h?1:0,p:w.p||''}))).replace(/</g,'\\u003c');
-  const first=WORDS.find(w=>w.h);const title=first?WORDS.filter(w=>w.b===first.b).map(w=>w.w).join(' ').slice(0,60):'Audio Ebook';
+  const title=$('f-title').value.trim()||exTitle();
   const O='<'+'script>',C='<'+'/script>';
-  const boot='const DATA='+data+';\n('+createReader.toString()+')(document.getElementById("app"),{words:DATA,audio:'+JSON.stringify(audioSrc).replace(/</g,'\\u003c')+',key:'+JSON.stringify(title)+',info:"Audio ebook · ketuk kata untuk loncat",hasPh:'+JSON.stringify(hasPh)+',phNote:'+JSON.stringify(phNote)+'});';
+  const boot='const DATA='+data+';\n('+createReader.toString()+')(document.getElementById("app"),{words:DATA,audio:'+JSON.stringify(audioSrc).replace(/</g,'\\u003c')+',key:'+JSON.stringify(title)+',title:'+JSON.stringify(title).replace(/</g,'\\u003c')+',hasPh:'+JSON.stringify(hasPh)+',phNote:'+JSON.stringify(phNote)+'});';
   return '<!doctype html>\n<html lang="id">\n<head>\n<meta charset="utf-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>'+esc(title)+'</title>\n<link rel="stylesheet" href="'+FONTS+'">\n<style>'+STANDALONE_TOKENS+$('reader-css').textContent+'</style>\n</head>\n<body>\n<div id="app"></div>\n'+O+boot+C+'\n</body>\n</html>\n';
 }
 function sizeHint(){
-  if(!lastAudioFile)return;
+  if(!lastAudioFile){$('ex-size').textContent='Audio diputar langsung dari server podcast (tidak bisa disematkan).';return}
   const mb=lastAudioFile.size/1048576,ex=Math.round(mb*1.37*10)/10;
   $('ex-size').textContent='Audio '+(Math.round(mb*10)/10)+' MB. File HTML akan sekitar '+ex+' MB. Tanpa ini, file HTML hanya puluhan KB dan audio diunggah terpisah.';
 }
 function showHow(){
+  if(/^https?:\/\//.test($('ex-audio').value))return void($('ex-how').textContent='HTML ini memutar audio langsung dari server podcast. Cukup unggah satu file HTML.');
   $('ex-how').textContent=$('ex-embed').checked?'Unggah satu file HTML ini ke server. Selesai.':'Unggah file HTML dan file audio (namanya harus sama dengan isian di atas) ke folder yang sama di servermu.';
 }
 $('ex-embed').onchange=showHow;
@@ -732,7 +834,7 @@ async function saveFile(fname,data){
   else{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'text/plain'}));a.download=fname;document.body.appendChild(a);a.click();a.remove();
     emsg('Jika unduhan tidak mulai, pakai tombol "Salin" lalu simpan sebagai '+fname)}
 }
-const baseName=()=>($('ex-audio').value.trim()||'ebook').replace(/\.[^.]+$/,'').replace(/[^\w.-]+/g,'-')||'ebook';
+const baseName=()=>(/^https?:/.test($('ex-audio').value)?(rssEp?rssEp.title:'podcast'):($('ex-audio').value.trim()||'ebook')).replace(/\.[^.]+$/,'').replace(/[^\w.-]+/g,'-')||'ebook';
 async function doSave(fname,make){
   emsg('');
   try{const data=await make();await saveFile(fname,data)}
@@ -747,6 +849,18 @@ async function doCopy(make,what){
 }
 $('ex-dl').onclick=()=>doSave(baseName()+'-sync.html',buildExport);
 $('ex-copy').onclick=()=>doCopy(buildExport,'Kode HTML');
+
+/* ---------- ekspor JSON + template kosong ---------- */
+function exTitle(){const f=WORDS.find(w=>w.h);return f?WORDS.filter(w=>w.b===f.b).map(w=>w.w).join(' ').slice(0,60):'Audio Ebook'}
+function exAudioPath(){const av=$('ex-audio').value.trim()||'audio.mp3';return /^https?:\/\//.test(av)?av:av.split('/').map(encodeURIComponent).join('/')}
+function jsonSlug(){return slugify($('f-slug').value)||slugify($('f-title').value||exTitle())||'audio'}
+function buildJson(){
+  const tags=[...new Set($('f-tags').value.split(',').map(t=>t.trim()).filter(Boolean))];
+  return JSON.stringify({title:$('f-title').value.trim()||exTitle(),slug:jsonSlug(),category:$('f-cat').value.trim(),tags,audio:exAudioPath(),
+    transcript:WORDS.map(w=>[w.w,r2(w.s),r2(w.e),w.b,w.h?1:0,w.p||''])});
+}
+$('ex-json').onclick=()=>doSave(jsonSlug()+'.json',async()=>buildJson());
+$('ex-jcopy').onclick=()=>doCopy(async()=>buildJson(),'JSON');
 
 </script>
 </body>
