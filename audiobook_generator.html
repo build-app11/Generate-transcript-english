@@ -4,21 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sync Reader</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Sans:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
 <style>
 body{margin:0}[hidden]{display:none!important}
 /* Layout: one setup form that turns into a reading column with a fixed audio bar. Paper ground, orange marks the spoken word. */
-:root{
-  --bg:#fbf9f6; --fg:#26262e; --muted:#8b8a93; --accent:#e07b00; --accent-soft:#f6e6d3; --line:#e9e4dc;
-  --bar:#ffffff; --head:#17171d; --field:#ffffff; --warn:#a33b1f;
-  --font-read:"Literata",Georgia,serif; --font-ui:"Figtree",system-ui,sans-serif;
-}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#16151a; --fg:#e6e3de; --muted:#8a8791; --accent:#ff9d2e; --accent-soft:#3a2a17; --line:#2b2931; --bar:#1e1d23; --head:#f5f2ee; --field:#1e1d23; --warn:#ff8a6b; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#16151a; --fg:#e6e3de; --muted:#8a8791; --accent:#ff9d2e; --accent-soft:#3a2a17; --line:#2b2931; --bar:#1e1d23; --head:#f5f2ee; --field:#1e1d23; --warn:#ff8a6b; color-scheme:dark}
+:root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-read:"Albert Sans",system-ui,sans-serif;--font-ui:"Albert Sans",system-ui,sans-serif;--font-display:"Fredoka","Albert Sans",system-ui,sans-serif;}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent:#FFD23F;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--on:#14162B;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent:#FFD23F;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--on:#14162B;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}
 html,body{height:100%}
 body{background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}
 main{max-width:46rem;margin:0 auto}
@@ -29,18 +23,18 @@ h1{margin:0;font:700 2rem/1.15 var(--font-ui);color:var(--head);text-wrap:balanc
 .field>.lab{font-weight:700;font-size:.95rem;color:var(--head)}
 .field>.hint{font-size:.82rem;color:var(--muted);line-height:1.45}
 .pick{position:relative;display:flex;align-items:center;gap:12px;background:var(--field);border:1.5px dashed var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;min-width:0}
-.pick:hover{border-color:var(--accent)}
-.pick:focus-within{outline:3px solid var(--accent);outline-offset:2px}
+.pick:hover{border-color:var(--ui)}
+.pick:focus-within{outline:3px solid var(--ui);outline-offset:2px}
 .pick input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
-.pick .btn{flex:none;font-weight:700;font-size:.85rem;color:var(--accent);background:var(--accent-soft);border-radius:8px;padding:7px 12px}
+.pick .btn{flex:none;font-weight:700;font-size:.85rem;color:var(--ui);background:var(--ui-soft);border-radius:8px;padding:7px 12px}
 .pick .name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:.9rem}
-.pick.has{border-style:solid;border-color:var(--accent)}
+.pick.has{border-style:solid;border-color:var(--ui)}
 .pick.has .name{color:var(--fg);font-weight:600}
-details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:.88rem;padding-block:4px}
+details summary{cursor:pointer;color:var(--ui);font-weight:600;font-size:.88rem;padding-block:4px}
 textarea{width:100%;min-height:8rem;margin-top:8px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);color:var(--fg);font:inherit;font-size:.9rem;padding:12px;resize:vertical}
-.go{font:700 1.05rem var(--font-ui);background:var(--accent);color:#fff;border:0;border-radius:12px;padding:15px 18px;cursor:pointer}
+.go{font:700 1.05rem var(--font-ui);background:var(--ui);color:var(--ui-on);border:0;border-radius:12px;padding:15px 18px;cursor:pointer}
 .go:disabled{opacity:.55;cursor:default}
-.go:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.go:focus-visible{outline:3px solid var(--ui);outline-offset:3px}
 #msg{font-size:.92rem;line-height:1.5;color:var(--muted);min-height:1.4em}
 #msg.err{color:var(--warn);font-weight:600}
 #reader{display:none}
@@ -52,15 +46,17 @@ body.reading #reader{display:block}
 #exp label.l{display:flex;flex-direction:column;gap:4px;font-weight:600;color:var(--head)}
 #exp input[type=text]{font:inherit;border:1.5px solid var(--line);border-radius:8px;padding:9px 10px;background:var(--bg);color:var(--fg);min-width:0}
 #exp .chk{display:flex;gap:8px;align-items:flex-start;color:var(--fg)}
-#exp .chk input{margin-top:4px;accent-color:var(--accent)}
+#exp .chk input{margin-top:4px;accent-color:var(--ui)}
 #exp .sub{color:var(--muted);font-size:.82rem;margin:0}
 #exp .grp{display:flex;flex-direction:column;gap:10px;padding-top:12px;border-top:1px solid var(--line)}
-#exp .b{font:700 .9rem var(--font-ui);border:0;border-radius:9px;padding:11px 14px;cursor:pointer;background:var(--accent);color:#fff}
-#exp .b.alt{background:var(--accent-soft);color:var(--accent)}
-#exp .b:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#exp .b{font:700 .9rem var(--font-ui);border:0;border-radius:9px;padding:11px 14px;cursor:pointer;background:var(--ui);color:var(--ui-on)}
+#exp .b.alt{background:var(--ui-soft);color:var(--ui)}
+#exp .b:focus-visible{outline:3px solid var(--ui);outline-offset:2px}
 #exp textarea{min-height:9rem;font:.75rem/1.4 ui-monospace,Menlo,monospace;margin:0;display:none}
 #exp textarea.show{display:block}
-#exp .ok{color:var(--accent);font-weight:600;min-height:1.3em}
+#exp .ok{color:var(--ui);font-weight:600;min-height:1.3em}
+
+#setup input,#setup textarea,#setup select{box-sizing:border-box;max-width:100%}
 </style>
 <style id="reader-css">
 .rd{position:relative;--col:34rem;--fs:22;--font-ipa:"Noto Sans","Segoe UI","DejaVu Sans",system-ui,sans-serif;padding-bottom:300px}
@@ -121,6 +117,22 @@ body.reading #reader{display:block}
 .chip{border:1.5px solid var(--line);background:var(--field);color:var(--fg);border-radius:999px;padding:7px 12px;font:600 .8rem var(--font-ui);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .rnote{line-height:1.45}
+.rd{--font-ipa:"Gentium Plus","Charis SIL","Noto Serif",serif}
+.rtb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);border-radius:999px;background:var(--bar);color:var(--head);font-family:var(--font-display)}
+.rtb[aria-expanded=true]{background:var(--accent);color:var(--on)}
+.rtitle{font-family:var(--font-display);font-weight:600}
+.rpanel{border:2.5px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.rbar{border-top:2.5px solid var(--ink)}
+.rb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);background:var(--bar)}
+.rb.big{background:var(--accent);color:var(--on)}
+.rtm,.gh span{color:var(--accent-text)}
+.chip{border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--shadow);font-family:var(--font-display)}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--on);border-color:var(--ink)}
+.w.on{background:var(--accent);box-shadow:0 0 0 2px var(--ink)}
+.w.on .t{color:var(--on);text-decoration-color:var(--ink)}
+.rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline-color:var(--ink)}
+.rd input[type=range]::-webkit-slider-thumb{border:2.5px solid var(--ink)}
+.rd input[type=range]::-moz-range-thumb{border:2.5px solid var(--ink)}
 .rssrow{display:flex;gap:8px;margin-top:8px}.rssrow input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:inherit}
 #setup .fl{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--head)}
 #setup .fl input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:400 .95rem var(--font-ui)}
@@ -169,7 +181,7 @@ body.reading #reader{display:block}
       <h2>Ekspor ke server</h2>
       <div class="row"><button class="b" id="ex-dl">Unduh HTML</button><button class="b alt" id="ex-copy">Salin kode</button></div>
       <div class="row"><button class="b alt" id="ex-json">Unduh JSON data</button><button class="b alt" id="ex-jcopy">Salin JSON</button></div>
-      <p class="sub">JSON hanya berisi judul, slug, kategori, tag, transkrip, dan alamat audio. Simpan sebagai <b>data/slug.json</b>; fitur pembaca ada di template.html. Isi kolom nama audio di bawah dengan alamat audio (mis. <b>audio/ep1.mp3</b>) atau URL penuh.</p>
+      <p class="sub">JSON hanya berisi judul, slug, kategori, tag, transkrip, dan alamat audio. Simpan sebagai <b>data/slug.json</b>; fitur pembaca ada di player-audio.html (buka player-audio.html?q=slug). Isi kolom nama audio di bawah dengan alamat audio (mis. <b>audio/ep1.mp3</b>) atau URL penuh.</p>
       <div class="ok" id="ex-msg" role="status"></div>
       <textarea id="ex-code" readonly aria-label="Kode HTML hasil ekspor"></textarea>
       <div class="grp">
@@ -803,8 +815,8 @@ $('go').onclick=async()=>{
   $('go').disabled=false;
 };
 /* ---------- ekspor ---------- */
-const FONTS='https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Sans:wght@400;500&display=swap';
-const STANDALONE_TOKENS=':root{--bg:#fbf9f6;--fg:#26262e;--muted:#8b8a93;--accent:#e07b00;--accent-soft:#f6e6d3;--line:#e9e4dc;--bar:#ffffff;--head:#17171d;--field:#ffffff;--font-read:"Literata",Georgia,serif;--font-ui:"Figtree",system-ui,sans-serif}@media (prefers-color-scheme:dark){:root{--bg:#16151a;--fg:#e6e3de;--muted:#8a8791;--accent:#ff9d2e;--accent-soft:#3a2a17;--line:#2b2931;--bar:#1e1d23;--head:#f5f2ee;--field:#1e1d23;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}';
+const FONTS='https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap';
+const STANDALONE_TOKENS=':root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-read:\"Albert Sans\",system-ui,sans-serif;--font-ui:\"Albert Sans\",system-ui,sans-serif;--font-display:\"Fredoka\",\"Albert Sans\",system-ui,sans-serif;}@media (prefers-color-scheme:dark){:root{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent:#FFD23F;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--on:#14162B;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}';
 const esc=t=>t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
 const r2=v=>Math.round(v*100)/100;
 function readDataUrl(f){return new Promise((ok,no)=>{const r=new FileReader();r.onload=()=>ok(r.result);r.onerror=()=>no(r.error);r.readAsDataURL(f)})}
