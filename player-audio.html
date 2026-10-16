@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Memuat…</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700&family=Literata:opsz,wght@7..72,400;7..72,600&family=Noto+Sans:wght@400;500&display=swap">
-<style>:root{--bg:#fbf9f6;--fg:#26262e;--muted:#8b8a93;--accent:#e07b00;--accent-soft:#f6e6d3;--line:#e9e4dc;--bar:#ffffff;--head:#17171d;--field:#ffffff;--font-read:"Literata",Georgia,serif;--font-ui:"Figtree",system-ui,sans-serif}@media (prefers-color-scheme:dark){:root{--bg:#16151a;--fg:#e6e3de;--muted:#8a8791;--accent:#ff9d2e;--accent-soft:#3a2a17;--line:#2b2931;--bar:#1e1d23;--head:#f5f2ee;--field:#1e1d23;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
+<style>:root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-read:"Albert Sans",system-ui,sans-serif;--font-ui:"Albert Sans",system-ui,sans-serif;--font-display:"Fredoka","Albert Sans",system-ui,sans-serif;}@media (prefers-color-scheme:dark){:root{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent:#FFD23F;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--on:#14162B;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding-inline:20px}[hidden]{display:none!important}
 .rd{position:relative;--col:34rem;--fs:22;--font-ipa:"Noto Sans","Segoe UI","DejaVu Sans",system-ui,sans-serif;padding-bottom:300px}
 @media (min-width:760px){.rd{--col:46rem}}
 .rd *{box-sizing:border-box}
@@ -64,14 +64,26 @@
 .chip{border:1.5px solid var(--line);background:var(--field);color:var(--fg);border-radius:999px;padding:7px 12px;font:600 .8rem var(--font-ui);cursor:pointer}
 .chip[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:#fff}
 .rnote{line-height:1.45}
-.rssrow{display:flex;gap:8px;margin-top:8px}.rssrow input{flex:1;min-width:0;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:inherit}
-#setup .fl{display:flex;flex-direction:column;gap:4px;margin-top:10px;font-size:.82rem;font-weight:600;color:var(--head)}
-#setup .fl input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--field);color:var(--fg);font:400 .95rem var(--font-ui)}
-#rss-list{max-height:260px;overflow:auto;margin-top:6px}.rss-ep{padding:10px 12px;border-radius:10px;cursor:pointer;font-size:.9rem;line-height:1.35}.rss-ep:hover{background:var(--accent-soft)}.rss-ep.sel{background:var(--accent-soft);outline:2px solid var(--accent)}.rss-ep small{display:block;color:var(--muted)}
+.rd{--font-ipa:"Gentium Plus","Charis SIL","Noto Serif",serif}
+.rtb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);border-radius:999px;background:var(--bar);color:var(--head);font-family:var(--font-display)}
+.rtb[aria-expanded=true]{background:var(--accent);color:var(--on)}
+.rtitle{font-family:var(--font-display);font-weight:600}
+.rpanel{border:2.5px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.rbar{border-top:2.5px solid var(--ink)}
+.rb{border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--shadow);background:var(--bar)}
+.rb.big{background:var(--accent);color:var(--on)}
+.rtm,.gh span{color:var(--accent-text)}
+.chip{border:2.5px solid var(--ink);box-shadow:2px 2px 0 var(--shadow);font-family:var(--font-display)}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--on);border-color:var(--ink)}
+.w.on{background:var(--accent);box-shadow:0 0 0 2px var(--ink)}
+.w.on .t{color:var(--on);text-decoration-color:var(--ink)}
+.rtb:focus-visible,.chip:focus-visible,.rb:focus-visible{outline-color:var(--ink)}
+.rd input[type=range]::-webkit-slider-thumb{border:2.5px solid var(--ink)}
+.rd input[type=range]::-moz-range-thumb{border:2.5px solid var(--ink)}
 
-html,body{min-height:100%}
-.ld{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;color:var(--muted);font:500 1rem/1.5 var(--font-ui)}
-.ld a{color:var(--accent);font-weight:700;text-decoration:none;padding:8px 14px;border-radius:9px;background:var(--accent-soft)}
+.ld{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;text-align:center;color:var(--muted);font:500 1.05rem/1.5 var(--font-ui)}
+.ld p{margin:0}
+.ld a{color:var(--head);font:600 1rem var(--font-display);text-decoration:none;padding:10px 22px;border:2.5px solid var(--ink);border-radius:999px;background:var(--bar);box-shadow:3px 3px 0 var(--shadow)}
 </style>
 </head>
 <body>
@@ -254,9 +266,9 @@ html,body{min-height:100%}
 (async()=>{
   const app=document.getElementById("app"),q=new URLSearchParams(location.search);
   const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="/index.html">Kembali</a></div>';app.querySelector("p").textContent=m};
-  let f=q.get("f")||q.get("d")||location.hash.slice(1);
+  let f=q.get("q")||q.get("f")||location.hash.slice(1);
   f=(f||"").replace(/\.json$/i,"").replace(/[^\w.-]+/g,"-");
-  if(!f)return fail("Alamat tidak lengkap. Tambahkan ?f=namafile");
+  if(!f)return fail("Alamat tidak lengkap. Tambahkan ?q=namafile");
   try{
     const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
     const j=await r.json();
