@@ -225,6 +225,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
     };
     return walk(j, 0) || weak;
   };
+  const isAudioOnly = (b) => !!b.audio && !b.videoId;   // form RSS/gambar hanya untuk audio
   const imgOf = (j) => str(j && (j.image || j.thumbnail || j.cover || j.logo));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const str = (v) => (typeof v === 'string' ? v.trim() : '');
@@ -337,8 +338,10 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       if (b.description) e.description = b.description;
       if (r.category) e.category = r.category;
       if (r.tags.length) e.tags = r.tags;
-      if (r.image) e.image = r.image;
-      if (r.feed) e.feed = r.feed;
+      if (isAudioOnly(b)) {
+        if (r.image) e.image = r.image;
+        if (r.feed) e.feed = r.feed;
+      }
       if (b.order !== undefined) e.order = b.order;
       Object.assign(e, r.extra);
       if (b.added) e.added = b.added;
@@ -371,7 +374,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
     return '';
   }
   async function resolveFeeds() {
-    const feeds = [...new Set(rows().filter((r) => r.include && r.feed && !r.image && !feedTried.has(r.feed)).map((r) => r.feed))];
+    const feeds = [...new Set(rows().filter((r) => r.include && isAudioOnly(r.base) && r.feed && !r.image && !feedTried.has(r.feed)).map((r) => r.feed))];
     if (!feeds.length) return;
     feeds.forEach((f) => feedTried.add(f));
     let got = false;
@@ -411,8 +414,8 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
         (badges.length ? '<div class="badges">' + badges.join('') + '</div>' : '') +
         '<div class="edit"><label>Kategori<input type="text" data-f="category" value="' + esc(r.category) + '" placeholder="Latihan" autocomplete="off"></label>' +
         '<label>Tag (pisahkan koma)<input type="text" data-f="tags" value="' + esc(r.tags.join(', ')) + '" placeholder="travel, airport" autocomplete="off"></label>' +
-        '<label class="wide">Link RSS podcast (opsional, gambar diambil otomatis)<input type="text" data-f="feed" value="' + esc(r.feed) + '" placeholder="https://.../feed.xml" autocomplete="off"></label>' +
-        '<label class="wide">Gambar thumbnail (isi manual untuk menimpa)<input type="text" data-f="image" value="' + esc(r.image) + '" placeholder="https://.../logo.jpg" autocomplete="off"></label></div>' +
+        (isAudioOnly(b) ? '<label class="wide">Link RSS podcast (opsional, gambar diambil otomatis)<input type="text" data-f="feed" value="' + esc(r.feed) + '" placeholder="https://.../feed.xml" autocomplete="off"></label>' +
+          '<label class="wide">Gambar thumbnail (isi manual untuk menimpa)<input type="text" data-f="image" value="' + esc(r.image) + '" placeholder="https://.../logo.jpg" autocomplete="off"></label>' : '') + '</div>' +
         '</div></li>';
     }).join('') + errors.map((e) =>
       '<li class="item err"><div class="chk"></div><div class="body"><div class="t">' + esc(e.name) + '</div><div class="badges"><span class="b ' + (e.soft ? 'warn' : 'bad') + '">' + (e.soft ? 'Perhatian' : 'Gagal') + '</span></div><div class="m" style="font-family:inherit">' + esc(e.msg) + '</div></div></li>').join('');
