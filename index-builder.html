@@ -3,97 +3,151 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Pembuat index.json</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap">
+<title>Index Builder | Learning Fun</title>
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=DM+Mono:wght@400;500&display=swap">
 <style>
 :root {
-  --bg: #EDEFF2; --surface: #FFFFFF; --ink: #0E1626; --muted: #5A6577; --rule: #D9DEE6;
-  --accent: #D8281F; --accent-ink: #FFFFFF; --tint: #FCEAE8;
-  --ok: #1B7F4B; --warn: #94600A; --bad: #C0261D;
-  --font-en: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --bg: #EEF2FF; --surface: #FFFFFF; --ink: #14162B; --on: #14162B; --muted: #4F5575;
+  --line: #14162B; --shadow: #14162B; --rule: #D3D9F2;
+  --yellow: #FFD23F; --coral: #FF6B5E; --blue: #4C84FF; --mint: #2ED3A0; --purple: #A07CFA;
+  --ok: #0F7A52; --warn: #8A5A00; --bad: #C0261D;
+  --font: 'Albert Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Fredoka', 'Albert Sans', system-ui, sans-serif;
   --font-mono: 'DM Mono', ui-monospace, Menlo, monospace;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
-    --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618;
-    --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+    --bg: #101226; --surface: #1B1E3A; --ink: #F2F3FF; --muted: #A9AED6; --line: #7A80C4; --shadow: #04050E; --rule: #2A2F55;
+    --ok: #4CC38A; --warn: #E3A441; --bad: #FF8A80; color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0B1120; --surface: #141C2E; --ink: #E8ECF4; --muted: #93A0B6; --rule: #25304A;
-  --accent: #FF5B50; --accent-ink: #1A0907; --tint: #2B1618;
-  --ok: #4CC38A; --warn: #E3A441; --bad: #FF6B60; color-scheme: dark;
+  --bg: #101226; --surface: #1B1E3A; --ink: #F2F3FF; --muted: #A9AED6; --line: #7A80C4; --shadow: #04050E; --rule: #2A2F55;
+  --ok: #4CC38A; --warn: #E3A441; --bad: #FF8A80; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-en); font-size: 16px; line-height: 1.45; }
-.wrap { max-width: 720px; margin: 0 auto; padding: 22px 16px 64px; display: flex; flex-direction: column; gap: 26px; }
-h1 { margin: 0; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.015em; text-wrap: balance; }
-.lead { margin: 6px 0 0; color: var(--muted); font-size: 0.95rem; max-width: 60ch; }
-.step { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
-.step > h2 { margin: 0; display: flex; align-items: center; gap: 10px; font-size: 1.02rem; font-weight: 700; }
-.step > h2 .n { flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: var(--bg); display: grid; place-items: center; font-family: var(--font-mono); font-size: 0.8rem; font-weight: 500; }
-button { font: inherit; color: inherit; cursor: pointer; }
-button:focus-visible, input:focus-visible, summary:focus-visible, .drop:focus-within { outline: 2px solid var(--accent); outline-offset: 2px; }
-.btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--rule); background: var(--surface); font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 1.0625rem; line-height: 1.55; -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+button, input, textarea { font: inherit; color: inherit; }
+a { color: inherit; }
+h1, h2, p { margin: 0; }
+:focus-visible { outline: 3px solid var(--blue); outline-offset: 3px; }
+.wrap { width: min(820px, 100% - 2 * clamp(16px, 4vw, 40px)); margin-inline: auto; }
+
+/* Header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 20px; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; text-decoration: none; }
+.logo { display: grid; place-items: center; width: 40px; height: 40px; border: 2.5px solid var(--line); border-radius: 12px; background: var(--yellow); box-shadow: 3px 3px 0 var(--shadow); }
+.right { display: flex; align-items: center; gap: 8px; }
+.back { padding: 8px 14px; border-radius: 999px; font-weight: 600; text-decoration: none; }
+.back:hover { background: var(--surface); }
+.icon-btn { display: grid; place-items: center; width: 42px; height: 42px; border: 2.5px solid var(--line); border-radius: 50%; background: var(--surface); cursor: pointer; box-shadow: 3px 3px 0 var(--shadow); }
+.icon-btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+
+.page { display: flex; flex-direction: column; gap: 32px; padding-bottom: 72px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.08; text-wrap: balance; }
+.lead { margin-top: 12px; color: var(--muted); max-width: 60ch; }
+
+/* Langkah = kartu */
+.step { display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 22px 22px 24px; background: var(--surface); border: 2.5px solid var(--line); border-radius: 22px; box-shadow: 6px 6px 0 var(--shadow); }
+.step > h2 { display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 600; font-size: 1.45rem; line-height: 1.2; }
+.step > h2 .n { flex: none; display: inline-grid; place-items: center; width: 32px; height: 32px; border: 2px solid var(--line); border-radius: 50%; background: var(--c, var(--yellow)); color: var(--on); font-size: 1rem; }
+.s1 { --c: var(--yellow); } .s2 { --c: var(--coral); } .s3 { --c: var(--mint); }
+
+/* Tombol */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
+  padding: 10px 22px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink);
+  font-family: var(--font-display); font-weight: 600; font-size: 1rem; line-height: 1.2; cursor: pointer;
+  box-shadow: 3px 3px 0 var(--shadow); transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.btn:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--shadow); }
+.btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
+.btn.primary { background: var(--yellow); color: var(--on); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 
-.drop { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 132px; padding: 18px; text-align: center; border: 2px dashed var(--rule); border-radius: 16px; background: var(--surface); cursor: pointer; }
-.drop.over { border-color: var(--accent); background: var(--tint); }
+/* Area drop */
+.drop { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 148px; padding: 20px; text-align: center; border: 2.5px dashed var(--line); border-radius: 18px; background: var(--bg); cursor: pointer; }
+.drop.over { background: color-mix(in srgb, var(--yellow) 35%, var(--surface)); }
+.drop:focus-within { outline: 3px solid var(--blue); outline-offset: 3px; }
 .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
-.drop b { font-size: 1rem; }
-.drop span { color: var(--muted); font-size: 0.86rem; max-width: 46ch; }
-.note { margin: 0; font-size: 0.84rem; color: var(--muted); }
-.note.warn { color: var(--warn); } .note.bad { color: var(--bad); }
-.sum { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.88rem; font-weight: 600; }
-.sum span { color: var(--muted); font-weight: 500; }
+.drop b { font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; }
+.drop span { color: var(--muted); font-size: 0.95rem; max-width: 52ch; }
+.note { font-size: 0.92rem; color: var(--muted); }
+.note.warn { color: var(--warn); font-weight: 600; } .note.bad { color: var(--bad); }
+.sum { display: flex; flex-wrap: wrap; gap: 6px 14px; font-weight: 700; }
+.sum span { color: var(--muted); font-weight: 600; }
 
-.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
-.item { display: flex; gap: 12px; padding: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; }
+/* Daftar pelajaran */
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.item { display: flex; gap: 12px; padding: 16px; background: var(--bg); border: 2.5px solid var(--line); border-radius: 18px; }
 .item.off { opacity: 0.5; }
-.item.err { border-color: color-mix(in srgb, var(--bad) 50%, var(--rule)); }
-.chk { flex: none; display: grid; place-items: start center; width: 28px; padding-top: 1px; }
-.chk input { width: 22px; height: 22px; accent-color: var(--accent); }
-.body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-.t { font-weight: 700; overflow-wrap: anywhere; }
-.m { font-family: var(--font-mono); font-size: 0.76rem; color: var(--muted); overflow-wrap: anywhere; }
+.item.err { border-style: dashed; border-color: var(--bad); }
+.chk { flex: none; display: grid; place-items: start center; width: 28px; padding-top: 2px; }
+.chk input { width: 22px; height: 22px; accent-color: var(--mint); cursor: pointer; }
+.body { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+.t { font-family: var(--font-display); font-weight: 600; font-size: 1.2rem; line-height: 1.25; overflow-wrap: anywhere; }
+.m { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); overflow-wrap: anywhere; }
 .badges { display: flex; flex-wrap: wrap; gap: 6px; }
-.b { padding: 1px 9px; border-radius: 999px; border: 1px solid var(--rule); font-size: 0.74rem; font-weight: 700; color: var(--muted); }
-.b.new { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 55%, var(--rule)); }
-.b.warn { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 55%, var(--rule)); }
-.b.bad { color: var(--bad); border-color: color-mix(in srgb, var(--bad) 55%, var(--rule)); }
-.edit { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
-.edit label { display: flex; flex-direction: column; gap: 3px; font-size: 0.74rem; font-weight: 600; color: var(--muted); min-width: 0; }
-.edit input { width: 100%; min-width: 0; padding: 8px 10px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--ink); font: inherit; font-size: 0.9rem; font-weight: 400; }
-@media (max-width: 460px) { .edit { grid-template-columns: 1fr; } }
+.b { padding: 1px 10px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); font-size: 0.8rem; font-weight: 700; }
+.b.new { background: var(--yellow); color: var(--on); }
+.b.warn { background: color-mix(in srgb, var(--coral) 30%, var(--surface)); }
+.b.bad { background: var(--coral); color: var(--on); }
+.edit { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 2px; }
+.edit label { display: flex; flex-direction: column; gap: 4px; font-size: 0.82rem; font-weight: 700; color: var(--muted); min-width: 0; }
+.edit label.wide { grid-column: 1 / -1; }
+.edit input { width: 100%; min-width: 0; padding: 9px 14px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 0.95rem; font-weight: 400; }
+.edit input::placeholder { color: var(--muted); }
+@media (max-width: 520px) { .edit { grid-template-columns: 1fr; } }
 
-details { border: 1px solid var(--rule); border-radius: 12px; background: var(--surface); padding: 0 14px; }
-details > summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 600; font-size: 0.9rem; }
-details[open] > summary { border-bottom: 1px solid var(--rule); margin-bottom: 12px; }
-details .inner { display: flex; flex-direction: column; gap: 10px; padding-bottom: 14px; }
-details ol { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; font-size: 0.9rem; }
-textarea { width: 100%; min-height: 200px; padding: 12px; border: 1px solid var(--rule); border-radius: 10px; background: var(--bg); color: var(--ink); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; resize: vertical; }
-.toast { min-height: 1.3em; font-size: 0.88rem; font-weight: 600; color: var(--ok); }
+details { border: 2.5px solid var(--line); border-radius: 16px; background: var(--bg); padding: 0 16px; }
+details > summary { min-height: 46px; display: flex; align-items: center; cursor: pointer; font-family: var(--font-display); font-weight: 600; }
+details[open] > summary { border-bottom: 2px dashed var(--rule); margin-bottom: 12px; }
+details .inner { display: flex; flex-direction: column; gap: 10px; padding-bottom: 16px; }
+details ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+textarea { width: 100%; min-height: 220px; padding: 14px; border: 2.5px solid var(--line); border-radius: 14px; background: var(--surface); color: var(--ink); font-family: var(--font-mono); font-size: 12px; line-height: 1.5; resize: vertical; }
+.toast { min-height: 1.4em; font-weight: 700; color: var(--ok); }
 .toast.bad { color: var(--bad); }
-code { font-family: var(--font-mono); font-size: 0.9em; }
+code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-radius: 6px; background: color-mix(in srgb, var(--purple) 22%, var(--surface)); }
+.foot { padding-block: 0 48px; color: var(--muted); font-size: 0.95rem; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; } }
 </style>
 </head>
 <body>
-<div class="wrap">
+<header class="wrap top">
+  <a class="brand" href="./">
+    <span class="logo" aria-hidden="true">
+      <svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff" stroke="#14162B" stroke-width="2" stroke-linejoin="round"/></svg>
+    </span>
+    Learning Fun
+  </a>
+  <div class="right">
+    <a class="back" href="./">Beranda</a>
+    <button id="theme" class="icon-btn" type="button" aria-label="Ganti tema terang atau gelap">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="wrap page">
   <header>
     <h1>Pembuat index.json</h1>
     <p class="lead">Pilih semua file JSON pelajaran sekaligus, lalu unduh <code>index.json</code> yang sudah diperbarui secara keseluruhan untuk daftar di <code>index.html</code>.</p>
   </header>
 
-  <section class="step" aria-labelledby="h1s">
+  <section class="step s1" aria-labelledby="h1s">
     <h2 id="h1s"><span class="n">1</span>Pilih file JSON</h2>
     <label class="drop" id="drop">
       <b>Pilih beberapa file sekaligus</b>
-      <span>Semua file pelajaran (<code>nama.json</code>). Kalau punya <code>index.json</code> lama, ikutkan juga supaya tanggal tambah, kategori, dan tag tetap terjaga. Bisa juga diseret ke sini.</span>
+      <span>Semua file pelajaran (<code>nama.json</code>). Kalau punya <code>index.json</code> lama, ikutkan juga supaya tanggal tambah, kategori, tag, dan gambar tetap terjaga. Bisa juga diseret ke sini.</span>
       <input type="file" id="files" accept=".json,application/json" multiple>
     </label>
     <div class="row">
@@ -101,14 +155,14 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
     </div>
   </section>
 
-  <section class="step" id="s2" aria-labelledby="h2s" hidden>
+  <section class="step s2" id="s2" aria-labelledby="h2s" hidden>
     <h2 id="h2s"><span class="n">2</span>Periksa daftar</h2>
     <div class="sum" id="sum"></div>
     <p class="note" id="note"></p>
     <ul class="list" id="list"></ul>
   </section>
 
-  <section class="step" id="s3" aria-labelledby="h3s" hidden>
+  <section class="step s3" id="s3" aria-labelledby="h3s" hidden>
     <h2 id="h3s"><span class="n">3</span>Unduh index.json</h2>
     <div class="row">
       <button class="btn primary" id="bDl" type="button">Unduh index.json</button>
@@ -131,7 +185,9 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       </div>
     </details>
   </section>
-</div>
+</main>
+
+<footer class="wrap foot">Learning Fun, learningfun.zone.id</footer>
 
 <script>
 (() => {
@@ -139,7 +195,37 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
   const $ = (s) => document.querySelector(s);
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
   const NOW = new Date().toISOString();
-  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'added'];
+  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'image', 'feed', 'added'];
+  const isHttp = (v) => typeof v === 'string' && /^https?:\/\/\S+$/.test(v.trim());
+  // Cari link RSS podcast di JSON audio: kunci langsung, objek bersarang (mis. podcast.rss), atau nilai URL bergaya feed.
+  const feedOf = (j) => {
+    if (!j || typeof j !== 'object') return '';
+    const keyRe = /(^|[^a-z])(rss|feed|podcast)([^a-z]|$)|rss|feed/i;
+    const urlRe = /\.(xml|rss)(\?|#|$)|\/(rss|feed|feeds)(\/|\?|#|$)|feeds?\.|\/rss\//i;
+    const skip = new Set(['transcript', 'words', 'lines']);
+    const seen = new Set();
+    let weak = '';
+    const walk = (o, depth) => {
+      if (!o || typeof o !== 'object' || depth > 4 || seen.has(o)) return '';
+      seen.add(o);
+      for (const k of Object.keys(o)) {
+        if (skip.has(k)) continue;
+        const v = o[k];
+        if (isHttp(v)) {
+          if (keyRe.test(k)) return v.trim();
+          if (!weak && urlRe.test(v.trim())) weak = v.trim();
+        }
+      }
+      for (const k of Object.keys(o)) {
+        if (skip.has(k)) continue;
+        const v = o[k];
+        if (v && typeof v === 'object' && !Array.isArray(v)) { const r = walk(v, depth + 1); if (r) return r; }
+      }
+      return '';
+    };
+    return walk(j, 0) || weak;
+  };
+  const imgOf = (j) => str(j && (j.image || j.thumbnail || j.cover || j.logo));
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const str = (v) => (typeof v === 'string' ? v.trim() : '');
   const tagsOf = (v) => {
@@ -154,6 +240,8 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
   let oldIndex = new Map();        // slug -> entri dari index.json lama
   let indexName = '';
   const errors = [];
+  const feedImg = new Map();       // link RSS -> URL gambar channel (hasil ambil otomatis)
+  const feedTried = new Set();
   const ui = new Map();            // slug -> { include, category, tags } hasil ubahan di layar
 
   /* ---- membaca file ---- */
@@ -188,6 +276,8 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
         description: str(j.description),
         category: str(j.category),
         tags: tagsOf(j.tags),
+        image: imgOf(j),
+        feed: feedOf(j),
         order: Number.isFinite(j.order) ? j.order : undefined
       });
     }
@@ -214,6 +304,8 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
           description: f.description || str(o && o.description),
           category: f.category || str(o && o.category),
           tags: f.tags.length ? f.tags : tagsOf(o && o.tags),
+          image: f.image || str(o && o.image),
+          feed: f.feed || str(o && o.feed),
           order: f.order !== undefined ? f.order : (o && Number.isFinite(o.order) ? o.order : undefined),
           added: (o && typeof o.added === 'string' && o.added) || NOW
         };
@@ -221,7 +313,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       } else {
         base = {
           slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', audio: str(o.audio), lines: Number(o.lines) || 0,
-          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags),
+          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags), image: str(o.image), feed: str(o.feed),
           order: Number.isFinite(o.order) ? o.order : undefined,
           added: (typeof o.added === 'string' && o.added) || ''
         };
@@ -229,9 +321,12 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       }
       const extra = {};
       if (o) Object.keys(o).forEach((k) => { if (KNOWN.indexOf(k) < 0) extra[k] = o[k]; });
+      const feed = st.feed !== undefined ? st.feed.trim() : base.feed;
       out.push({ slug, status, base, extra, include: st.include !== false,
         category: st.category !== undefined ? st.category.trim() : base.category,
-        tags: st.tags !== undefined ? tagsOf(st.tags) : base.tags });
+        tags: st.tags !== undefined ? tagsOf(st.tags) : base.tags,
+        feed,
+        image: st.image !== undefined ? st.image.trim() : (base.image || feedImg.get(feed) || '') });
     }
     return out.sort((a, b) => (a.slug < b.slug ? -1 : a.slug > b.slug ? 1 : 0));
   }
@@ -242,12 +337,46 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
       if (b.description) e.description = b.description;
       if (r.category) e.category = r.category;
       if (r.tags.length) e.tags = r.tags;
+      if (r.image) e.image = r.image;
+      if (r.feed) e.feed = r.feed;
       if (b.order !== undefined) e.order = b.order;
       Object.assign(e, r.extra);
       if (b.added) e.added = b.added;
       return e;
     });
     return { text: JSON.stringify({ version: 1, lessons }, null, 2) + '\n', count: lessons.length };
+  }
+
+
+  /* ---- gambar channel dari RSS feed podcast ---- */
+  // Urutan: langsung (jika feed mengizinkan CORS), lalu rss2json, lalu allorigins.
+  const parseFeedImg = txt => {
+    try {
+      const d = new DOMParser().parseFromString(txt, 'text/xml');
+      const it = d.getElementsByTagName('itunes:image')[0];
+      let u = it && it.getAttribute('href');
+      if (!u) { const n = d.querySelector('channel > image > url'); u = n && n.textContent.trim(); }
+      return u || '';
+    } catch { return ''; }
+  };
+  async function feedImage(feed) {
+    const tries = [
+      async () => parseFeedImg(await (await fetch(feed)).text()),
+      async () => { const j = await (await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feed))).json(); return (j.feed && j.feed.image) || ''; },
+      async () => parseFeedImg(await (await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(feed))).text())
+    ];
+    for (const t of tries) {
+      try { const u = await t(); if (/^https?:\/\/\S+$/.test(u)) return u; } catch { /* coba cara berikutnya */ }
+    }
+    return '';
+  }
+  async function resolveFeeds() {
+    const feeds = [...new Set(rows().filter((r) => r.include && r.feed && !r.image && !feedTried.has(r.feed)).map((r) => r.feed))];
+    if (!feeds.length) return;
+    feeds.forEach((f) => feedTried.add(f));
+    let got = false;
+    await Promise.all(feeds.map(async (f) => { const u = await feedImage(f); if (u) { feedImg.set(f, u); got = true; } }));
+    if (got) render();
   }
 
   /* ---- tampilan ---- */
@@ -281,11 +410,14 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
         '<div class="m">' + esc(r.slug) + '.json · ' + b.lines + ' baris' + (b.videoId ? ' · ' + esc(b.videoId) : (b.audio ? ' · audio' : '')) + '</div>' +
         (badges.length ? '<div class="badges">' + badges.join('') + '</div>' : '') +
         '<div class="edit"><label>Kategori<input type="text" data-f="category" value="' + esc(r.category) + '" placeholder="Latihan" autocomplete="off"></label>' +
-        '<label>Tag (pisahkan koma)<input type="text" data-f="tags" value="' + esc(r.tags.join(', ')) + '" placeholder="travel, airport" autocomplete="off"></label></div>' +
+        '<label>Tag (pisahkan koma)<input type="text" data-f="tags" value="' + esc(r.tags.join(', ')) + '" placeholder="travel, airport" autocomplete="off"></label>' +
+        '<label class="wide">Link RSS podcast (opsional, gambar diambil otomatis)<input type="text" data-f="feed" value="' + esc(r.feed) + '" placeholder="https://.../feed.xml" autocomplete="off"></label>' +
+        '<label class="wide">Gambar thumbnail (isi manual untuk menimpa)<input type="text" data-f="image" value="' + esc(r.image) + '" placeholder="https://.../logo.jpg" autocomplete="off"></label></div>' +
         '</div></li>';
     }).join('') + errors.map((e) =>
       '<li class="item err"><div class="chk"></div><div class="body"><div class="t">' + esc(e.name) + '</div><div class="badges"><span class="b ' + (e.soft ? 'warn' : 'bad') + '">' + (e.soft ? 'Perhatian' : 'Gagal') + '</span></div><div class="m" style="font-family:inherit">' + esc(e.msg) + '</div></div></li>').join('');
     refreshOut();
+    resolveFeeds();
   }
   function refreshOut() {
     const { text, count } = buildJson();
@@ -309,13 +441,22 @@ code { font-family: var(--font-mono); font-size: 0.9em; }
     refreshOut();
   });
 
+  /* ---- tema ---- */
+  $('#theme').addEventListener('click', () => {
+    const root = document.documentElement;
+    const cur = root.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    const next = cur === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    try { localStorage.setItem('lf:theme', JSON.stringify(next)); } catch (e) { /* abaikan */ }
+  });
+
   /* ---- input file, seret-lepas, tombol ---- */
   const input = $('#files'), drop = $('#drop');
   input.addEventListener('change', async () => { await addFiles(input.files); input.value = ''; });
   ['dragenter', 'dragover'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave', 'drop'].forEach((ev) => drop.addEventListener(ev, (e) => { e.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', (e) => { if (e.dataTransfer && e.dataTransfer.files.length) addFiles(e.dataTransfer.files); });
-  $('#bClear').addEventListener('click', () => { fileLessons.clear(); oldIndex = new Map(); indexName = ''; errors.length = 0; ui.clear(); toast(''); render(); });
+  $('#bClear').addEventListener('click', () => { fileLessons.clear(); oldIndex = new Map(); indexName = ''; errors.length = 0; ui.clear(); feedImg.clear(); feedTried.clear(); toast(''); render(); });
 
   let tt = null;
   function toast(msg, bad) { const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (bad ? ' bad' : ''); clearTimeout(tt); if (msg) tt = setTimeout(() => { t.textContent = ''; }, 5000); }
