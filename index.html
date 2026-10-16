@@ -356,10 +356,10 @@ h1, h2, h3, p { margin: 0; }
     github: false,                       // true = jika index.json tidak ada, daftar dibaca lewat GitHub API (cadangan)
     folders: ['', 'data'],               // hanya dipakai jika github: true
     dataDir: 'data',                     // folder file JSON pelajaran
-    viewer: 'pelajaran.html',            // pemutar video: pelajaran.html?v=nama
-    audioViewer: 'template.html',        // pemutar audio: template.html?f=nama (pelajaran yang punya kolom "audio")
+    viewer: 'player-video.html',         // pemutar video: player-video.html?q=nama
+    audioViewer: 'player-audio.html',     // pemutar audio: player-audio.html?q=nama (pelajaran yang punya kolom "audio")
     manifest: 'posts.json',              // opsional: judul, deskripsi, kategori, urutan, ID video
-    exclude: ['index.html', '404.html', 'pelajaran.html', 'template.html', 'data/index.json'], // file yang tidak ditampilkan
+    exclude: ['index.html', '404.html', 'player-video.html', 'player-audio.html', 'audiobook-generator.html', 'video-generator.html', 'index-builder.html', 'data/index.json'], // file yang tidak ditampilkan
     listTtlMin: 10                       // daftar file di-cache sekian menit
   };
   const GLYPHS = ['ʃ', 'θ', 'ə', 'ŋ', 'ð', 'ʒ', 'æ', 'ɔː', 'ɪ', 'ʊ', 'tʃ', 'dʒ'];
@@ -436,10 +436,10 @@ h1, h2, h3, p { margin: 0; }
 
   /* ---------- Helper ---------- */
   const pathUrl = p => p.split('/').map(encodeURIComponent).join('/');
-  // File .json di folder data = pelajaran, dibuka lewat halaman template: pelajaran.html?v=nama
+  // File .json di folder data = pelajaran; video dibuka lewat player-video.html?q=nama, audio lewat player-audio.html?q=nama
   const isLesson = p => /\.json$/i.test(p);
   const slugOf = p => p.replace(/^.*\//, '').replace(/\.json$/i, '');
-  const hrefOf = (p, audio) => isLesson(p) ? (audio ? CONFIG.audioViewer + '?f=' : CONFIG.viewer + '?v=') + encodeURIComponent(slugOf(p)) : pathUrl(p);
+  const hrefOf = (p, audio) => isLesson(p) ? (audio ? CONFIG.audioViewer : CONFIG.viewer) + '?q=' + encodeURIComponent(slugOf(p)) : pathUrl(p);
   const stem = p => p.split('/').pop().replace(/\.(html?|json)$/i, '');
   const pretty = p => {
     const s = stem(p).replace(/[()]/g, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim();
