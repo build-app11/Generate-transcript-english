@@ -1,7 +1,7 @@
 {
   "pages": {
     "contoh-halaman.html": {
-      "hidden": true,
+      "hidden": false,
       "title": "Contoh Halaman",
       "description": "Salin blok ini untuk menambah halaman baru. Hapus baris hidden agar tampil.",
       "category": "Alat",
