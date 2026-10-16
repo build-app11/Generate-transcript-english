@@ -369,6 +369,29 @@ h1, h2, h3, p { margin: 0; }
   };
   const SPARE_COLORS = ['coral', 'mint', 'yellow'];
 
+  /* Halaman alat bawaan: otomatis muncul di kategori Alat. posts.json (jika ada) boleh menimpa per halaman. */
+  const thumb = svg => 'data:image/svg+xml,' + encodeURIComponent(svg);
+  const TOOL_PAGES = {
+    'audiobook-generator.html': {
+      title: 'Audiobook Generator',
+      description: 'Buat latihan audio sendiri: hasilkan transkrip dengan IPA di setiap kata, lalu simpan sebagai file JSON.',
+      category: 'Alat', youtube: '', tags: ['alat', 'audio'], order: 1001,
+      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#A07CFA"/><circle cx="548" cy="64" r="38" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="48" y="256" width="52" height="52" rx="14" fill="#2ED3A0" stroke="#14162B" stroke-width="5" transform="rotate(-14 74 282)"/><rect x="192" y="162" width="260" height="170" rx="14" fill="#14162B"/><rect x="180" y="150" width="260" height="170" rx="14" fill="#fff" stroke="#14162B" stroke-width="5"/><path d="M310 150v170" stroke="#14162B" stroke-width="5"/><path d="M205 190h85M205 225h85M205 260h60M335 190h85M335 225h85M335 260h60" stroke="#14162B" stroke-width="7" stroke-linecap="round"/><path d="M215 125C215 10 405 10 405 125" fill="none" stroke="#14162B" stroke-width="26" stroke-linecap="round"/><path d="M215 125C215 10 405 10 405 125" fill="none" stroke="#FF6B5E" stroke-width="14" stroke-linecap="round"/><rect x="193" y="105" width="44" height="76" rx="16" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><rect x="383" y="105" width="44" height="76" rx="16" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><g fill="#2ED3A0" stroke="#14162B" stroke-width="5"><rect x="62" y="170" width="24" height="60" rx="12"/><rect x="98" y="146" width="24" height="108" rx="12"/><rect x="134" y="182" width="24" height="36" rx="12"/><rect x="482" y="182" width="24" height="36" rx="12"/><rect x="518" y="146" width="24" height="108" rx="12"/><rect x="554" y="170" width="24" height="60" rx="12"/></g></svg>`)
+    },
+    'video-generator.html': {
+      title: 'Video Generator',
+      description: 'Buat latihan dari video YouTube: ambil transkripnya, tambahkan IPA di setiap kata, lalu simpan sebagai file JSON.',
+      category: 'Alat', youtube: '', tags: ['alat', 'video'], order: 1002,
+      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#4C84FF"/><circle cx="108" cy="82" r="40" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="520" y="240" width="56" height="56" rx="14" fill="#A07CFA" stroke="#14162B" stroke-width="5" transform="rotate(16 548 268)"/><rect x="162" y="102" width="340" height="212" rx="24" fill="#14162B"/><rect x="150" y="90" width="340" height="212" rx="24" fill="#fff" stroke="#14162B" stroke-width="5"/><polygon points="294,134 294,226 376,180" fill="#FFD23F" stroke="#14162B" stroke-width="6" stroke-linejoin="round"/><path d="M186 268h268" stroke="#D3D9F2" stroke-width="12" stroke-linecap="round"/><path d="M186 268h130" stroke="#FF6B5E" stroke-width="12" stroke-linecap="round"/><circle cx="316" cy="268" r="11" fill="#fff" stroke="#14162B" stroke-width="5"/><circle cx="548" cy="104" r="26" fill="#2ED3A0" stroke="#14162B" stroke-width="5"/></svg>`)
+    },
+    'index-builder.html': {
+      title: 'Pembuat index.json',
+      description: 'Gabungkan semua file JSON pelajaran menjadi satu index.json untuk daftar latihan di halaman ini.',
+      category: 'Alat', youtube: '', tags: ['alat', 'indeks'], order: 1003,
+      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#2ED3A0"/><circle cx="104" cy="84" r="40" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="522" y="64" width="52" height="52" rx="14" fill="#A07CFA" stroke="#14162B" stroke-width="5" transform="rotate(18 548 90)"/><rect x="222" y="62" width="220" height="262" rx="18" fill="#14162B"/><rect x="210" y="50" width="220" height="262" rx="18" fill="#fff" stroke="#14162B" stroke-width="5"/><text x="320" y="116" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="54" font-weight="700" text-anchor="middle" fill="#14162B">{ }</text><path d="M236 138h168" stroke="#D3D9F2" stroke-width="4"/><g stroke="#14162B" stroke-width="5"><rect x="238" y="160" width="30" height="30" rx="9" fill="#FFD23F"/><rect x="238" y="212" width="30" height="30" rx="9" fill="#FF6B5E"/><rect x="238" y="264" width="30" height="30" rx="9" fill="#4C84FF"/></g><path d="M288 175h112M288 227h112M288 279h76" stroke="#14162B" stroke-width="8" stroke-linecap="round"/><circle cx="446" cy="294" r="40" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><path d="M446 276v36M430 298l16 16 16-16" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`)
+    }
+  };
+
   const $ = (s, r = document) => r.querySelector(s);
   const store = {
     get(k) { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
@@ -458,6 +481,7 @@ h1, h2, h3, p { margin: 0; }
 
   // Daftar pelajaran dari data/index.json: satu permintaan, tanpa GitHub API dan tanpa membuka tiap file.
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
+  const HTTP_RE = /^https?:\/\/\S+$/;
   async function getIndex() {
     let j = null;
     try {
@@ -480,11 +504,62 @@ h1, h2, h3, p { margin: 0; }
           category: String(l.category || '').trim() || 'Latihan',
           youtube: /^[A-Za-z0-9_-]{11}$/.test(l.videoId || '') ? l.videoId : '',
           audio: typeof l.audio === 'string' && l.audio.trim() !== '',
+          image: HTTP_RE.test(String(l.image || '').trim()) ? String(l.image).trim() : '',
+          feed: HTTP_RE.test(String(l.feed || '').trim()) ? String(l.feed).trim() : '',
           tags: parseTags(l.tags)
         }
       });
     }
     return items;
+  }
+
+  /* ---------- Gambar podcast dari link RSS ---------- */
+  // Dipakai hanya jika index.json punya "feed" tetapi belum punya "image".
+  // Urutan: langsung (jika feed mengizinkan CORS), lalu rss2json, lalu allorigins. Hasil di-cache di browser.
+  const feedImgs = new Map();   // link RSS -> URL gambar ('' = gagal)
+  const FEED_OK_MS = 7 * 864e5, FEED_FAIL_MS = 36e5;
+  const feedKey = f => 'lf:feedimg:' + f;
+  const parseFeedImg = txt => {
+    try {
+      const d = new DOMParser().parseFromString(txt, 'text/xml');
+      const it = d.getElementsByTagName('itunes:image')[0];
+      let u = it && it.getAttribute('href');
+      if (!u) { const n = d.querySelector('channel > image > url'); u = n && n.textContent.trim(); }
+      return u || '';
+    } catch { return ''; }
+  };
+  async function fetchFeedImage(feed) {
+    const tries = [
+      async () => parseFeedImg(await (await fetch(feed)).text()),
+      async () => { const j = await (await fetch('https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(feed))).json(); return (j.feed && j.feed.image) || ''; },
+      async () => parseFeedImg(await (await fetch('https://api.allorigins.win/raw?url=' + encodeURIComponent(feed))).text())
+    ];
+    for (const t of tries) {
+      try { const u = await t(); if (HTTP_RE.test(u)) return u; } catch { /* coba cara berikutnya */ }
+    }
+    return '';
+  }
+  function seedFeedCache() {
+    for (const it of state.items) {
+      const f = it.page && it.page.feed;
+      if (!f || feedImgs.has(f)) continue;
+      const c = store.get(feedKey(f));
+      if (c && c.u && Date.now() - c.t < FEED_OK_MS) feedImgs.set(f, c.u);
+    }
+  }
+  async function resolveFeeds() {
+    const feeds = [...new Set(view().filter(r => r.feed && !r.image && !feedImgs.has(r.feed)).map(r => r.feed))];
+    if (!feeds.length) return;
+    let got = false;
+    await Promise.all(feeds.map(async f => {
+      const c = store.get(feedKey(f));
+      let u = '';
+      if (c && Date.now() - c.t < (c.u ? FEED_OK_MS : FEED_FAIL_MS)) u = c.u;
+      else { u = await fetchFeedImage(f); store.set(feedKey(f), { t: Date.now(), u }); }
+      feedImgs.set(f, u);
+      if (u) got = true;
+    }));
+    if (got) render();
   }
 
   // Cadangan (github: true): daftar file di repositori lewat GitHub API (publik, tanpa token).
@@ -575,6 +650,7 @@ h1, h2, h3, p { margin: 0; }
     const rows = state.items.map(it => {
       const { m, page } = it;
       const yt = typeof m.youtube === 'string' ? m.youtube : (page.youtube || '');
+      const feedUrl = (typeof m.feed === 'string' ? m.feed : page.feed) || '';
       return {
         path: it.path,
         title: m.title || page.title || pretty(it.path),
@@ -583,6 +659,8 @@ h1, h2, h3, p { margin: 0; }
         order: Number.isFinite(m.order) ? m.order : null,
         glyph: m.glyph || GLYPHS[hash(it.path) % GLYPHS.length],
         youtube: /^[A-Za-z0-9_-]{11}$/.test(yt) ? yt : '',
+        image: (typeof m.image === 'string' && m.image) || page.image || feedImgs.get(feedUrl) || '',
+        feed: feedUrl,
         audio: !!page.audio && !/^[A-Za-z0-9_-]{11}$/.test(yt),
         tags: m.tags !== undefined ? parseTags(m.tags) : parseTags(page.tags),
         added: it.added || '',
@@ -680,7 +758,9 @@ h1, h2, h3, p { margin: 0; }
       const info = catInfo(r.category);
       const media = r.youtube
         ? `<span class="media"><img src="https://i.ytimg.com/vi/${esc(r.youtube)}/mqdefault.jpg" alt="" width="320" height="180" loading="lazy"><span class="play" aria-hidden="true">${PLAY_SVG}</span></span>`
-        : `<span class="media"><span class="big" aria-hidden="true">${esc(r.glyph)}</span></span>`;
+        : r.image
+          ? `<span class="media${r.audio ? ' art' : ''}"><img src="${esc(r.image)}" alt="" width="320" height="180" loading="lazy" referrerpolicy="no-referrer"></span>`
+          : `<span class="media"><span class="big" aria-hidden="true">${esc(r.glyph)}</span></span>`;
       return `
       <li><a class="card c-${info.color}" href="${esc(hrefOf(r.path, r.audio))}" data-path="${esc(r.path)}" data-glyph="${esc(r.glyph)}">
         ${media}
@@ -734,13 +814,16 @@ h1, h2, h3, p { margin: 0; }
   /* ---------- Mulai ---------- */
   async function init() {
     renderSkeleton();
-    const [manifest, idx] = await Promise.all([getManifest(), getIndex()]);
+    const [posts, idx] = await Promise.all([getManifest(), getIndex()]);
     const files = idx || (CONFIG.github ? await listFiles() : null);
-    if (files === null && !Object.keys(manifest).length) { renderError(); return; }
+    if (files === null && !Object.keys(posts).length) { renderError(); return; }
+    const manifest = { ...TOOL_PAGES, ...posts };
 
     state.items = toItems(files, manifest, !!idx || !CONFIG.github);
     state.loaded = true;
+    seedFeedCache();
     render();
+    resolveFeeds();
 
     // Halaman yang belum lengkap datanya di posts.json dibaca dari file-nya.
     const need = state.items.filter(it => !it.indexed && (!(it.m.title && it.m.description && it.m.category) || typeof it.m.youtube !== 'string' || it.m.tags === undefined));
@@ -748,6 +831,7 @@ h1, h2, h3, p { margin: 0; }
       const metas = await Promise.all(need.map(it => pageMeta(it.path, it.sha)));
       need.forEach((it, k) => { it.page = metas[k]; });
       render();
+      resolveFeeds();
     }
   }
   init();
