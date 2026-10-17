@@ -201,6 +201,16 @@ h1, h2, h3, p { margin: 0; }
 .tag { padding: 0 10px; border: 2px solid var(--rule); border-radius: 999px; color: var(--muted); font-size: 0.8rem; font-weight: 600; }
 .go { align-self: flex-start; margin-top: auto; padding: 8px 20px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--c); color: var(--on); font-family: var(--font-display); font-weight: 600; }
 
+/* Kartu audio: ikon podcast + judul di kiri, cover bulat di kanan */
+.card.audio { flex-direction: row; align-items: stretch; gap: 14px; padding: 16px 16px 16px 18px; }
+.card.audio .info { padding: 0; gap: 10px; min-width: 0; justify-content: space-between; }
+.card.audio .mic { display: grid; place-items: center; width: 44px; height: 44px; flex: none; border: 2.5px solid var(--line); border-radius: 50%; background: var(--c); color: var(--on); }
+.card.audio .dur { font-family: var(--font-display); font-weight: 600; font-size: 0.95rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.card.audio .t { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.card.audio .cover { position: relative; flex: none; align-self: center; width: clamp(92px, 30%, 128px); aspect-ratio: 1; border: 2.5px solid var(--line); border-radius: 50%; background: var(--c); overflow: hidden; display: grid; place-items: center; }
+.card.audio .cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.card.audio .cover .big { font-family: var(--font-ipa); font-size: 2.4rem; line-height: 1; color: var(--on); }
+
 .sk .media { background: var(--rule); }
 .sk .bar-a, .sk .bar-b { display: block; height: 14px; border-radius: 7px; background: var(--rule); }
 .sk .bar-a { width: 55%; height: 20px; }
@@ -480,6 +490,16 @@ h1, h2, h3, p { margin: 0; }
   }
 
   // Daftar pelajaran dari data/index.json: satu permintaan, tanpa GitHub API dan tanpa membuka tiap file.
+  const MIC_SVG = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="11" r="2"/><path d="M8.5 7.5a5 5 0 0 0 0 7M15.5 7.5a5 5 0 0 1 0 7M5.7 4.7a9 9 0 0 0 0 12.6M18.3 4.7a9 9 0 0 1 0 12.6M12 13v8"/></svg>';
+  // durasi: angka detik atau teks "15:30" -> "15:30"
+  function fmtDur(d) {
+    if (typeof d === 'string' && /^\d{1,2}(:\d{2}){1,2}$/.test(d.trim())) return d.trim();
+    const n = Number(d);
+    if (!Number.isFinite(n) || n <= 0) return '';
+    const h = Math.floor(n / 3600), m = Math.floor(n % 3600 / 60), sec = Math.floor(n % 60);
+    const mm = String(m).padStart(h ? 2 : 1, '0'), ss = String(sec).padStart(2, '0');
+    return h ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+  }
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
   const HTTP_RE = /^https?:\/\/\S+$/;
   async function getIndex() {
@@ -504,6 +524,7 @@ h1, h2, h3, p { margin: 0; }
           category: String(l.category || '').trim() || 'Latihan',
           youtube: /^[A-Za-z0-9_-]{11}$/.test(l.videoId || '') ? l.videoId : '',
           audio: typeof l.audio === 'string' && l.audio.trim() !== '',
+          duration: fmtDur(l.duration),
           image: HTTP_RE.test(String(l.image || '').trim()) ? String(l.image).trim() : '',
           feed: HTTP_RE.test(String(l.feed || '').trim()) ? String(l.feed).trim() : '',
           tags: parseTags(l.tags)
@@ -662,6 +683,7 @@ h1, h2, h3, p { margin: 0; }
         image: (typeof m.image === 'string' && m.image) || page.image || feedImgs.get(feedUrl) || '',
         feed: feedUrl,
         audio: !!page.audio && !/^[A-Za-z0-9_-]{11}$/.test(yt),
+        duration: fmtDur(m.duration) || page.duration || '',
         tags: m.tags !== undefined ? parseTags(m.tags) : parseTags(page.tags),
         added: it.added || '',
         isNew: it.indexed ? isRecent(it.added) : !it.listed
@@ -761,6 +783,27 @@ h1, h2, h3, p { margin: 0; }
         : r.image
           ? `<span class="media${r.audio ? ' art' : ''}"><img src="${esc(r.image)}" alt="" width="320" height="180" loading="lazy" referrerpolicy="no-referrer"></span>`
           : `<span class="media"><span class="big" aria-hidden="true">${esc(r.glyph)}</span></span>`;
+      if (r.audio) {
+        const cover = r.image
+          ? `<span class="cover"><img src="${esc(r.image)}" alt="" width="128" height="128" loading="lazy" referrerpolicy="no-referrer"></span>`
+          : `<span class="cover"><span class="big" aria-hidden="true">${esc(r.glyph)}</span></span>`;
+        return `
+      <li><a class="card audio c-${info.color}" href="${esc(hrefOf(r.path, r.audio))}" data-path="${esc(r.path)}" data-glyph="${esc(r.glyph)}">
+        <span class="info">
+          <span class="mic" aria-hidden="true">${MIC_SVG}</span>
+          <span>
+            ${r.duration ? `<span class="dur">${esc(r.duration)}</span><br>` : ''}
+            <span class="t">${esc(r.title)}</span>
+          </span>
+          <span class="pills">
+            <span class="pill">Audio</span>
+            ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
+            ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
+          </span>
+        </span>
+        ${cover}
+      </a></li>`;
+      }
       return `
       <li><a class="card c-${info.color}" href="${esc(hrefOf(r.path, r.audio))}" data-path="${esc(r.path)}" data-glyph="${esc(r.glyph)}">
         ${media}
@@ -805,7 +848,7 @@ h1, h2, h3, p { margin: 0; }
   // Jika thumbnail gagal dimuat, tampilkan simbol IPA sebagai gantinya.
   elList.addEventListener('error', e => {
     if (e.target.tagName !== 'IMG') return;
-    const card = e.target.closest('.card'), media = e.target.closest('.media');
+    const card = e.target.closest('.card'), media = e.target.closest('.media, .cover');
     if (card && media) media.innerHTML = `<span class="big" aria-hidden="true">${esc(card.dataset.glyph)}</span>`;
   }, true);
   // Kembali dari halaman latihan lewat tombol Back: segarkan penanda "Sudah dicoba".
