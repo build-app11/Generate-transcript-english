@@ -56,6 +56,11 @@ body.reading #reader{display:block}
 #exp textarea.show{display:block}
 #exp .ok{color:var(--ui);font-weight:600;min-height:1.3em}
 
+.sublab{font-weight:600;font-size:.85rem;color:var(--head);margin-top:6px}
+.btnrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.sbtn{font:700 .9rem var(--font-ui);border:1.5px solid var(--line);background:var(--field);color:var(--fg);border-radius:12px;padding:11px 16px;cursor:pointer}
+.sbtn:focus-visible{outline:3px solid var(--ui);outline-offset:2px}
+textarea.mono{min-height:9.5rem;margin-top:0;font:13px/1.5 ui-monospace,Menlo,monospace}
 #setup input,#setup textarea,#setup select{box-sizing:border-box;max-width:100%}
 </style>
 <style id="reader-css">
@@ -190,10 +195,19 @@ body.reading #reader{display:block}
     </details>
   </div>
   <div class="field">
-    <span class="lab">3. Timestamp</span>
-    <label class="pick" id="p-ts"><span class="btn">Pilih file</span><span class="name">TXT, SRT, VTT, atau JSON Whisper</span><input id="f-ts" type="file" accept=".txt,.srt,.vtt,.json,text/plain"></label>
-    <details><summary>Atau tempel timestamp langsung</summary><textarea id="ts-paste" placeholder="[00:00:05.480] kalimat… atau isi SRT/VTT"></textarea></details>
-    <span class="hint">Contoh: <b>[00:00:05.480] kalimat…</b>. Fonetik ikut dibaca dari file ini: tulis di baris sesudah kalimatnya, diapit garis miring, misalnya <b>/ˈmʌni hɛlps/</b>, atau diawali <b>IPA:</b>. Satu kata fonetik untuk satu kata teks. Tanpa timestamp, waktu hanya diperkirakan dari jeda audio.</span>
+    <span class="lab">3. Transkrip dan fonetik</span>
+    <span class="sublab">Transkrip (teks dengan timestamp)</span>
+    <textarea id="ts-paste" class="mono" spellcheck="false" aria-label="Transkrip" placeholder="[00:00:17] today&#10;[00:00:19] I'm going back to the UK&#10;[00:00:21] and you are coming with me"></textarea>
+    <span class="hint">Tiap angka waktu menandai awal baris: [00:17], (00:17), 00:17, atau 00:00:17. Teks boleh dalam satu paragraf. SRT, VTT, dan JSON Whisper juga bisa. Tanpa timestamp, waktu hanya diperkirakan dari jeda audio.</span>
+    <span class="sublab">Phonetic (IPA)</span>
+    <textarea id="ipa-paste" class="mono" spellcheck="false" aria-label="Phonetic (IPA)" placeholder="[00:00:17] təˈdeɪ&#10;[00:00:19] aɪm ˈɡəʊɪŋ bæk tuː ðə juː-keɪ&#10;[00:00:21] ænd juː ɑː ˈkʌmɪŋ wɪð miː"></textarea>
+    <span class="hint">Waktunya harus sama dengan baris transkrip. Boleh dikosongkan kalau tidak perlu fonetik atau fonetik sudah ada di transkrip.</span>
+    <div class="btnrow">
+      <button class="sbtn" id="b-up" type="button">Upload file</button>
+      <button class="sbtn" id="b-sample" type="button">Isi contoh</button>
+      <button class="sbtn" id="b-clear" type="button">Hapus</button>
+      <input id="f-ts" type="file" accept=".txt,.srt,.vtt,.json,text/plain" hidden>
+    </div>
   </div>
   <div class="field">
     <span class="lab">4. Info <span class="hint">(judul terisi otomatis dari ebook atau feed podcast)</span></span>
@@ -331,6 +345,32 @@ function cleanTranscript(src){
   }
   return out.join('\n');
 }
+/* Waktu fleksibel: [00:05], (00:05), 00:05 atau 00:00:05, boleh pakai pecahan detik, di awal baris maupun di tengah paragraf. Semuanya diubah ke bentuk [..] */
+function normTs(src){
+  const s=src.replace(/^﻿/,'');
+  if(/^\s*\{/.test(s)||/^\s*\[\s*[\{\[]/.test(s))return src;
+  const re=/(^|[^\d:.])(?:[\[(]\s*)?(?:(\d{1,2}):)?(\d{1,3}):(\d{2})(?:[.,](\d{1,3}))?(?![\d:])\s*[\])]?/g;
+  return s.split('\n').map(l=>/-->/.test(l)?l:l.replace(re,(m,g,h,mi,sc,f)=>g+'['+(h?h+':':'')+mi+':'+sc+(f?'.'+f:'')+'] ')).join('\n');
+}
+/* Fonetik terpisah: dicocokkan ke teks lewat waktu yang sama, lalu disisipkan sebagai baris /fonetik/ sesudah kalimatnya */
+function splitEntries(src){
+  const p=normTs(src).split(/\[((?:\d+:)?\d+:\d+(?:[.,]\d+)?)\]/),out=[];
+  for(let i=1;i<p.length;i+=2){
+    const n=p[i].replace(',','.').split(':'),t=n.length===3?stamp(n[0],n[1],n[2]):stamp(0,n[0],n[1]);
+    out.push({ts:p[i],t,x:(p[i+1]||'').replace(/\s+/g,' ').trim()})}
+  return out}
+function mergePhon(tsText,ipaText){
+  const T=splitEntries(tsText),I=splitEntries(ipaText).filter(e=>e.x).sort((a,b)=>a.t-b.t),used=new Array(I.length).fill(false);
+  let lo=0,miss=0,total=0;const out=[];
+  for(const e of T){
+    if(!e.x)continue;total++;
+    while(lo<I.length&&(used[lo]||I[lo].t<e.t-.6))lo++;
+    let best=-1,bd=.61;
+    for(let j=lo;j<I.length&&I[j].t<=e.t+.6;j++){if(used[j])continue;const d=Math.abs(I[j].t-e.t);if(d<bd){bd=d;best=j}}
+    out.push('['+e.ts+'] '+e.x);
+    if(best>=0){used[best]=true;const ph=I[best].x.replace(/[\/\[\]()]/g,' ').replace(/\s+/g,' ').trim();if(ph)out.push('/'+ph+'/')}else miss++;
+  }
+  return{text:out.join('\n'),miss,total}}
 function textFromTranscript(src){
   const IPA=/[ˈˌɪʊɛɔəʃʒθðŋæɑɒʌːᵊ]/,TS=/\[(?:\d+:)?\d+:\d+(?:[.,]\d+)?\]/g,P=[];let c=[];
   for(const raw of src.split('\n')){
@@ -919,7 +959,7 @@ function mount(startAt){
 }
 $('openexp')&&0;
 /* ---------- form ---------- */
-[['book','p-book'],['audio','p-audio'],['ts','p-ts']].forEach(([k,p])=>{
+[['book','p-book'],['audio','p-audio']].forEach(([k,p])=>{
   $(p).dataset.ph=$(p).querySelector('.name').textContent;
   $('f-'+k).addEventListener('change',e=>{const f=e.target.files[0];const el=$(p);el.classList.toggle('has',!!f);el.querySelector('.name').textContent=f?f.name:el.dataset.ph})});
 /* ---------- judul otomatis ---------- */
@@ -960,9 +1000,24 @@ $('rss-load').onclick=async()=>{
 };
 $('f-audio').addEventListener('change',e=>{if(e.target.files[0]){rssEp=null;autoTitle();$('rss-list').querySelectorAll('.sel').forEach(n=>n.classList.remove('sel'))}});
 const say=(t,err)=>{const m=$('msg');m.textContent=t;m.classList.toggle('err',!!err)};
+const SAMPLE_T="[00:00:17] today\n[00:00:19] I'm going back to the UK\n[00:00:21] and you are coming with me\n[00:00:24] so let's travel and learn some English";
+const SAMPLE_I="[00:00:17] təˈdeɪ\n[00:00:19] aɪm ˈɡəʊɪŋ bæk tuː ðə juː-keɪ\n[00:00:21] ænd juː ɑː ˈkʌmɪŋ wɪð miː\n[00:00:24] səʊ lɛts ˈtrævᵊl ænd lɜːn sʌm ˈɪŋɡlɪʃ";
+$('b-up').onclick=()=>{$('f-ts').value='';$('f-ts').click()};
+$('f-ts').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;
+  try{$('ts-paste').value=(await f.text()).trim();say('')}catch(err){say('Gagal membaca file: '+(err&&err.message?err.message:err),true)}});
+$('b-sample').onclick=()=>{$('ts-paste').value=SAMPLE_T;$('ipa-paste').value=SAMPLE_I};
+$('b-clear').onclick=()=>{$('ts-paste').value='';$('ipa-paste').value='';$('f-ts').value=''};
 $('go').onclick=async()=>{
   const book=$('f-book').files[0],ts=$('f-ts').files[0],pasted=$('paste').value.trim();let audio=$('f-audio').files[0];
-  const tsText=cleanTranscript(ts?await ts.text():$('ts-paste').value.trim());
+  let tsText=normTs(cleanTranscript($('ts-paste').value.trim()));
+  const ipaSrc=normTs(cleanTranscript($('ipa-paste').value.trim()));
+  let phMsg='';
+  if(ipaSrc){
+    if(!tsText)return say('Isi timestamp dulu. Fonetik terpisah dicocokkan lewat waktu.',true);
+    if(/-->/.test(tsText)||/^\s*\{/.test(tsText)||/^\s*\[\s*[\{\[]/.test(tsText))return say('Fonetik terpisah hanya untuk timestamp berformat [waktu] teks. Untuk SRT/VTT/JSON, tulis fonetik di file timestamp.',true);
+    const mr=mergePhon(tsText,ipaSrc);tsText=mr.text;
+    if(mr.miss)phMsg=mr.miss+' dari '+mr.total+' baris teks tidak punya fonetik dengan waktu yang sama.';
+  }
   if(!book&&!pasted&&!tsText)return say('Pilih ebook, atau isi timestamp (teksnya dipakai sebagai ebook).',true);
   if(!audio&&!rssEp)return say('Pilih file audio atau episode RSS.',true);
   $('go').disabled=true;
@@ -993,7 +1048,7 @@ $('go').onclick=async()=>{
     phNote=hasPh?('Fonetik dari file timestamp-mu: '+r.phCount+' dari '+r.words.length+' kata.'+(st.odd?' '+st.odd+' baris fonetik jumlah katanya tidak sama dengan teks, jadi penempatannya diperkirakan.':'')):'File timestamp tidak berisi fonetik. Tulis fonetik di baris sesudah kalimat, diapit garis miring, atau diawali "IPA:".';
     if(!$('f-title').value.trim()){const t=exTitle();if(t!=='Audio Ebook'){$('f-title').value=t;syncSlug()}}
     mount(0);document.body.classList.add('reading');scrollTo(0,0);
-    if(pct!==null&&pct<60)say('Hanya '+pct+'% kata cocok dengan timestamp. Pastikan file ebook, audio, dan timestamp berasal dari sumber yang sama.',true);else say('');
+    if(pct!==null&&pct<60)say('Hanya '+pct+'% kata cocok dengan timestamp. Pastikan file ebook, audio, dan timestamp berasal dari sumber yang sama.',true);else say(phMsg,!!phMsg);
   }catch(e){say('Gagal: '+(e&&e.message?e.message:e),true)}
   $('go').disabled=false;
 };
