@@ -195,7 +195,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
   const $ = (s) => document.querySelector(s);
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
   const NOW = new Date().toISOString();
-  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'image', 'feed', 'added'];
+  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'image', 'feed', 'duration', 'added'];
   const isHttp = (v) => typeof v === 'string' && /^https?:\/\/\S+$/.test(v.trim());
   // Cari link RSS podcast di JSON audio: kunci langsung, objek bersarang (mis. podcast.rss), atau nilai URL bergaya feed.
   const feedOf = (j) => {
@@ -267,6 +267,9 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       const nLines = src === tr
         ? Math.max(1, new Set(tr.map((w) => (Array.isArray(w) ? w[3] : w && w.b))).size)
         : src.length;
+      // durasi (detik): pakai field "duration"; file lama tanpa field itu diperkirakan dari akhir kata terakhir
+      let dur = Math.round(Number(j.duration)) || 0;
+      if (!dur && src === tr) dur = Math.round(tr.reduce((m, w) => { const e = Number(Array.isArray(w) ? w[2] : w && w.e); return e > m ? e : m; }, 0));
       if (fileLessons.has(slug)) dup.push(f.name);
       fileLessons.set(slug, {
         slug,
@@ -279,6 +282,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
         tags: tagsOf(j.tags),
         image: imgOf(j),
         feed: feedOf(j),
+        duration: dur,
         order: Number.isFinite(j.order) ? j.order : undefined
       });
     }
@@ -307,6 +311,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
           tags: f.tags.length ? f.tags : tagsOf(o && o.tags),
           image: f.image || str(o && o.image),
           feed: f.feed || str(o && o.feed),
+          duration: f.duration || Math.round(Number(o && o.duration)) || 0,
           order: f.order !== undefined ? f.order : (o && Number.isFinite(o.order) ? o.order : undefined),
           added: (o && typeof o.added === 'string' && o.added) || NOW
         };
@@ -314,7 +319,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       } else {
         base = {
           slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', audio: str(o.audio), lines: Number(o.lines) || 0,
-          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags), image: str(o.image), feed: str(o.feed),
+          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags), image: str(o.image), feed: str(o.feed), duration: Math.round(Number(o.duration)) || 0,
           order: Number.isFinite(o.order) ? o.order : undefined,
           added: (typeof o.added === 'string' && o.added) || ''
         };
@@ -339,6 +344,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       if (r.category) e.category = r.category;
       if (r.tags.length) e.tags = r.tags;
       if (isAudioOnly(b)) {
+        if (b.duration > 0) e.duration = b.duration;
         if (r.image) e.image = r.image;
         if (r.feed) e.feed = r.feed;
       }
