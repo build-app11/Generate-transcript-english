@@ -188,6 +188,8 @@ h1, h2, h3, p { margin: 0; }
 .group-head .n { color: var(--muted); font-weight: 700; }
 .rail { list-style: none; margin: 0; padding: 0 12px 12px 0; display: flex; gap: 24px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
 .rail > li { display: flex; flex: 0 0 min(78%, 290px); scroll-snap-align: start; }
+.stack { list-style: none; margin: 0; padding: 0 8px 8px 0; display: grid; gap: 24px; max-width: 560px; }
+.stack > li { display: flex; }
 .grid { list-style: none; margin: 24px 0 0; padding: 0 8px 8px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 32px; }
 .grid > li { display: flex; }
 .card {
@@ -386,6 +388,9 @@ h1, h2, h3, p { margin: 0; }
     audioViewer: 'player-audio.html',     // pemutar audio: player-audio.html?q=nama (pelajaran yang punya kolom "audio")
     manifest: 'posts.json',              // opsional: judul, deskripsi, kategori, urutan, ID video
     exclude: ['index.html', '404.html', 'player-video.html', 'player-audio.html', 'audiobook-generator.html', 'video-generator.html', 'index-builder.html', 'data/index.json'], // file yang tidak ditampilkan
+    // Tampilan Per grup: urutan grup dan bentuk tiap grup. Nama harus sama persis dengan isi field "group".
+    groupOrder: [],                      // contoh: ['Inggris Pemula', 'Kata Hari Ini', 'Percakapan']; grup lain menyusul menurut jumlah latihan
+    groupLayout: {},                     // contoh: { 'Kata Hari Ini': 'single', 'Inggris Pemula': 'slider' }; tanpa pengaturan: 1 latihan = single, selebihnya slider
     listTtlMin: 10                       // daftar file di-cache sekian menit
   };
   const GLYPHS = ['ʃ', 'θ', 'ə', 'ŋ', 'ð', 'ʒ', 'æ', 'ɔː', 'ɪ', 'ʊ', 'tʃ', 'dʒ'];
@@ -846,13 +851,15 @@ h1, h2, h3, p { margin: 0; }
     if (state.mode === 'group') {
       const g = new Map();
       shown.forEach(r => { (r.groups.length ? r.groups : [NOCH]).forEach(k => { if (!g.has(k)) g.set(k, []); g.get(k).push(r); }); });
-      const keys = [...g.keys()].sort((x, y) => (x === NOCH) - (y === NOCH) || g.get(y).length - g.get(x).length || x.localeCompare(y, 'id'));
+      const ord = k => { const i = CONFIG.groupOrder.indexOf(k); return i < 0 ? 1e6 : i; };
+      const keys = [...g.keys()].sort((x, y) => ord(x) - ord(y) || (x === NOCH) - (y === NOCH) || g.get(y).length - g.get(x).length || x.localeCompare(y, 'id'));
       elList.className = 'groups';
       elList.innerHTML = keys.map(k => {
         const rows = g.get(k), img = (rows.find(r => r.image) || {}).image || '';
         const color = SPARE_COLORS[hash(k) % SPARE_COLORS.length];
+        const layout = CONFIG.groupLayout[k] || (rows.length === 1 ? 'single' : 'slider');
         const ava = img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : esc(k.charAt(0).toUpperCase());
-        return `<li><section class="group c-${color}" aria-label="${esc(k)}"><div class="group-head"><span class="group-ava">${ava}</span><h3>${esc(k)} <span class="n">(${rows.length})</span></h3></div><ul class="rail">${rows.map(r => cardHTML(r, seenSet)).join('')}</ul></section></li>`;
+        return `<li><section class="group c-${color}" aria-label="${esc(k)}"><div class="group-head"><span class="group-ava">${ava}</span><h3>${esc(k)} <span class="n">(${rows.length})</span></h3></div><ul class="${layout === 'single' ? 'stack' : 'rail'}">${rows.map(r => cardHTML(r, seenSet)).join('')}</ul></section></li>`;
       }).join('');
     } else {
       elList.className = 'grid';
