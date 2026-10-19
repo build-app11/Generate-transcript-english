@@ -723,7 +723,8 @@ h1, h2, h3, p { margin: 0; }
         image: (typeof m.image === 'string' && m.image) || page.image || feedImgs.get(feedUrl) || '',
         feed: feedUrl,
         level: (String(m.level || page.level || '').trim().toUpperCase().match(/^(A1|A2|B1|B2|C1|C2)$/) || [''])[0],
-        groups: m.group !== undefined ? parseTags(m.group) : (page.groups || []),
+        // Tanpa field "group", kategori otomatis jadi grup (satu slider per kategori).
+        groups: (() => { const g = m.group !== undefined ? parseTags(m.group) : (page.groups || []); return g.length ? g : [m.category || page.category || (isLesson(it.path) ? 'Latihan' : 'Postingan')]; })(),
         audio: !!page.audio && !/^[A-Za-z0-9_-]{11}$/.test(yt),
         duration: fmtDur(m.duration) || page.duration || '',
         tags: m.tags !== undefined ? parseTags(m.tags) : parseTags(page.tags),
