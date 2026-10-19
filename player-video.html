@@ -238,11 +238,6 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .line.hasrec .tm::before { content: '\25CF'; display: block; font-size: 0.55rem; line-height: 1; color: var(--accent-text); }
 .line.active.hasrec .tm::before { color: var(--accent-ink); }
 
-/* shadowing otomatis: tiap baris bergilir (dengar, echo, rekam, putar) */
-.line.sh-listen { box-shadow: inset 0 0 0 2px var(--rule); }
-.line.sh-echo { box-shadow: inset 0 0 0 2px var(--warn); }
-.line.sh-rec { box-shadow: inset 0 0 0 2px var(--accent); }
-.line.sh-play { box-shadow: inset 0 0 0 2px var(--ok); }
 
 /* dictation: satu kalimat per langkah, kotak per kata, Check lalu Next */
 .dict { order: 2; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding-bottom: 168px; scrollbar-width: thin; }
@@ -292,6 +287,16 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .line.active .tm{border:2px solid var(--line);color:var(--accent-ink)}
 .tool[aria-pressed="true"]{color:var(--ink);background:var(--tint)}
 .dock{border:2.5px solid var(--line)!important;box-shadow:4px 4px 0 var(--shadow)!important;border-radius:22px!important}
+
+/* shadowing otomatis: tiap tahap punya warna sendiri pada latar dan bingkai baris yang disorot (dengar biru, echo oranye, merekam merah, memutar hijau) */
+:root{--sh-listen:#1F5FB8;--sh-echo:#C25E00;--sh-rec:#C0261D;--sh-play:#1B7F4B}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--sh-listen:#8DB8FF;--sh-echo:#FFB454;--sh-rec:#FF6B60;--sh-play:#4CC38A}}
+:root[data-theme="dark"]{--sh-listen:#8DB8FF;--sh-echo:#FFB454;--sh-rec:#FF6B60;--sh-play:#4CC38A}
+.line.sh-listen{--sh:var(--sh-listen)}
+.line.sh-echo{--sh:var(--sh-echo)}
+.line.sh-rec{--sh:var(--sh-rec)}
+.line.sh-play{--sh:var(--sh-play)}
+.line:is(.sh-listen,.sh-echo,.sh-rec,.sh-play){background:color-mix(in srgb,var(--sh) 14%,var(--surface));box-shadow:inset 0 0 0 2.5px var(--sh)}
 </style>
 </head>
 <body>
@@ -333,9 +338,6 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     TRANSKRIP = convert(j);
     VIDEO_ID = /^[\w-]{11}$/.test(j.videoId || '') ? j.videoId : '';
     JUDUL = String(j.title || 'Shadowing').slice(0, 200);
-    if (typeof j.backUrl === 'string' && /^https?:\/\//i.test(j.backUrl)) {
-      var hb = $b('hback'); if (hb) hb.href = j.backUrl;
-    }
     [['category', j.category], ['keywords', Array.isArray(j.tags) ? j.tags.join(', ') : '']].forEach(function (p) {
       if (!p[1]) return;
       var mt = document.createElement('meta'); mt.name = p[0]; mt.content = String(p[1]).slice(0, 300); document.head.appendChild(mt);
@@ -345,6 +347,42 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     s.textContent = $b('appjs').textContent;
     document.body.appendChild(s);
     var bt = $b('boot'); if (bt) bt.remove();
+    pathDone();
+  }
+
+  /* Tombol "Selesai": hanya muncul jika halaman dibuka dari path.html */
+  function pathDone() {
+    var slug = new URLSearchParams(location.search).get('q') || '';
+    var SK = 'lf:from:' + slug, back = 'path.html';
+    try {
+      var r = document.referrer ? new URL(document.referrer) : null;
+      if (r && r.origin === location.origin && /\/path(\.html)?$/.test(r.pathname)) {
+        sessionStorage.setItem(SK, r.pathname + r.search);   // ingat saat halaman di-reload
+      }
+      var from = sessionStorage.getItem(SK);
+      if (!from || !slug) return;
+      back = from;
+    } catch (e) { return; }
+    var css = document.createElement('style');
+    css.textContent = '#doneBtn{display:flex;align-items:center;justify-content:center;flex:none;width:100%;max-width:420px;margin:18px auto 8px;padding:12px 22px;border:2.5px solid var(--line);border-radius:999px;background:var(--accent);color:var(--accent-ink);font:600 1.1rem var(--font-display,var(--font-en,system-ui));box-shadow:3px 3px 0 var(--shadow);cursor:pointer}#doneBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}';
+    document.head.appendChild(css);
+    var btn = document.createElement('button');
+    btn.id = 'doneBtn'; btn.type = 'button'; btn.textContent = 'Selesai ✓';
+    btn.addEventListener('click', function () {
+      try {
+        var p = JSON.parse(localStorage.getItem('lf:path')) || {};
+        if (!p.done || typeof p.done !== 'object') p.done = {};
+        p.done[slug] = { at: Date.now() };
+        localStorage.setItem('lf:path', JSON.stringify(p));
+        localStorage.setItem('lf:path:pending', 'null');     // jangan tanya lagi di path
+      } catch (e) {}
+      location.href = back;
+    });
+    var list = $b('list');
+    function put() { if (list.lastElementChild !== btn) list.appendChild(btn); }
+    put();
+    // list dirender ulang oleh aplikasi -> pasang lagi tombolnya di akhir
+    new MutationObserver(put).observe(list, { childList: true });
   }
   function fromText(txt) {
     var j;
@@ -374,7 +412,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
 
 <div class="app" id="app">
   <header class="top">
-    <div class="ttlwrap"><a class="hback" id="hback" href="https://learningfun.zone.id/" target="_top" aria-label="Kembali"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a><div>
+    <div class="ttlwrap"><a class="hback" id="hback" href="/index.html" target="_top" aria-label="Kembali"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a><div>
       <h1 id="ttl">Shadowing</h1>
       <p class="sub"><span id="count">204</span> baris · transkrip + fonetik · <span class="mode" id="modeLbl">mode timer</span></p>
     </div></div>
