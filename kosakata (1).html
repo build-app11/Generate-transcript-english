@@ -173,40 +173,58 @@ const zBody=()=>{const b=$('#body');b.textContent='';return b};
 const zOk=(t,on)=>{const o=$('#ok');o.textContent=t;o.disabled=!on};
 const zProg=(f,l)=>{$('#bar').style.width=Math.round(f*100)+'%';$('#n').textContent=l||''};
 
+const POOLS={},USED=new Set();   /* kandidat kata per pilihan pelajaran; kata yang sudah keluar agar soal baru tidak mengulang */
+let tok=0;
+async function getPool(ls){
+  const key=ls.map(l=>l.slug).join('|');
+  if(!POOLS[key]){const all=(await Promise.all(ls.map(loadWords))).flat();POOLS[key]=candidates(all)}
+  return POOLS[key]}
+async function build(){
+  const pool=await getPool(picked());
+  if(pool.length<4)throw new Error('Kata yang cocok terlalu sedikit di pelajaran ini.');
+  const m=opt.mode==='match',want=m?opt.n:opt.n+3;
+  let fresh=pool.filter(c=>!USED.has(c.en));
+  if(fresh.length<want+6){USED.clear();fresh=pool}
+  const g=await makePairs(fresh,want);
+  if(g.length<(m?3:4))throw new Error('Arti kata tidak berhasil dimuat. Pastikan internet aktif lalu coba lagi.');
+  g.forEach(p=>USED.add(p.en));
+  return{mode:opt.mode,list:g,i:0,total:m?g.length:Math.min(opt.n,g.length),score:0,log:[],phase:'ask'}}
+
 async function start(){
-  const ls=picked();if(!ls.length)return;
-  $('#go').disabled=true;msg('Mengambil kata dari pelajaran…');
-  try{
-    const all=(await Promise.all(ls.map(loadWords))).flat();
-    const cands=candidates(all);
-    if(cands.length<4){msg('Kata yang cocok terlalu sedikit di pelajaran ini.',true);$('#go').disabled=false;return}
-    msg('Mencari arti kata…');
-    const want=opt.mode==='match'?opt.n:opt.n+3,g=await makePairs(cands,want);
-    if(g.length<(opt.mode==='match'?3:4)){msg('Arti kata tidak berhasil dimuat. Pastikan internet aktif lalu coba lagi.',true);$('#go').disabled=false;return}
-    Z={mode:opt.mode,list:g,i:0,total:opt.mode==='match'?g.length:Math.min(opt.n,g.length),bad:new Set(),score:0,wrong:[],phase:'ask'};
-    $('#setup').hidden=true;$('#quiz').hidden=false;msg('');syncGo();showItem();
-  }catch(e){msg('Gagal memuat pelajaran'+(e&&e.message?': '+e.message:'.'),true);syncGo()}
-}
+  if(!picked().length)return;
+  const my=++tok;$('#go').disabled=true;msg('Menyiapkan soal…');
+  try{const z=await build();if(my!==tok)return;Z=z;$('#setup').hidden=true;$('#quiz').hidden=false;msg('');showItem()}
+  catch(e){if(my===tok)msg(e&&e.message?e.message:'Gagal memuat soal.',true)}
+  if(my===tok)syncGo()}
+
+/* soal baru: tetap di layar latihan, langsung cari soal berikutnya */
+async function again(){
+  const my=++tok;Z=null;zProg(0,'');zOk('OK',false);
+  zBody().appendChild(mk('div','qzs','Mencari soal baru…'));
+  try{const z=await build();if(my!==tok)return;Z=z;showItem()}
+  catch(e){if(my!==tok)return;Z={phase:'retry'};zBody().appendChild(mk('div','qzs',e&&e.message?e.message:'Gagal memuat soal.'));zOk('Coba lagi',true)}}
+
 function showItem(){Z.phase='ask';zOk('OK',false);Z.mode==='match'?showMatch():showTrans()}
 
 function showMatch(){
   const my=Z,b=zBody(),ie=opt.dir==='ie',pairs=my.list;
-  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+')'));
+  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+'). Jawaban salah juga dihitung, hasilnya dibahas di akhir.'));
   const g=mk('div','qzg'),ca=mk('div','qzc'),cb=mk('div','qzc');g.append(ca,cb);b.appendChild(g);
   const A=pairs.map((p,k)=>({k,t:ie?p.id:p.en})),B=shuf(pairs.map((p,k)=>({k,t:ie?p.en:p.id})));
   let sa=null,sb=null,done=0;zProg(0,'0/'+pairs.length);
   const add=(o,side,col)=>{const x=mk('button','qzo',o.t);x.type='button';
     x.addEventListener('click',()=>{
-      if(Z!==my||my.phase!=='ask'||x.classList.contains('ok'))return;
+      if(Z!==my||my.phase!=='ask'||x.disabled)return;
       if(side==='a'){if(sa)sa.x.classList.remove('sel');sa={o,x}}else{if(sb)sb.x.classList.remove('sel');sb={o,x}}
       x.classList.add('sel');if(!sa||!sb)return;
-      const a1=sa,b1=sb;sa=sb=null;
-      if(a1.o.k===b1.o.k){
-        [a1.x,b1.x].forEach(e=>{e.classList.remove('sel');e.classList.add('ok');e.disabled=true});
-        done++;zProg(done/pairs.length,done+'/'+pairs.length);
-        if(done===pairs.length){my.phase='next';zOk('Lihat hasil',true)}
-      }else{my.bad.add(a1.o.k);[a1.x,b1.x].forEach(e=>{e.classList.remove('sel');e.classList.add('bad')});
-        setTimeout(()=>[a1.x,b1.x].forEach(e=>e.classList.remove('bad')),700)}});
+      const a1=sa,b1=sb;sa=sb=null;a1.x.classList.remove('sel');b1.x.classList.remove('sel');
+      const ok=a1.o.k===b1.o.k,p=pairs[a1.o.k];
+      my.log.push({ask:a1.o.t,right:ie?p.en:p.id,picked:b1.o.t,ok});
+      a1.x.disabled=true;a1.x.classList.add(ok?'ok':'bad');
+      if(ok){b1.x.disabled=true;b1.x.classList.add('ok')}
+      else{b1.x.classList.add('bad');setTimeout(()=>b1.x.classList.remove('bad'),700)}
+      done++;zProg(done/pairs.length,done+'/'+pairs.length);
+      if(done===pairs.length){my.phase='next';zOk('Lihat hasil',true)}});
     col.appendChild(x)};
   A.forEach(o=>add(o,'a',ca));B.forEach(o=>add(o,'b',cb))}
 
@@ -224,29 +242,34 @@ function showTrans(){
     x.addEventListener('click',()=>{
       if(Z!==my||my.phase!=='ask')return;my.phase='next';
       [...box.children].forEach(y=>{y.disabled=true;if(y.textContent===right)y.classList.add('ok')});
-      fb.hidden=false;
-      if(o===right){my.score++;fb.className='qzfb ok';fb.textContent='✓ Benar'}
-      else{x.classList.add('bad');my.wrong.push(p.en+' = '+p.id);fb.className='qzfb bad';fb.textContent='✗ Jawaban: '+right}
+      fb.hidden=false;const ok=o===right;
+      my.log.push({ask,right,picked:o,ok});
+      if(ok){my.score++;fb.className='qzfb ok';fb.textContent='✓ Benar'}
+      else{x.classList.add('bad');fb.className='qzfb bad';fb.textContent='✗ Jawaban: '+right}
       zOk(my.i+1>=tot?'Lihat hasil':'Lanjut',true)});
     box.appendChild(x)})}
 
 function result(){
   Z.phase='result';zProg(1,'');
-  const m=Z.mode==='match',t=Z.total,
-    wrong=m?[...Z.bad].sort((a,b)=>a-b).map(k=>Z.list[k].en+' = '+Z.list[k].id):Z.wrong,
-    score=m?t-Z.bad.size:Z.score,r=mk('div','res');
+  const log=Z.log,good=log.filter(x=>x.ok),bad=log.filter(x=>!x.ok),r=mk('div','res');
   zBody().appendChild(r);
-  r.appendChild(mk('h2',null,'Skor '+score+' dari '+t));
-  if(wrong.length){r.appendChild(mk('p','lead','Yang perlu diulang:'));const ul=mk('ul');wrong.forEach(x=>ul.appendChild(mk('li',null,x)));r.appendChild(ul)}
-  else r.appendChild(mk('p','lead','Semua benar. Mantap!'));
+  r.appendChild(mk('h2',null,'Skor '+good.length+' dari '+log.length));
+  if(bad.length){
+    r.appendChild(mk('p','lead','Yang salah:'));
+    const ul=mk('ul');bad.forEach(x=>ul.appendChild(mk('li',null,x.ask+' → pilihanmu “'+x.picked+'”, yang benar “'+x.right+'”')));r.appendChild(ul)}
+  if(good.length){
+    r.appendChild(mk('p','lead','Yang benar:'));
+    const ul=mk('ul');good.forEach(x=>ul.appendChild(mk('li',null,x.ask+' = '+x.right)));r.appendChild(ul)}
+  else r.appendChild(mk('p','lead','Belum ada yang benar kali ini. Coba lagi.'));
+  if(!bad.length)r.appendChild(mk('p','lead','Semua benar. Mantap!'));
   zOk('Soal baru',true)}
 
 $('#ok').addEventListener('click',()=>{
   if(!Z)return;
-  if(Z.phase==='result'){exit(true);return}
+  if(Z.phase==='result'||Z.phase==='retry'){again();return}
   if(Z.phase==='next'){if(Z.mode==='match'){result();return}Z.i++;Z.i>=Z.total?result():showItem()}});
-function exit(again){Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;$('#go').disabled=false;syncGo();if(again)start()}
-$('#x').addEventListener('click',()=>exit(false));
+function exit(){tok++;Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;syncGo()}
+$('#x').addEventListener('click',exit);
 $('#go').addEventListener('click',start);
 loadIndex();
 </script>
