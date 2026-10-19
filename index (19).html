@@ -188,6 +188,12 @@ h1, h2, h3, p { margin: 0; }
 .group-head .n { color: var(--muted); font-weight: 700; }
 .rail { list-style: none; margin: 0; padding: 0 12px 12px 0; display: flex; gap: 24px; overflow-x: auto; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
 .rail > li { display: flex; flex: 0 0 min(78%, 290px); scroll-snap-align: start; }
+.group-all { margin-left: auto; padding: 4px 14px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); font-family: var(--font-display); font-weight: 600; font-size: 0.92rem; text-decoration: none; white-space: nowrap; }
+.group-all:hover { background: var(--yellow); color: var(--on); }
+.grouphead { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; margin-top: 28px; }
+.grouphead h3 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.5rem, 4vw, 2.1rem); line-height: 1.15; }
+.more { display: flex; justify-content: center; margin-top: 32px; }
+.pill.lvl { background: var(--surface); }
 .stack { list-style: none; margin: 0; padding: 0 8px 8px 0; display: grid; gap: 24px; max-width: 560px; }
 .stack > li { display: flex; }
 .grid { list-style: none; margin: 24px 0 0; padding: 0 8px 8px 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 290px), 1fr)); gap: 32px; }
@@ -347,6 +353,11 @@ h1, h2, h3, p { margin: 0; }
       </div>
     </div>
 
+    <div id="grouphead" class="grouphead" hidden>
+      <button class="btn btn-small" type="button" data-act="back">← Semua grup</button>
+      <h3 id="gtitle"></h3>
+    </div>
+
     <div class="tools">
       <ul id="cats" class="chips"></ul>
       <div id="views" class="views" role="group" aria-label="Cara menampilkan latihan">
@@ -359,6 +370,10 @@ h1, h2, h3, p { margin: 0; }
         <input id="q" type="search" placeholder="Cari latihan" autocomplete="off">
       </label>
     </div>
+    <div id="levelrow" class="tagrow" hidden>
+      <span class="tagrow-label">Level</span>
+      <ul id="levels" class="tagchips"></ul>
+    </div>
     <div id="tagrow" class="tagrow" hidden>
       <span class="tagrow-label">Tag</span>
       <ul id="tags" class="tagchips"></ul>
@@ -366,6 +381,7 @@ h1, h2, h3, p { margin: 0; }
     <p id="hint" class="hint"></p>
     <p id="status" class="status" role="status" aria-live="polite"></p>
     <ul id="list" class="grid"></ul>
+    <div class="more"><button id="more" class="btn" type="button" hidden>Muat lebih banyak</button></div>
   </section>
 </main>
 
@@ -548,6 +564,7 @@ h1, h2, h3, p { margin: 0; }
           duration: fmtDur(l.duration),
           image: HTTP_RE.test(String(l.image || '').trim()) ? String(l.image).trim() : '',
           feed: HTTP_RE.test(String(l.feed || '').trim()) ? String(l.feed).trim() : '',
+          level: String(l.level || '').trim().toUpperCase(),
           groups: parseTags(l.group !== undefined ? l.group : (l.groups !== undefined ? l.groups : l.channel)),
           tags: parseTags(l.tags)
         }
@@ -672,7 +689,8 @@ h1, h2, h3, p { margin: 0; }
   }
 
   /* ---------- Susun daftar ---------- */
-  const state = { items: [], q: '', cat: '*', tag: '', loaded: false, mode: (store.get('lf:view') === 'grid' ? 'grid' : 'group') };
+  const PAGE = 12;
+  const state = { items: [], q: '', cat: '*', tag: '', level: '', group: new URLSearchParams(location.search).get('group') || '', limit: PAGE, fk: '', loaded: false, mode: (store.get('lf:view') === 'grid' ? 'grid' : 'group') };
 
   // Halaman di luar database (mis. alat) didaftarkan lewat posts.json; keduanya digabung.
   function toItems(files, manifest, union) {
@@ -704,6 +722,7 @@ h1, h2, h3, p { margin: 0; }
         youtube: /^[A-Za-z0-9_-]{11}$/.test(yt) ? yt : '',
         image: (typeof m.image === 'string' && m.image) || page.image || feedImgs.get(feedUrl) || '',
         feed: feedUrl,
+        level: (String(m.level || page.level || '').trim().toUpperCase().match(/^(A1|A2|B1|B2|C1|C2)$/) || [''])[0],
         groups: m.group !== undefined ? parseTags(m.group) : (page.groups || []),
         audio: !!page.audio && !/^[A-Za-z0-9_-]{11}$/.test(yt),
         duration: fmtDur(m.duration) || page.duration || '',
@@ -774,6 +793,7 @@ h1, h2, h3, p { margin: 0; }
           </span>
           <span class="pills">
             <span class="pill">Audio</span>
+            ${r.level ? `<span class="pill lvl">${esc(r.level)}</span>` : ''}
             ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
             ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
           </span>
@@ -787,6 +807,7 @@ h1, h2, h3, p { margin: 0; }
         <span class="info">
           <span class="pills">
             <span class="pill">${esc(r.category)}</span>
+            ${r.level ? `<span class="pill lvl">${esc(r.level)}</span>` : ''}
             ${r.audio ? '<span class="pill">Audio</span>' : ''}
             ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
             ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
@@ -816,7 +837,18 @@ h1, h2, h3, p { margin: 0; }
     $('#views').querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.mode)));
 
     // Tag yang ditampilkan hanya milik kategori yang sedang dipilih.
-    const pool = all.filter(r => state.cat === '*' || r.category === state.cat);
+    const gKey = state.group.toLowerCase();
+    const pool = all.filter(r => (state.cat === '*' || r.category === state.cat) && (!gKey || r.groups.some(g => g.toLowerCase() === gKey)));
+    const gLabel = (pool.flatMap(r => r.groups).find(g => g.toLowerCase() === gKey)) || state.group;
+    $('#grouphead').hidden = !state.group;
+    $('#gtitle').textContent = gLabel;
+    $('#views').hidden = !!state.group;
+    const lvInfo = new Map();
+    pool.forEach(r => { if (r.level) lvInfo.set(r.level, (lvInfo.get(r.level) || 0) + 1); });
+    if (state.level && !lvInfo.has(state.level)) state.level = '';
+    $('#levelrow').hidden = !lvInfo.size;
+    $('#levels').innerHTML = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'].filter(l => lvInfo.has(l)).map(l =>
+      `<li><button class="tagchip" type="button" data-level="${l}" aria-pressed="${state.level === l}">${l}<span class="n">${lvInfo.get(l)}</span></button></li>`).join('');
     const tagInfo = new Map();
     pool.forEach(r => r.tags.forEach(t => {
       const k = t.toLowerCase();
@@ -832,23 +864,28 @@ h1, h2, h3, p { margin: 0; }
 
     const q = state.q.trim().toLowerCase();
     const shown = pool.filter(r =>
+      (!state.level || r.level === state.level) &&
       (!state.tag || r.tags.some(t => t.toLowerCase() === state.tag)) &&
       (!q || (r.title + ' ' + r.description + ' ' + r.category + ' ' + r.tags.join(' ')).toLowerCase().includes(q)));
 
     if (!all.length) {
+      $('#more').hidden = true;
       elStatus.textContent = '';
       elList.innerHTML = '<li class="empty"><p>Belum ada latihan.</p></li>';
       return;
     }
+    const fk = [state.group, state.cat, state.tag, state.level, q].join('|');
+    if (fk !== state.fk) { state.fk = fk; state.limit = PAGE; }
     elStatus.textContent = shown.length === all.length ? `${all.length} halaman` : `${shown.length} dari ${all.length} halaman`;
 
     if (!shown.length) {
+      $('#more').hidden = true;
       elList.innerHTML = `<li class="empty"><p>Tidak ada latihan yang cocok${q ? ` dengan “${esc(state.q.trim())}”` : ''}.</p><button class="btn btn-small" type="button" data-act="clear">Hapus pencarian dan filter</button></li>`;
       return;
     }
     const seenSet = getSeen();
     const NOCH = 'Lainnya';
-    if (state.mode === 'group') {
+    if (!state.group && state.mode === 'group') {
       const g = new Map();
       shown.forEach(r => { (r.groups.length ? r.groups : [NOCH]).forEach(k => { if (!g.has(k)) g.set(k, []); g.get(k).push(r); }); });
       const ord = k => { const i = CONFIG.groupOrder.indexOf(k); return i < 0 ? 1e6 : i; };
@@ -859,12 +896,15 @@ h1, h2, h3, p { margin: 0; }
         const color = SPARE_COLORS[hash(k) % SPARE_COLORS.length];
         const layout = CONFIG.groupLayout[k] || (rows.length === 1 ? 'single' : 'slider');
         const ava = img ? `<img src="${esc(img)}" alt="" loading="lazy" referrerpolicy="no-referrer">` : esc(k.charAt(0).toUpperCase());
-        return `<li><section class="group c-${color}" aria-label="${esc(k)}"><div class="group-head"><span class="group-ava">${ava}</span><h3>${esc(k)} <span class="n">(${rows.length})</span></h3></div><ul class="${layout === 'single' ? 'stack' : 'rail'}">${rows.map(r => cardHTML(r, seenSet)).join('')}</ul></section></li>`;
+        return `<li><section class="group c-${color}" aria-label="${esc(k)}"><div class="group-head"><span class="group-ava">${ava}</span><h3>${esc(k)} <span class="n">(${rows.length})</span></h3>${k === NOCH ? '' : `<a class="group-all" href="?group=${encodeURIComponent(k)}#halaman" data-group="${esc(k)}">Lihat semua</a>`}</div><ul class="${layout === 'single' ? 'stack' : 'rail'}">${rows.map(r => cardHTML(r, seenSet)).join('')}</ul></section></li>`;
       }).join('');
     } else {
+      const part = state.group ? shown.slice(0, state.limit) : shown;
       elList.className = 'grid';
-      elList.innerHTML = shown.map(r => cardHTML(r, seenSet)).join('');
+      elList.innerHTML = part.map(r => cardHTML(r, seenSet)).join('');
+      $('#more').hidden = part.length >= shown.length;
     }
+    if (!state.group && state.mode === 'group') $('#more').hidden = true;
   }
 
   $('#views').addEventListener('click', e => {
@@ -887,13 +927,31 @@ h1, h2, h3, p { margin: 0; }
     state.tag = state.tag === b.dataset.tag ? '' : b.dataset.tag;
     render();
   });
+  $('#levels').addEventListener('click', e => {
+    const b = e.target.closest('[data-level]');
+    if (!b) return;
+    state.level = state.level === b.dataset.level ? '' : b.dataset.level;
+    render();
+  });
+  $('#more').addEventListener('click', () => { state.limit += PAGE; render(); });
+  function goGroup(g) {
+    state.group = g; state.cat = '*'; state.tag = ''; state.level = ''; state.q = ''; elQ.value = '';
+    const u = new URL(location.href); u.search = g ? '?group=' + encodeURIComponent(g) : ''; u.hash = 'halaman';
+    history.pushState(null, '', u);
+    render();
+    $('#halaman').scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth' });
+  }
+  $('#grouphead').addEventListener('click', e => { if (e.target.closest('[data-act="back"]')) goGroup(''); });
+  addEventListener('popstate', () => { state.group = new URLSearchParams(location.search).get('group') || ''; if (state.loaded) render(); });
   const onCardOpen = e => { const a = e.target.closest('a.card'); if (a) markSeen(a.dataset.path); };
   elList.addEventListener('click', e => {
+    const ga = e.target.closest('a[data-group]');
+    if (ga && !e.metaKey && !e.ctrlKey && !e.shiftKey) { e.preventDefault(); goGroup(ga.dataset.group); return; }
     onCardOpen(e);
     const a = e.target.closest('[data-act]');
     if (!a) return;
     if (a.dataset.act === 'reload') location.reload();
-    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; state.tag = ''; elQ.value = ''; render(); elQ.focus(); }
+    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; state.tag = ''; state.level = ''; elQ.value = ''; render(); elQ.focus(); }
   });
   elList.addEventListener('auxclick', onCardOpen);
   // Jika thumbnail gagal dimuat, tampilkan simbol IPA sebagai gantinya.
