@@ -20,7 +20,16 @@ h1{margin:0;font:700 2rem/1.15 var(--font-display);color:var(--head)}
 .chip{font:700 .9rem var(--font-ui);padding:9px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
 .chip[aria-pressed=true]{background:var(--accent);color:var(--on)}
 .chip:focus-visible,.qzo:focus-visible,.go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.ls{display:flex;flex-direction:column;border:1.5px solid var(--line);border-radius:12px;background:var(--field);max-height:19rem;overflow:auto}
+.dd{position:relative}
+.ddb{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 .95rem var(--font-ui);text-align:left;padding:13px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.ddb:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.ddb span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ddb i{flex:none;font-style:normal;transition:transform .15s}
+.ddb[aria-expanded=true] i{transform:rotate(180deg)}
+.ls{display:flex;flex-direction:column;margin-top:8px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);max-height:19rem;overflow:auto}
+.lsel{width:100%;font:600 .95rem var(--font-ui);padding:12px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg)}
+.x{display:inline-flex;align-items:center;gap:6px;font:700 .85rem var(--font-ui);padding:8px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--bar);color:var(--fg);cursor:pointer;flex:none}
+.x:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .ls label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;line-height:1.4}
 .ls label:last-child{border:0}
 .ls input{margin-top:3px;accent-color:var(--ui)}
@@ -30,7 +39,6 @@ h1{margin:0;font:700 2rem/1.15 var(--font-display);color:var(--head)}
 #msg{min-height:1.4em;font-size:.92rem;color:var(--muted);line-height:1.5}
 #msg.err{color:var(--warn);font-weight:600}
 #quiz .top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
-.x{font:700 1rem var(--font-ui);border:0;background:transparent;color:var(--muted);cursor:pointer;padding:6px}
 .bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
 .n{font:700 .85rem var(--font-ui);color:var(--muted);min-width:3.2em;text-align:right}
@@ -61,18 +69,19 @@ h1{margin:0;font:700 2rem/1.15 var(--font-display);color:var(--head)}
   <section id="setup">
     <div class="g">
       <h1>Latihan Kosakata</h1>
-      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online, jadi butuh internet.</p>
+      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet.</p>
     </div>
-    <div class="g"><span class="lab">Pelajaran</span><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran"></div></div>
+    <div class="g dd"><span class="lab" id="lab-ls">Pelajaran</span><button type="button" class="ddb" id="ddb" aria-expanded="false" aria-controls="ls" aria-labelledby="lab-ls ddb"><span id="ddt">Pilih pelajaran</span><i aria-hidden="true">▾</i></button><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran" hidden></div></div>
     <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button></div></div>
-    <div class="g"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" data-v="ei" aria-pressed="true">Inggris → Indonesia</button><button class="chip" data-v="ie" aria-pressed="false">Indonesia → Inggris</button></div></div>
+    <div class="g"><label class="lab" for="lang">Bahasa terjemahan</label><select class="lsel" id="lang"></select></div>
+    <div class="g"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" id="d-ei" data-v="ei" aria-pressed="true"></button><button class="chip" id="d-ie" data-v="ie" aria-pressed="false"></button></div></div>
     <div class="g"><span class="lab">Jumlah soal</span><div class="chips" id="c-n"><button class="chip" data-v="4" aria-pressed="false">4</button><button class="chip" data-v="6" aria-pressed="true">6</button><button class="chip" data-v="8" aria-pressed="false">8</button></div></div>
     <button class="go" id="go" disabled>Mulai</button>
     <div id="msg" role="status">Memuat daftar pelajaran…</div>
   </section>
 
   <section id="quiz" hidden>
-    <div class="top"><button class="x" id="x" aria-label="Keluar dari latihan">✕</button><div class="bar"><i id="bar"></i></div><span class="n" id="n"></span></div>
+    <div class="top"><button class="x" id="x" type="button" aria-label="Tutup latihan">✕ Tutup</button><div class="bar"><i id="bar"></i></div><span class="n" id="n"></span></div>
     <div class="qzb" id="body"></div>
     <div class="foot"><button class="go" id="ok" disabled>OK</button></div>
   </section>
@@ -85,7 +94,15 @@ const $=s=>document.querySelector(s);
 const mk=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n};
 const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const STOPW=new Set('the and but for with from that this these those have has had was were are been being not you your his her their our they them she him its than then into over after before there here what which who whom when where how very just also more most some any all each such only own same too would could should might will can may about because while until upon onto'.split(' '));
-const opt={mode:'match',dir:'ei',n:6};
+const LANGS=[['id','Indonesia'],['ms','Melayu'],['jv','Jawa'],['su','Sunda'],['es','Spanyol'],['fr','Prancis'],['de','Jerman'],['it','Italia'],['pt','Portugis'],['nl','Belanda'],['ru','Rusia'],['ar','Arab'],['hi','Hindi'],['ja','Jepang'],['ko','Korea'],['zh-CN','Mandarin'],['th','Thai'],['vi','Vietnam'],['tr','Turki']];
+const LSK='kosakata.lang';
+let saved='id';try{saved=localStorage.getItem(LSK)||'id'}catch(e){}
+const opt={mode:'match',dir:'ei',n:6,tl:LANGS.some(l=>l[0]===saved)?saved:'id'};
+const langName=()=>(LANGS.find(l=>l[0]===opt.tl)||LANGS[0])[1];
+function paintLang(){$('#d-ei').textContent='Inggris → '+langName();$('#d-ie').textContent=langName()+' → Inggris'}
+LANGS.forEach(l=>{const o=mk('option',null,l[1]);o.value=l[0];$('#lang').appendChild(o)});
+$('#lang').value=opt.tl;paintLang();
+$('#lang').addEventListener('change',e=>{opt.tl=e.target.value;try{localStorage.setItem(LSK,opt.tl)}catch(_){}paintLang()});
 let LESSONS=[],Z=null;
 
 /* ---------- pilihan ---------- */
@@ -93,8 +110,14 @@ function bindChips(id,key,num){$(id).addEventListener('click',e=>{const b=e.targ
   opt[key]=num?+b.dataset.v:b.dataset.v;$(id).querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))})}
 bindChips('#c-mode','mode');bindChips('#c-dir','dir');bindChips('#c-n','n',true);
 const msg=(t,err)=>{const m=$('#msg');m.textContent=t||'';m.className=err?'err':''};
+const ddb=$('#ddb'),lsEl=$('#ls');
+function ddOpen(o){lsEl.hidden=!o;ddb.setAttribute('aria-expanded',String(o))}
+ddb.addEventListener('click',()=>ddOpen(lsEl.hidden));
+document.addEventListener('click',e=>{if(!lsEl.hidden&&!e.target.closest('.dd'))ddOpen(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lsEl.hidden){ddOpen(false);ddb.focus()}});
 const picked=()=>[...document.querySelectorAll('#ls input:checked')].map(i=>LESSONS[+i.value]);
-const syncGo=()=>{$('#go').disabled=!picked().length};
+const syncGo=()=>{const p=picked();$('#go').disabled=!p.length;
+  $('#ddt').textContent=!p.length?'Pilih pelajaran':p.length===1?(p[0].title||p[0].slug):p.length+' pelajaran dipilih'};
 
 async function loadIndex(){
   try{
@@ -130,11 +153,11 @@ function candidates(all){
 
 /* ---------- terjemahan (Google gtx, cadangan MyMemory) ---------- */
 const MC={};
-function mt(t){const k=t;if(MC[k])return MC[k];
+function mt(t){const tl=opt.tl,k=tl+':'+t;if(MC[k])return MC[k];
   return MC[k]=(async()=>{
-    try{const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=id&dt=t&q='+encodeURIComponent(t));
+    try{const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(tl)+'&dt=t&q='+encodeURIComponent(t));
       if(!r.ok)throw 0;const j=await r.json();const s=j[0].map(x=>x[0]).join('');if(!s)throw 0;return s}
-    catch(e){try{const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|id&q='+encodeURIComponent(t));
+    catch(e){try{const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|'+encodeURIComponent(tl)+'&q='+encodeURIComponent(t));
       const j=await r.json();const s=j.responseData&&j.responseData.translatedText;if(!s||/MYMEMORY WARNING/i.test(s))throw 0;return s}
       catch(e2){delete MC[k];return ''}}})()}
 async function makePairs(cands,want){
@@ -142,7 +165,7 @@ async function makePairs(cands,want){
   const res=await Promise.all(take.map(o=>mt(o.en).catch(()=>'')));
   const got=[];
   take.forEach((o,k)=>{const t=String(res[k]||'').trim().toLowerCase().replace(/[.!?]+$/,'');
-    if(t&&t!==o.en&&t.length<=28&&!got.some(g=>g.id===t))got.push({en:o.en,id:t,ctx:o.ctx})});
+    if(t&&t!==o.en&&t.length<=40&&!got.some(g=>g.id===t))got.push({en:o.en,id:t,ctx:o.ctx})});
   return got.slice(0,want)}
 
 /* ---------- kuis ---------- */
@@ -168,7 +191,7 @@ function showItem(){Z.phase='ask';zOk('OK',false);Z.mode==='match'?showMatch():s
 
 function showMatch(){
   const my=Z,b=zBody(),ie=opt.dir==='ie',pairs=my.list;
-  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?'Indonesia ↔ Inggris':'Inggris ↔ Indonesia')+')'));
+  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+')'));
   const g=mk('div','qzg'),ca=mk('div','qzc'),cb=mk('div','qzc');g.append(ca,cb);b.appendChild(g);
   const A=pairs.map((p,k)=>({k,t:ie?p.id:p.en})),B=shuf(pairs.map((p,k)=>({k,t:ie?p.en:p.id})));
   let sa=null,sb=null,done=0;zProg(0,'0/'+pairs.length);
@@ -191,7 +214,7 @@ function showTrans(){
   const my=Z,b=zBody(),ie=opt.dir==='ie',p=my.list[my.i],tot=my.total;
   zProg(my.i/tot,(my.i+1)+'/'+tot);
   const ask=ie?p.id:p.en,right=ie?p.en:p.id;
-  b.appendChild(mk('div','qzt',ie?'Apa bahasa Inggrisnya?':'Apa artinya dalam bahasa Indonesia?'));
+  b.appendChild(mk('div','qzt',ie?'Apa bahasa Inggrisnya?':'Apa artinya dalam bahasa '+langName()+'?'));
   b.appendChild(mk('div','qzw',ask));
   if(!ie&&p.ctx){const s=mk('div','qzs'),re=new RegExp('('+p.en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i');
     p.ctx.split(re).forEach(part=>{if(part.toLowerCase()===p.en)s.appendChild(mk('b',null,part));else s.append(part)});b.appendChild(s)}
