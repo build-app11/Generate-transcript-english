@@ -240,9 +240,10 @@ function onYouTubeIframeAPIReady(){
         const S = YT.PlayerState, sh = $('shield');
         if(e.data === S.PLAYING){
           clipActive = true;                                          // klip benar-benar mulai
+          clearTimeout(showTimer);
           sh.classList.remove('cover','show'); $('replay').textContent = '⏸';
         } else if(e.data === S.PAUSED){
-          sh.classList.add('show'); $('replay').textContent = '▶';
+          sh.classList.add('cover','show'); $('replay').textContent = '▶';   // tutup overlay judul/channel YouTube
         } else if(e.data === S.ENDED){
           sh.classList.add('cover','show'); $('replay').textContent = '▶';   // tutup layar akhir YouTube
           clipEnded();
@@ -260,7 +261,7 @@ document.head.appendChild(tag);
    jadi event ENDED ganda/basi dari YouTube tidak membuat baris loncat (1 -> 3).
    Jeda 0,5 detik sebelum klip berikutnya. */
 const GAP_MS = 500;
-let clipActive = false, advTimer = null;
+let clipActive = false, advTimer = null, showTimer = null;
 function clipEnded(){
   if(!clipActive) return;
   clipActive = false;
@@ -275,6 +276,12 @@ function play(i){
   if(i < 0 || i >= results.length) return;
   clearTimeout(advTimer);
   clipActive = false;
+  // selama klip belum benar-benar jalan, layar ditutup hitam supaya overlay judul/channel/tombol play YouTube tidak terlihat.
+  // Jika autoplay diblokir browser (tidak mulai dalam 1,5 dtk), tampilkan ikon ▶ agar bisa diketuk.
+  const sh = $('shield');
+  sh.classList.add('cover'); sh.classList.remove('show');
+  clearTimeout(showTimer);
+  showTimer = setTimeout(() => { if(!clipActive) sh.classList.add('show'); }, 1500);
   const r = results[i];
   cur = i;
   document.querySelectorAll('#list li.on').forEach(x => x.classList.remove('on'));
