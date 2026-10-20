@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PhraseClip</title>
+<style>
+  :root{--bg:#0f1115;--panel:#181b22;--line:#262a33;--text:#e9ecf1;--mute:#8b93a1;--acc:#ff7a59;--acc2:#7c5cff}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  header{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 12px;border-bottom:1px solid var(--line)}
+  .brand{font-weight:700;font-size:18px;margin-bottom:8px}
+  .brand span{color:var(--acc)}
+  .search{display:flex;gap:8px}
+  .search input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:17px;outline:none}
+  .search input:focus{border-color:var(--acc2)}
+  .search button{border:0;border-radius:12px;padding:0 16px;background:var(--acc);color:#fff;font-weight:600;font-size:15px}
+  .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
+  .chips::-webkit-scrollbar{display:none}
+  .chip{flex:none;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:14px;cursor:pointer}
+  .chip:active{background:var(--acc2)}
+  .status{color:var(--mute);font-size:13px;padding:8px 12px}
+  .player{position:relative;background:#000;aspect-ratio:16/9;width:100%;max-width:900px;margin:0 auto}
+  .player #yt,.player iframe{position:absolute;inset:0;width:100%;height:100%}
+  .player .audioBox{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#1d2030,#2a1f3d);padding:16px;text-align:center}
+  .player .audioBox img{max-height:100%;max-width:45%;border-radius:12px;margin-right:12px}
+  .player .audioBox .t{font-size:14px;color:var(--mute)}
+  .controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px;max-width:900px;margin:0 auto}
+  .controls button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:10px 16px;font-size:16px}
+  .controls button.main{background:var(--acc);border-color:var(--acc);color:#fff}
+  .controls label{font-size:13px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-left:6px}
+  .counter{color:var(--mute);font-size:13px;min-width:56px;text-align:center}
+  .now{max-width:900px;margin:0 auto;padding:0 14px 8px}
+  .now .txt{font-size:24px;line-height:1.35;font-weight:600}
+  .now .ipa{color:var(--mute);font-size:15px;margin-top:2px}
+  .now .src{color:var(--mute);font-size:13px;margin-top:6px}
+  mark{background:none;color:var(--acc);font-weight:800}
+  ul{list-style:none;margin:0 auto;padding:0 0 60px;max-width:900px}
+  li{padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}
+  li.on{background:#1d2130;border-left:3px solid var(--acc)}
+  li .l{font-size:17px;color:#cfd4de}
+  li .s{font-size:12px;color:var(--mute);margin-top:2px;display:flex;justify-content:space-between;gap:8px}
+  li .s span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Phrase<span>Clip</span></div>
+  <form class="search" id="form">
+    <input id="q" type="search" placeholder="Ketik kata / frasa, mis. good" autocomplete="off" autocapitalize="off" spellcheck="false">
+    <button type="submit">Cari</button>
+  </form>
+  <div class="chips" id="chips"></div>
+</header>
+
+<div class="status" id="status">Memuat data…</div>
+
+<div class="player">
+  <div id="yt"></div>
+  <div class="audioBox" id="audioBox"><img id="cover" alt=""><div class="t" id="audioTitle"></div></div>
+</div>
+<audio id="audio" preload="auto"></audio>
+
+<div class="controls">
+  <button id="prev" aria-label="Sebelumnya">⏮</button>
+  <button id="replay" class="main" aria-label="Putar ulang">▶ Ulang</button>
+  <button id="next" aria-label="Berikutnya">⏭</button>
+  <span class="counter" id="counter">0/0</span>
+  <label><input type="checkbox" id="auto" checked> Auto</label>
+</div>
+
+<div class="now" id="now"></div>
+<ul id="list"></ul>
+
+<script>
+/* ====== KONFIGURASI ====== */
+const INDEX_URL = 'data/index.json';
+const lessonUrl = slug => `data/${slug}.json`;   // ubah jika nama file materi berbeda
+const PAD_BEFORE = 0.15, PAD_AFTER = 0.25, LAST_LINE_LEN = 5, MAX_LEN = 15;
+/* ========================== */
+
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+let corpus = [];          // semua baris dari semua materi
+let results = [];         // hasil pencarian saat ini
+let cur = -1;
+let queryRe = null;
+let ytPlayer = null, ytReady = false, pending = null;
+const audio = $('audio');
+
+/* ---------- Memuat data ---------- */
+async function loadAll(){
+  let idx;
+  try { idx = await (await fetch(INDEX_URL)).json(); }
+  catch(e){ $('status').textContent = 'Gagal memuat ' + INDEX_URL; return; }
+  const lessons = idx.lessons || [];
+  let done = 0, ok = 0, i = 0;
+  const upd = () => $('status').textContent = `Memuat materi ${done}/${lessons.length} • ${corpus.length} kalimat`;
+  upd();
+  async function worker(){
+    while(i < lessons.length){
+      const ls = lessons[i++];
+      try{
+        const r = await fetch(lessonUrl(ls.slug));
+        if(!r.ok) throw 0;
+        const d = await r.json();
+        const lines = d.lines || [];
+        const videoId = d.videoId || ls.videoId || '';
+        const audioUrl = ls.audio || d.audio || '';
+        if(!videoId && !audioUrl) throw 0;
+        lines.forEach((ln, k) => {
+          if(ln.music || !ln.text) return;
+          const next = lines[k+1];
+          let end = next ? next.start : ln.start + LAST_LINE_LEN;
+          if(end - ln.start > MAX_LEN) end = ln.start + MAX_LEN;
+          if(end - ln.start < 1) end = ln.start + 2;
+          corpus.push({
+            slug: ls.slug, title: ls.title || d.title || ls.slug,
+            videoId, audio: audioUrl, image: ls.image || '',
+            start: ln.start, end, text: ln.text, ipa: ln.ipa || ''
+          });
+        });
+        ok++;
+      }catch(e){}
+      done++; upd();
+    }
+  }
+  await Promise.all([worker(),worker(),worker(),worker(),worker()]);
+  $('status').textContent = `${ok} materi • ${corpus.length} kalimat siap dicari`;
+  buildChips();
+  if($('q').value.trim()) search($('q').value, true);
+}
+
+const STOP = new Set('the a an and or but to of in on at for with is are was were be been i you he she it we they me my your this that so do does did not no yes have has had will would can just like as if then than there what when who how my its it\'s i\'m you\'re don\'t that\'s'.split(' '));
+function buildChips(){
+  const freq = {};
+  corpus.forEach(c => (c.text.toLowerCase().match(/[a-z']+/g) || []).forEach(w => {
+    if(w.length > 2 && !STOP.has(w)) freq[w] = (freq[w]||0) + 1;
+  }));
+  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,25).map(x=>x[0]);
+  $('chips').innerHTML = top.map(w => `<span class="chip" data-w="${esc(w)}">${esc(w)}</span>`).join('');
+}
+$('chips').addEventListener('click', e => {
+  const w = e.target.dataset.w; if(!w) return;
+  $('q').value = w; search(w);
+});
+
+/* ---------- Pencarian ---------- */
+function search(raw, keep){
+  const q = raw.trim();
+  if(!q){ results = []; render(); return; }
+  const words = q.split(/\s+/).map(reEsc).join('\\s+');
+  // cocokkan sebagai kata utuh (apostrof dianggap bagian kata)
+  queryRe = new RegExp(`(?<![\\p{L}\\p{N}'])(${words})(?![\\p{L}\\p{N}'])`, 'iu');
+  results = corpus.filter(c => queryRe.test(c.text));
+  if(!keep) cur = -1;
+  render();
+  $('status').textContent = `${results.length} klip untuk “${q}” dari ${new Set(results.map(r=>r.slug)).size} materi`;
+  if(!keep && results.length) play(0);
+}
+$('form').addEventListener('submit', e => { e.preventDefault(); search($('q').value); $('q').blur(); });
+
+function hl(text){
+  if(!queryRe) return esc(text);
+  const g = new RegExp(queryRe.source, 'giu');
+  let out = '', last = 0, m;
+  while((m = g.exec(text))){
+    out += esc(text.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>';
+    last = m.index + m[0].length;
+    if(m[0].length === 0) g.lastIndex++;
+  }
+  return out + esc(text.slice(last));
+}
+
+function fmt(t){ t = Math.floor(t); return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0'); }
+
+function render(){
+  $('list').innerHTML = results.map((r,i) =>
+    `<li data-i="${i}" class="${i===cur?'on':''}"><div class="l">${hl(r.text)}</div>
+     <div class="s"><span>${esc(r.title)}</span><span>${fmt(r.start)}</span></div></li>`).join('');
+  $('counter').textContent = `${cur+1}/${results.length}`;
+}
+$('list').addEventListener('click', e => {
+  const li = e.target.closest('li'); if(li) play(+li.dataset.i);
+});
+
+/* ---------- Pemutar ---------- */
+function onYouTubeIframeAPIReady(){
+  ytPlayer = new YT.Player('yt', {
+    playerVars:{playsinline:1, rel:0, modestbranding:1, controls:1},
+    events:{
+      onReady(){ ytReady = true; if(pending != null){ play(pending); pending = null; } },
+      onStateChange(e){ if(e.data === YT.PlayerState.ENDED) clipEnded(); }
+    }
+  });
+}
+const tag = document.createElement('script');
+tag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(tag);
+
+function clipEnded(){ if($('auto').checked && cur < results.length-1) play(cur+1); }
+
+function play(i){
+  if(i < 0 || i >= results.length) return;
+  const r = results[i];
+  cur = i;
+  render();
+  const li = $('list').querySelector('li.on'); if(li) li.scrollIntoView({block:'nearest', behavior:'smooth'});
+  $('now').innerHTML = `<div class="txt">${hl(r.text)}</div><div class="ipa">${esc(r.ipa)}</div><div class="src">${esc(r.title)} • ${fmt(r.start)}</div>`;
+
+  const start = Math.max(0, r.start - PAD_BEFORE), end = r.end + PAD_AFTER;
+  audio.pause();
+  if(r.videoId){
+    $('audioBox').style.display = 'none';
+    if(!ytReady){ pending = i; return; }
+    ytPlayer.loadVideoById({videoId:r.videoId, startSeconds:start, endSeconds:end});
+  } else {
+    if(ytReady) ytPlayer.pauseVideo();
+    $('audioBox').style.display = 'flex';
+    $('cover').src = r.image; $('cover').style.display = r.image ? '' : 'none';
+    $('audioTitle').textContent = r.title;
+    const go = () => { audio.currentTime = start; audio.play().catch(()=>{}); };
+    audio._end = end;
+    if(audio.getAttribute('data-src') !== r.audio){
+      audio.setAttribute('data-src', r.audio);
+      audio.src = r.audio;
+      audio.addEventListener('loadedmetadata', go, {once:true});
+      audio.load();
+    } else go();
+  }
+}
+audio.addEventListener('timeupdate', () => {
+  if(audio._end && audio.currentTime >= audio._end){ audio._end = 0; audio.pause(); clipEnded(); }
+});
+
+$('prev').onclick = () => play(cur-1);
+$('next').onclick = () => play(cur+1);
+$('replay').onclick = () => { if(cur >= 0) play(cur); };
+
+loadAll();
+</script>
+</body>
+</html>
