@@ -32,10 +32,10 @@
   .list::after{content:'';display:block;height:70%}
   .list ul{margin:0;padding:0;list-style:none}
   .list li{position:relative;padding:16px 28px 16px 0;border-top:1px solid var(--line);cursor:pointer;
-           font-size:21px;line-height:1.5;color:#7b808a;transition:font-size .25s,color .25s}
+           font-size:21px;line-height:1.5;color:#7b808a}
   .list li:first-child{border-top:0}
   .list li .n{position:absolute;right:0;top:12px;font-size:14px;color:#c3c6cc}
-  .list li.on{font-size:32px;line-height:1.55;color:var(--text);padding-top:20px;padding-bottom:20px}
+  .list li.on{font-size:32px;line-height:1.55;color:var(--text);padding-top:10px;padding-bottom:20px;border-top-color:transparent}
   .list li .ipa{display:none;font-size:15px;line-height:1.4;color:var(--mute);margin-top:6px}
   .list li.on .ipa{display:block}
   .list b{font-weight:800;font-size:1.12em;color:#000}
@@ -213,10 +213,13 @@ $('list').addEventListener('click', e => {
   const li = e.target.closest('li'); if(li) play(+li.dataset.i);
 });
 
-/* klip aktif digulirkan ke bagian atas daftar; klip berikutnya bergilir ke bawahnya */
+/* klip aktif digulirkan tepat ke bawah baris tombol play; klip berikutnya bergilir di bawahnya.
+   Ukuran font berubah seketika (tanpa transisi), jadi offsetTop yang dibaca di sini sudah final
+   dan baris aktif tidak terpotong. */
 function scrollToCurrent(){
   const li = $('list').children[cur]; if(!li) return;
-  $('listBox').scrollTo({top: Math.max(0, li.offsetTop - 4), behavior:'smooth'});
+  void li.offsetHeight;                                   // paksa layout ulang dulu
+  $('listBox').scrollTo({top: Math.max(0, li.offsetTop), behavior:'smooth'});
 }
 
 /* ---------- Pemutar ---------- */
@@ -225,7 +228,11 @@ function onYouTubeIframeAPIReady(){
     playerVars:{playsinline:1, rel:0, modestbranding:1, controls:1},
     events:{
       onReady(){ ytReady = true; if(pending != null){ play(pending); pending = null; } },
-      onStateChange(e){ if(e.data === YT.PlayerState.ENDED) clipEnded(); }
+      onStateChange(e){
+        if(e.data === YT.PlayerState.PLAYING) clipActive = true;      // klip benar-benar mulai
+        else if(e.data === YT.PlayerState.ENDED) clipEnded();
+      },
+      onError(){ clipActive = true; clipEnded(); }                    // video tak bisa diputar -> lanjut
     }
   });
 }
@@ -233,10 +240,25 @@ const tag = document.createElement('script');
 tag.src = 'https://www.youtube.com/iframe_api';
 document.head.appendChild(tag);
 
-function clipEnded(){ if($('auto').checked && cur < results.length-1) play(cur+1); }
+/* Urutan: hanya klip yang sudah PLAYING yang boleh memicu lanjut, dan hanya sekali (clipActive),
+   jadi event ENDED ganda/basi dari YouTube tidak membuat baris loncat (1 -> 3).
+   Jeda 0,5 detik sebelum klip berikutnya. */
+const GAP_MS = 500;
+let clipActive = false, advTimer = null;
+function clipEnded(){
+  if(!clipActive) return;
+  clipActive = false;
+  if($('auto').checked && cur < results.length-1){
+    const from = cur;
+    clearTimeout(advTimer);
+    advTimer = setTimeout(() => { if(cur === from) play(from + 1); }, GAP_MS);
+  }
+}
 
 function play(i){
   if(i < 0 || i >= results.length) return;
+  clearTimeout(advTimer);
+  clipActive = false;
   const r = results[i];
   cur = i;
   document.querySelectorAll('#list li.on').forEach(x => x.classList.remove('on'));
