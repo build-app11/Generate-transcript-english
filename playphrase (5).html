@@ -121,6 +121,7 @@ body::after{left:-40px;bottom:120px;width:110px;height:110px;border-radius:30px;
   #app{column-gap:36px}
 }
 
+
 /* ruang untuk bilah tab bawah */
 #app{height:calc(100dvh - 84px - env(safe-area-inset-bottom,0px))}
 .bar{padding-bottom:12px}
@@ -372,18 +373,18 @@ $('shield').onclick = toggle;
 loadAll();
 </script>
 <script>
-/* Bilah tab bawah Learning Fun (jangan dipasang di player video/audio).
+/* Bilah tab bawah Learning Fun.
    Ubah TABS untuk menambah/mengganti menu,  */
 (() => {
   const TABS = [
+    { id: 'cari',     label: 'Cari',     href: 'playphrase.html', match: ['playphrase', 'phrase'],
+      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' },
     { id: 'video',    label: 'Video',    href: './',            match: ['', 'index'],
       icon: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>' },
     { id: 'path',     label: 'Path',     href: 'path.html',     match: ['path'],
       icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
     { id: 'kosakata', label: 'Kosakata', href: 'kosakata.html', match: ['kosakata'],
-      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' },
-    { id: 'cari',     label: 'Cari',     href: 'playphrase.html', match: ['playphrase', 'phrase'],
-      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' }
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
   ];
   const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const css = document.createElement('style');
