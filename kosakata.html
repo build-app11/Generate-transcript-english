@@ -2,12 +2,16 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Latihan Kosakata</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>Latihan Kosakata · Learning Fun</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap">
 <style>
 :root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-ui:"Albert Sans",system-ui,sans-serif;--font-display:"Fredoka","Albert Sans",system-ui,sans-serif}
-@media (prefers-color-scheme:dark){:root{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding:0 20px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -62,9 +66,90 @@ h1{margin:0;font:700 2rem/1.15 var(--font-display);color:var(--head)}
 .foot .go{width:100%}
 .res h2{margin:0 0 8px;font:700 1.6rem var(--font-display);color:var(--head)}
 .res ul{padding-left:1.2rem;line-height:1.7}
+
+/* ===== Responsif, lega & eye-catching ===== */
+:root{--yellow:#FFD23F;--coral:#FF6B5E;--mint:#2ED3A0;--purple:#A07CFA;--blue:#4C84FF;--surface:var(--bar)}
+html{-webkit-text-size-adjust:100%}
+body{font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-inline:clamp(14px,4vw,40px)}
+body::before,body::after{content:"";position:fixed;z-index:-1;border:2.5px solid var(--ink);pointer-events:none}
+body::before{right:-40px;top:60px;width:130px;height:130px;border-radius:50%;background:var(--yellow)}
+body::after{left:-44px;bottom:110px;width:110px;height:110px;border-radius:30px;background:var(--mint);transform:rotate(18deg)}
+:focus-visible{outline:3px solid var(--blue)!important;outline-offset:3px}
+main{max-width:36rem;padding-block:clamp(20px,5vw,48px) 64px;gap:0}
+#setup,#quiz{display:flex;flex-direction:column;gap:28px;padding:clamp(20px,5vw,36px);background:var(--bar);border:2.5px solid var(--ink);border-radius:26px;box-shadow:7px 7px 0 var(--shadow)}
+#quiz{gap:0}
+#quiz[hidden],#setup[hidden]{display:none}
+.g{gap:12px}
+h1{font-size:clamp(1.9rem,6vw,2.7rem);line-height:1.1;letter-spacing:-.01em;text-wrap:balance}
+.g:has(h1){gap:14px}
+.lead{font-size:1.05rem;line-height:1.6;max-width:56ch}
+.lab{font:600 1.05rem var(--font-display)}
+.chips{gap:12px}
+.chip{font:600 1rem var(--font-display);padding:10px 18px;border-radius:999px;transition:transform .12s ease,box-shadow .12s ease}
+.chip:hover,.go:not(:disabled):hover{transform:translate(-1px,-1px)}
+.chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.chip[aria-pressed=true]{background:var(--accent);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.ddb,.lsel{padding:14px 18px;border-radius:999px}
+.lsel{appearance:none;-webkit-appearance:none;box-shadow:3px 3px 0 var(--shadow);cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 24px) 55%,calc(100% - 18px) 55%;background-size:6px 6px;background-repeat:no-repeat;padding-right:44px}
+.ls{margin-top:12px;border:2.5px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--shadow)}
+.ls label{padding:14px 16px;gap:12px}
+.go{font:600 1.15rem var(--font-display);padding:16px 24px;border:2.5px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--on);box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.go:not(:disabled):active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+.go:disabled{background:var(--line);color:var(--muted);box-shadow:none;opacity:1}
+#msg{min-height:1.5em;text-align:center}
+#quiz .top{gap:16px;margin-bottom:clamp(24px,5vw,40px)}
+.x{border-radius:999px;padding:9px 16px;border-width:2.5px;box-shadow:3px 3px 0 var(--shadow)}
+.bar{height:16px;border:2.5px solid var(--ink);border-radius:999px;background:var(--bar)}
+.bar i{background:var(--mint);border-right:2.5px solid var(--ink)}
+.bar i[style*="width: 0%"],.bar i[style*="width:0%"]{border-right:0}
+.n{font-family:var(--font-display);font-size:1rem}
+.qzb{gap:clamp(20px,4vw,32px)}
+.qzt{font-size:.95rem;padding:10px 18px;border-radius:999px;border:2px solid var(--ink)}
+.qzg{gap:clamp(14px,3vw,24px)}
+.qzc{gap:clamp(12px,2.5vw,18px)}
+.qzo{font:600 1.1rem/1.3 var(--font-display);padding:clamp(14px,3vw,20px) 14px;border-radius:16px;box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.qzo:not(:disabled):hover{transform:translate(-1px,-1px)}
+.qzo:not(:disabled):active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.qzo.ok,.qzo.bad{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.qzw{font-size:clamp(2.2rem,8vw,3.4rem)}
+.qzs{font-size:1.05rem}
+.qzopts{gap:clamp(12px,2.5vw,18px)}
+.qzfb{padding:14px 18px;border-radius:16px;border-width:2.5px}
+.foot{margin-top:clamp(24px,5vw,36px)}
+.res h2{font-size:clamp(1.7rem,5vw,2.2rem);margin-bottom:14px}
+.res ul{line-height:1.8}
+
+@media(max-width:380px){
+  .qzg{grid-template-columns:1fr}
+  .chip{padding:9px 14px}
+}
+@media(min-width:760px){
+  main{max-width:58rem}
+  #setup{display:grid;grid-template-columns:1fr 1fr;column-gap:36px;row-gap:30px;align-items:start}
+  #setup>.g:first-child,#setup>.dd,#setup>.go,#setup>#msg{grid-column:1/-1}
+  #setup>.go{max-width:22rem;justify-self:center;width:100%}
+  body::before{width:180px;height:180px;right:-50px;top:-30px}
+  body::after{width:150px;height:150px;left:-60px;bottom:40px}
+  .qzb{max-width:44rem;margin-inline:auto;width:100%}
+  .foot{max-width:44rem;margin-inline:auto}
+}
+
+/* ===== Header ringkas ===== */
+.lf-hd{max-width:36rem;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 0 0;display:flex;align-items:center;gap:12px}
+.lf-back{display:grid;place-items:center;width:42px;height:42px;border:2.5px solid var(--ink);border-radius:50%;background:var(--bar);color:var(--fg);text-decoration:none;font:700 1.3rem/1 var(--font-display);box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.lf-back:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.lf-brand{display:inline-flex;align-items:center;gap:10px;font:700 1.25rem/1 var(--font-display);color:var(--head)}
+.lf-brand{text-decoration:none}
+.lf-logo{display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--ink);border-radius:10px;background:var(--yellow);color:var(--on);box-shadow:2px 2px 0 var(--shadow);font-size:.9rem}
+.lf-hd+main{padding-top:clamp(16px,3vw,28px)}
+body:has(#quiz:not([hidden])) .lf-hd{display:none}
+body:has(#quiz:not([hidden])) .lf-hd+main{padding-top:clamp(20px,5vw,48px)}
+@media(min-width:760px){.lf-hd{max-width:58rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 </head>
 <body>
+<header class="lf-hd"><a class="lf-back" href="./" aria-label="Kembali ke daftar latihan">←</a><a class="lf-brand" href="./"><span class="lf-logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff" stroke="#14162B" stroke-width="2" stroke-linejoin="round"/></svg></span>Learning Fun</a></header>
 <main>
   <section id="setup">
     <div class="g">
@@ -173,40 +258,58 @@ const zBody=()=>{const b=$('#body');b.textContent='';return b};
 const zOk=(t,on)=>{const o=$('#ok');o.textContent=t;o.disabled=!on};
 const zProg=(f,l)=>{$('#bar').style.width=Math.round(f*100)+'%';$('#n').textContent=l||''};
 
+const POOLS={},USED=new Set();   /* kandidat kata per pilihan pelajaran; kata yang sudah keluar agar soal baru tidak mengulang */
+let tok=0;
+async function getPool(ls){
+  const key=ls.map(l=>l.slug).join('|');
+  if(!POOLS[key]){const all=(await Promise.all(ls.map(loadWords))).flat();POOLS[key]=candidates(all)}
+  return POOLS[key]}
+async function build(){
+  const pool=await getPool(picked());
+  if(pool.length<4)throw new Error('Kata yang cocok terlalu sedikit di pelajaran ini.');
+  const m=opt.mode==='match',want=m?opt.n:opt.n+3;
+  let fresh=pool.filter(c=>!USED.has(c.en));
+  if(fresh.length<want+6){USED.clear();fresh=pool}
+  const g=await makePairs(fresh,want);
+  if(g.length<(m?3:4))throw new Error('Arti kata tidak berhasil dimuat. Pastikan internet aktif lalu coba lagi.');
+  g.forEach(p=>USED.add(p.en));
+  return{mode:opt.mode,list:g,i:0,total:m?g.length:Math.min(opt.n,g.length),score:0,log:[],phase:'ask'}}
+
 async function start(){
-  const ls=picked();if(!ls.length)return;
-  $('#go').disabled=true;msg('Mengambil kata dari pelajaran…');
-  try{
-    const all=(await Promise.all(ls.map(loadWords))).flat();
-    const cands=candidates(all);
-    if(cands.length<4){msg('Kata yang cocok terlalu sedikit di pelajaran ini.',true);$('#go').disabled=false;return}
-    msg('Mencari arti kata…');
-    const want=opt.mode==='match'?opt.n:opt.n+3,g=await makePairs(cands,want);
-    if(g.length<(opt.mode==='match'?3:4)){msg('Arti kata tidak berhasil dimuat. Pastikan internet aktif lalu coba lagi.',true);$('#go').disabled=false;return}
-    Z={mode:opt.mode,list:g,i:0,total:opt.mode==='match'?g.length:Math.min(opt.n,g.length),bad:new Set(),score:0,wrong:[],phase:'ask'};
-    $('#setup').hidden=true;$('#quiz').hidden=false;msg('');syncGo();showItem();
-  }catch(e){msg('Gagal memuat pelajaran'+(e&&e.message?': '+e.message:'.'),true);syncGo()}
-}
+  if(!picked().length)return;
+  const my=++tok;$('#go').disabled=true;msg('Menyiapkan soal…');
+  try{const z=await build();if(my!==tok)return;Z=z;$('#setup').hidden=true;$('#quiz').hidden=false;msg('');showItem()}
+  catch(e){if(my===tok)msg(e&&e.message?e.message:'Gagal memuat soal.',true)}
+  if(my===tok)syncGo()}
+
+/* soal baru: tetap di layar latihan, langsung cari soal berikutnya */
+async function again(){
+  const my=++tok;Z=null;zProg(0,'');zOk('OK',false);
+  zBody().appendChild(mk('div','qzs','Mencari soal baru…'));
+  try{const z=await build();if(my!==tok)return;Z=z;showItem()}
+  catch(e){if(my!==tok)return;Z={phase:'retry'};zBody().appendChild(mk('div','qzs',e&&e.message?e.message:'Gagal memuat soal.'));zOk('Coba lagi',true)}}
+
 function showItem(){Z.phase='ask';zOk('OK',false);Z.mode==='match'?showMatch():showTrans()}
 
 function showMatch(){
   const my=Z,b=zBody(),ie=opt.dir==='ie',pairs=my.list;
-  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+')'));
+  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+'). Jawaban salah juga dihitung, hasilnya dibahas di akhir.'));
   const g=mk('div','qzg'),ca=mk('div','qzc'),cb=mk('div','qzc');g.append(ca,cb);b.appendChild(g);
   const A=pairs.map((p,k)=>({k,t:ie?p.id:p.en})),B=shuf(pairs.map((p,k)=>({k,t:ie?p.en:p.id})));
   let sa=null,sb=null,done=0;zProg(0,'0/'+pairs.length);
   const add=(o,side,col)=>{const x=mk('button','qzo',o.t);x.type='button';
     x.addEventListener('click',()=>{
-      if(Z!==my||my.phase!=='ask'||x.classList.contains('ok'))return;
+      if(Z!==my||my.phase!=='ask'||x.disabled)return;
       if(side==='a'){if(sa)sa.x.classList.remove('sel');sa={o,x}}else{if(sb)sb.x.classList.remove('sel');sb={o,x}}
       x.classList.add('sel');if(!sa||!sb)return;
-      const a1=sa,b1=sb;sa=sb=null;
-      if(a1.o.k===b1.o.k){
-        [a1.x,b1.x].forEach(e=>{e.classList.remove('sel');e.classList.add('ok');e.disabled=true});
-        done++;zProg(done/pairs.length,done+'/'+pairs.length);
-        if(done===pairs.length){my.phase='next';zOk('Lihat hasil',true)}
-      }else{my.bad.add(a1.o.k);[a1.x,b1.x].forEach(e=>{e.classList.remove('sel');e.classList.add('bad')});
-        setTimeout(()=>[a1.x,b1.x].forEach(e=>e.classList.remove('bad')),700)}});
+      const a1=sa,b1=sb;sa=sb=null;a1.x.classList.remove('sel');b1.x.classList.remove('sel');
+      const ok=a1.o.k===b1.o.k,p=pairs[a1.o.k];
+      my.log.push({ask:a1.o.t,right:ie?p.en:p.id,picked:b1.o.t,ok});
+      a1.x.disabled=true;a1.x.classList.add(ok?'ok':'bad');
+      if(ok){b1.x.disabled=true;b1.x.classList.add('ok')}
+      else{b1.x.classList.add('bad');setTimeout(()=>b1.x.classList.remove('bad'),700)}
+      done++;zProg(done/pairs.length,done+'/'+pairs.length);
+      if(done===pairs.length){my.phase='next';zOk('Lihat hasil',true)}});
     col.appendChild(x)};
   A.forEach(o=>add(o,'a',ca));B.forEach(o=>add(o,'b',cb))}
 
@@ -224,29 +327,34 @@ function showTrans(){
     x.addEventListener('click',()=>{
       if(Z!==my||my.phase!=='ask')return;my.phase='next';
       [...box.children].forEach(y=>{y.disabled=true;if(y.textContent===right)y.classList.add('ok')});
-      fb.hidden=false;
-      if(o===right){my.score++;fb.className='qzfb ok';fb.textContent='✓ Benar'}
-      else{x.classList.add('bad');my.wrong.push(p.en+' = '+p.id);fb.className='qzfb bad';fb.textContent='✗ Jawaban: '+right}
+      fb.hidden=false;const ok=o===right;
+      my.log.push({ask,right,picked:o,ok});
+      if(ok){my.score++;fb.className='qzfb ok';fb.textContent='✓ Benar'}
+      else{x.classList.add('bad');fb.className='qzfb bad';fb.textContent='✗ Jawaban: '+right}
       zOk(my.i+1>=tot?'Lihat hasil':'Lanjut',true)});
     box.appendChild(x)})}
 
 function result(){
   Z.phase='result';zProg(1,'');
-  const m=Z.mode==='match',t=Z.total,
-    wrong=m?[...Z.bad].sort((a,b)=>a-b).map(k=>Z.list[k].en+' = '+Z.list[k].id):Z.wrong,
-    score=m?t-Z.bad.size:Z.score,r=mk('div','res');
+  const log=Z.log,good=log.filter(x=>x.ok),bad=log.filter(x=>!x.ok),r=mk('div','res');
   zBody().appendChild(r);
-  r.appendChild(mk('h2',null,'Skor '+score+' dari '+t));
-  if(wrong.length){r.appendChild(mk('p','lead','Yang perlu diulang:'));const ul=mk('ul');wrong.forEach(x=>ul.appendChild(mk('li',null,x)));r.appendChild(ul)}
-  else r.appendChild(mk('p','lead','Semua benar. Mantap!'));
+  r.appendChild(mk('h2',null,'Skor '+good.length+' dari '+log.length));
+  if(bad.length){
+    r.appendChild(mk('p','lead','Yang salah:'));
+    const ul=mk('ul');bad.forEach(x=>ul.appendChild(mk('li',null,x.ask+' → pilihanmu “'+x.picked+'”, yang benar “'+x.right+'”')));r.appendChild(ul)}
+  if(good.length){
+    r.appendChild(mk('p','lead','Yang benar:'));
+    const ul=mk('ul');good.forEach(x=>ul.appendChild(mk('li',null,x.ask+' = '+x.right)));r.appendChild(ul)}
+  else r.appendChild(mk('p','lead','Belum ada yang benar kali ini. Coba lagi.'));
+  if(!bad.length)r.appendChild(mk('p','lead','Semua benar. Mantap!'));
   zOk('Soal baru',true)}
 
 $('#ok').addEventListener('click',()=>{
   if(!Z)return;
-  if(Z.phase==='result'){exit(true);return}
+  if(Z.phase==='result'||Z.phase==='retry'){again();return}
   if(Z.phase==='next'){if(Z.mode==='match'){result();return}Z.i++;Z.i>=Z.total?result():showItem()}});
-function exit(again){Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;$('#go').disabled=false;syncGo();if(again)start()}
-$('#x').addEventListener('click',()=>exit(false));
+function exit(){tok++;Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;syncGo()}
+$('#x').addEventListener('click',exit);
 $('#go').addEventListener('click',start);
 loadIndex();
 </script>
