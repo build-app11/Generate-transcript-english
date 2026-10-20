@@ -2,75 +2,107 @@
 <html lang="id">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PhraseClip</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PhraseClip · Learning Fun</title>
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&family=Gentium+Plus:ital,wght@0,400;1,400&display=swap">
 <style>
-  :root{--bg:#0f1115;--panel:#181b22;--line:#262a33;--text:#e9ecf1;--mute:#8b93a1;--acc:#ff7a59;--acc2:#7c5cff}
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
-  header{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 12px;border-bottom:1px solid var(--line)}
-  .brand{font-weight:700;font-size:18px;margin-bottom:8px}
-  .brand span{color:var(--acc)}
-  .search{display:flex;gap:8px}
-  .search input{flex:1;min-width:0;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-size:17px;outline:none}
-  .search input:focus{border-color:var(--acc2)}
-  .search button{border:0;border-radius:12px;padding:0 16px;background:var(--acc);color:#fff;font-weight:600;font-size:15px}
-  .chips{display:flex;gap:8px;overflow-x:auto;padding:10px 0 2px;scrollbar-width:none}
-  .chips::-webkit-scrollbar{display:none}
-  .chip{flex:none;padding:6px 12px;border-radius:999px;background:var(--panel);border:1px solid var(--line);color:var(--text);font-size:14px;cursor:pointer}
-  .chip:active{background:var(--acc2)}
-  .status{color:var(--mute);font-size:13px;padding:8px 12px}
-  .player{position:relative;background:#000;aspect-ratio:16/9;width:100%;max-width:900px;margin:0 auto}
-  .player #yt,.player iframe{position:absolute;inset:0;width:100%;height:100%}
-  .player .audioBox{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#1d2030,#2a1f3d);padding:16px;text-align:center}
-  .player .audioBox img{max-height:100%;max-width:45%;border-radius:12px;margin-right:12px}
-  .player .audioBox .t{font-size:14px;color:var(--mute)}
-  .controls{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px;max-width:900px;margin:0 auto}
-  .controls button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:12px;padding:10px 16px;font-size:16px}
-  .controls button.main{background:var(--acc);border-color:var(--acc);color:#fff}
-  .controls label{font-size:13px;color:var(--mute);display:flex;align-items:center;gap:6px;margin-left:6px}
-  .counter{color:var(--mute);font-size:13px;min-width:56px;text-align:center}
-  .now{max-width:900px;margin:0 auto;padding:0 14px 8px}
-  .now .txt{font-size:24px;line-height:1.35;font-weight:600}
-  .now .ipa{color:var(--mute);font-size:15px;margin-top:2px}
-  .now .src{color:var(--mute);font-size:13px;margin-top:6px}
-  mark{background:none;color:var(--acc);font-weight:800}
-  ul{list-style:none;margin:0 auto;padding:0 0 60px;max-width:900px}
-  li{padding:12px 14px;border-top:1px solid var(--line);cursor:pointer}
-  li.on{background:#1d2130;border-left:3px solid var(--acc)}
-  li .l{font-size:17px;color:#cfd4de}
-  li .s{font-size:12px;color:var(--mute);margin-top:2px;display:flex;justify-content:space-between;gap:8px}
-  li .s span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+:root{--bg:#EEF2FF;--surface:#FFFFFF;--ink:#14162B;--on:#14162B;--muted:#4F5575;--line:#14162B;--shadow:#14162B;--rule:#D3D9F2;--ipa:#1F5FB8;--yellow:#FFD23F;--coral:#FF6B5E;--blue:#4C84FF;--mint:#2ED3A0;--purple:#A07CFA;--font:'Albert Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'Fredoka','Albert Sans',system-ui,sans-serif;--font-ipa:'Gentium Plus','Charis SIL','Noto Serif','DejaVu Serif',serif;color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;--ipa:#8DB8FF;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;--ipa:#8DB8FF;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+button,input{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+#app{height:100dvh;display:flex;flex-direction:column;max-width:900px;margin:0 auto}
+
+header{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
+.brand{display:inline-flex;align-items:center;gap:10px;font:700 1.3rem/1 var(--font-display)}
+.logo{display:grid;place-items:center;width:36px;height:36px;border:2.5px solid var(--line);border-radius:11px;background:var(--yellow);color:var(--on);box-shadow:3px 3px 0 var(--shadow);font-size:.95rem;padding-left:2px}
+.status{font-size:.85rem;font-weight:600;color:var(--muted);text-align:right;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.player{flex:none;position:relative;background:#000;aspect-ratio:16/9;width:calc(100% - 32px);max-height:42dvh;margin:4px auto 0;border:2.5px solid var(--line);border-radius:20px;box-shadow:5px 5px 0 var(--shadow);overflow:hidden}
+.player #yt,.player iframe{position:absolute;inset:0;width:100%;height:100%}
+@supports (aspect-ratio:1){.player{width:min(100% - 32px,calc(42dvh*16/9))}}
+
+.shield{position:absolute;inset:0;z-index:2;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;user-select:none}
+.shield.cover{background:#000}
+.shield .big{display:none;width:76px;height:76px;border-radius:50%;background:var(--yellow);border:2.5px solid var(--line);box-shadow:4px 4px 0 var(--shadow);color:var(--on);font-size:30px;align-items:center;justify-content:center;padding-left:5px}
+.shield.show .big{display:flex}
+
+.ctrl{flex:none;display:flex;align-items:center;gap:8px;padding:14px 16px 10px}
+.ctrl .title{flex:1;min-width:0;font-size:.85rem;font-weight:600;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ctrl button{display:grid;place-items:center;min-width:42px;height:42px;padding:0 12px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-size:1rem;cursor:pointer;box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.ctrl button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.ctrl button.main{background:var(--yellow);color:var(--on)}
+.ctrl label{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);font:600 .9rem var(--font-display);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.ctrl label input{accent-color:var(--mint);width:16px;height:16px;margin:0}
+.counter{font:600 .9rem var(--font-display);color:var(--muted);min-width:46px;text-align:center}
+
+.list{flex:1;min-height:0;overflow-y:auto;position:relative;margin:0 16px;padding:0 20px;background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);scroll-behavior:smooth;overscroll-behavior:contain}
+.list::after{content:'';display:block;height:70%}
+.list ul{margin:0;padding:0;list-style:none}
+.list li{position:relative;padding:16px 30px 16px 0;border-top:2px dashed var(--rule);cursor:pointer;font-family:var(--font-display);font-weight:500;font-size:1.3rem;line-height:1.45;color:var(--muted)}
+.list li:first-child{border-top:0}
+.list li .n{position:absolute;right:0;top:14px;font:700 .85rem var(--font);color:var(--muted);opacity:.7}
+.list li.on{font-weight:600;font-size:2rem;line-height:1.45;color:var(--ink);padding-top:14px;padding-bottom:20px;border-top-color:transparent}
+.list li .ipa{display:none;font-family:var(--font-ipa);font-weight:400;font-size:1rem;line-height:1.4;color:var(--ipa);margin-top:6px}
+.list li.on .ipa{display:block}
+.list b{font-weight:700;color:var(--on);background:var(--yellow);border-radius:8px;padding:0 5px;box-decoration-break:clone;-webkit-box-decoration-break:clone}
+.empty{padding:28px 0;color:var(--muted);font-weight:600}
+
+.bar{flex:none;padding:14px 16px calc(12px + env(safe-area-inset-bottom,0px))}
+.chips{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 6px 12px 2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:7px 16px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 1.05rem var(--font-display);cursor:pointer;box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.chip:active{background:var(--yellow);color:var(--on);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.box{display:flex;align-items:center;gap:8px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);box-shadow:4px 4px 0 var(--shadow);padding:5px 6px 5px 18px}
+.box input{flex:1;min-width:0;border:0;outline:0;font-size:1.2rem;background:transparent;color:var(--ink);padding:6px 0}
+.box input::placeholder{color:var(--muted)}
+.box:focus-within{outline:3px solid var(--blue);outline-offset:3px}
+.box button{display:grid;place-items:center;border:2.5px solid var(--line);width:40px;height:40px;border-radius:50%;background:var(--surface);color:var(--ink);font-size:1rem;flex:none;cursor:pointer}
+.box button.go{background:var(--yellow);color:var(--on)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+.lf-left{display:flex;align-items:center;gap:10px;min-width:0}
+.lf-back{flex:none;display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);text-decoration:none;font:700 1.3rem/1 var(--font-display);box-shadow:3px 3px 0 var(--shadow)}
+.lf-back:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">Phrase<span>Clip</span></div>
-  <form class="search" id="form">
-    <input id="q" type="search" placeholder="Ketik kata / frasa, mis. good" autocomplete="off" autocapitalize="off" spellcheck="false">
-    <button type="submit">Cari</button>
-  </form>
-  <div class="chips" id="chips"></div>
-</header>
+<div id="app">
+  <header>
+    <div class="lf-left"><a class="lf-back" href="index.html" aria-label="Kembali ke index">←</a><div class="brand"><span class="logo">▶</span>PhraseClip</div></div>
+    <div class="status" id="status">Memuat data…</div>
+  </header>
 
-<div class="status" id="status">Memuat data…</div>
+  <div class="player"><div id="yt"></div><div class="shield cover show" id="shield"><span class="big">▶</span></div></div>
 
-<div class="player">
-  <div id="yt"></div>
-  <div class="audioBox" id="audioBox"><img id="cover" alt=""><div class="t" id="audioTitle"></div></div>
+  <div class="ctrl">
+    <div class="title" id="title">—</div>
+    <button id="prev" aria-label="Sebelumnya">⏮</button>
+    <button id="replay" class="main" aria-label="Ulang">▶</button>
+    <button id="next" aria-label="Berikutnya">⏭</button>
+    <span class="counter" id="counter">0/0</span>
+    <label><input type="checkbox" id="auto" checked>Auto</label>
+  </div>
+
+  <div class="list" id="listBox"><ul id="list"></ul></div>
+
+  <div class="bar">
+    <div class="chips" id="chips"></div>
+    <form class="box" id="form">
+      <input id="q" type="search" placeholder="Ketik kata atau frasa…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search">
+      <button type="button" id="clear" aria-label="Hapus">✕</button>
+      <button type="submit" class="go" aria-label="Cari">➜</button>
+    </form>
+  </div>
 </div>
-<audio id="audio" preload="auto"></audio>
-
-<div class="controls">
-  <button id="prev" aria-label="Sebelumnya">⏮</button>
-  <button id="replay" class="main" aria-label="Putar ulang">▶ Ulang</button>
-  <button id="next" aria-label="Berikutnya">⏭</button>
-  <span class="counter" id="counter">0/0</span>
-  <label><input type="checkbox" id="auto" checked> Auto</label>
-</div>
-
-<div class="now" id="now"></div>
-<ul id="list"></ul>
 
 <script>
 /* ====== KONFIGURASI ====== */
@@ -83,21 +115,21 @@ const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const reEsc = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
-let corpus = [];          // semua baris dari semua materi
+let corpus = [];          // semua baris transkrip dari materi video
 let results = [];         // hasil pencarian saat ini
 let cur = -1;
 let queryRe = null;
 let ytPlayer = null, ytReady = false, pending = null;
-const audio = $('audio');
+let loading = true;
 
-/* ---------- Memuat data ---------- */
+/* ---------- Memuat data (hanya materi berupa video) ---------- */
 async function loadAll(){
   let idx;
   try { idx = await (await fetch(INDEX_URL)).json(); }
   catch(e){ $('status').textContent = 'Gagal memuat ' + INDEX_URL; return; }
-  const lessons = idx.lessons || [];
+  const lessons = (idx.lessons || []).filter(l => l.videoId);   // lewati podcast/audio
   let done = 0, ok = 0, i = 0;
-  const upd = () => $('status').textContent = `Memuat materi ${done}/${lessons.length} • ${corpus.length} kalimat`;
+  const upd = () => $('status').textContent = `Memuat ${done}/${lessons.length} • ${corpus.length} kalimat`;
   upd();
   async function worker(){
     while(i < lessons.length){
@@ -107,9 +139,8 @@ async function loadAll(){
         if(!r.ok) throw 0;
         const d = await r.json();
         const lines = d.lines || [];
-        const videoId = d.videoId || ls.videoId || '';
-        const audioUrl = ls.audio || d.audio || '';
-        if(!videoId && !audioUrl) throw 0;
+        const videoId = d.videoId || ls.videoId;
+        if(!videoId) throw 0;
         lines.forEach((ln, k) => {
           if(ln.music || !ln.text) return;
           const next = lines[k+1];
@@ -117,8 +148,7 @@ async function loadAll(){
           if(end - ln.start > MAX_LEN) end = ln.start + MAX_LEN;
           if(end - ln.start < 1) end = ln.start + 2;
           corpus.push({
-            slug: ls.slug, title: ls.title || d.title || ls.slug,
-            videoId, audio: audioUrl, image: ls.image || '',
+            slug: ls.slug, title: ls.title || d.title || ls.slug, videoId,
             start: ln.start, end, text: ln.text, ipa: ln.ipa || ''
           });
         });
@@ -128,46 +158,63 @@ async function loadAll(){
     }
   }
   await Promise.all([worker(),worker(),worker(),worker(),worker()]);
-  $('status').textContent = `${ok} materi • ${corpus.length} kalimat siap dicari`;
-  buildChips();
-  if($('q').value.trim()) search($('q').value, true);
+  loading = false;
+  $('status').textContent = `${ok} video • ${corpus.length} kalimat`;
+  if($('q').value.trim()) search($('q').value, true); else showSuggestions();
 }
 
-const STOP = new Set('the a an and or but to of in on at for with is are was were be been i you he she it we they me my your this that so do does did not no yes have has had will would can just like as if then than there what when who how my its it\'s i\'m you\'re don\'t that\'s'.split(' '));
-function buildChips(){
-  const freq = {};
-  corpus.forEach(c => (c.text.toLowerCase().match(/[a-z']+/g) || []).forEach(w => {
-    if(w.length > 2 && !STOP.has(w)) freq[w] = (freq[w]||0) + 1;
-  }));
-  const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,25).map(x=>x[0]);
-  $('chips').innerHTML = top.map(w => `<span class="chip" data-w="${esc(w)}">${esc(w)}</span>`).join('');
+/* ---------- Saran kata ---------- */
+const STOP = new Set('the a an and or but to of in on at for with is are was were be been i you he she it we they me my your this that so do does did not no yes have has had will would can just like as if then than there what when who how its'.split(' '));
+function showSuggestions(){
+  let words = [];
+  if(queryRe && results.length){
+    // kata yang paling sering muncul tepat setelah kata/frasa yang dicari
+    const g = new RegExp(queryRe.source + `\\s+([\\p{L}']+)`, 'iu');
+    const freq = {};
+    results.forEach(r => { const m = r.text.match(g); if(m){ const w = m[m.length-1].toLowerCase(); freq[w] = (freq[w]||0)+1; } });
+    words = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,12).map(x=>x[0]);
+    $('chips').dataset.mode = 'next';
+  } else {
+    const freq = {};
+    corpus.forEach(c => (c.text.toLowerCase().match(/[a-z']+/g) || []).forEach(w => {
+      if(w.length > 2 && !STOP.has(w)) freq[w] = (freq[w]||0) + 1;
+    }));
+    words = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,20).map(x=>x[0]);
+    $('chips').dataset.mode = 'top';
+  }
+  $('chips').innerHTML = words.map(w => `<span class="chip" data-w="${esc(w)}">${esc(w)}</span>`).join('');
 }
 $('chips').addEventListener('click', e => {
   const w = e.target.dataset.w; if(!w) return;
-  $('q').value = w; search(w);
+  const q = $('chips').dataset.mode === 'next' ? ($('q').value.trim() + ' ' + w) : w;
+  $('q').value = q; search(q);
 });
 
 /* ---------- Pencarian ---------- */
 function search(raw, keep){
   const q = raw.trim();
-  if(!q){ results = []; render(); return; }
+  if(!q){ results = []; queryRe = null; cur = -1; render(); showSuggestions(); $('status').textContent = `${corpus.length} kalimat`; return; }
   const words = q.split(/\s+/).map(reEsc).join('\\s+');
   // cocokkan sebagai kata utuh (apostrof dianggap bagian kata)
   queryRe = new RegExp(`(?<![\\p{L}\\p{N}'])(${words})(?![\\p{L}\\p{N}'])`, 'iu');
   results = corpus.filter(c => queryRe.test(c.text));
   if(!keep) cur = -1;
   render();
-  $('status').textContent = `${results.length} klip untuk “${q}” dari ${new Set(results.map(r=>r.slug)).size} materi`;
+  showSuggestions();
+  $('status').textContent = `${results.length} klip • ${new Set(results.map(r=>r.slug)).size} video`;
   if(!keep && results.length) play(0);
 }
 $('form').addEventListener('submit', e => { e.preventDefault(); search($('q').value); $('q').blur(); });
+let t0;
+$('q').addEventListener('input', () => { clearTimeout(t0); t0 = setTimeout(() => search($('q').value), 450); });
+$('clear').onclick = () => { $('q').value = ''; search(''); $('q').focus(); };
 
 function hl(text){
   if(!queryRe) return esc(text);
   const g = new RegExp(queryRe.source, 'giu');
   let out = '', last = 0, m;
   while((m = g.exec(text))){
-    out += esc(text.slice(last, m.index)) + '<mark>' + esc(m[0]) + '</mark>';
+    out += esc(text.slice(last, m.index)) + '<b>' + esc(m[0]) + '</b>';
     last = m.index + m[0].length;
     if(m[0].length === 0) g.lastIndex++;
   }
@@ -177,22 +224,45 @@ function hl(text){
 function fmt(t){ t = Math.floor(t); return Math.floor(t/60) + ':' + String(t%60).padStart(2,'0'); }
 
 function render(){
-  $('list').innerHTML = results.map((r,i) =>
-    `<li data-i="${i}" class="${i===cur?'on':''}"><div class="l">${hl(r.text)}</div>
-     <div class="s"><span>${esc(r.title)}</span><span>${fmt(r.start)}</span></div></li>`).join('');
-  $('counter').textContent = `${cur+1}/${results.length}`;
+  $('list').innerHTML = results.length
+    ? results.map((r,i) => `<li data-i="${i}" class="${i===cur?'on':''}"><span class="n">${i+1}</span>${hl(r.text)}<div class="ipa">${esc(r.ipa)}</div></li>`).join('')
+    : (queryRe && !loading ? `<div class="empty">Tidak ada klip untuk kata ini.</div>` : '');
+  $('counter').textContent = `${Math.max(cur+1,0)}/${results.length}`;
+  $('listBox').scrollTop = 0;
 }
 $('list').addEventListener('click', e => {
   const li = e.target.closest('li'); if(li) play(+li.dataset.i);
 });
 
+/* klip aktif digulirkan tepat ke bawah baris tombol play; klip berikutnya bergilir di bawahnya.
+   Ukuran font berubah seketika (tanpa transisi), jadi offsetTop yang dibaca di sini sudah final
+   dan baris aktif tidak terpotong. */
+function scrollToCurrent(){
+  const li = $('list').children[cur]; if(!li) return;
+  void li.offsetHeight;                                   // paksa layout ulang dulu
+  $('listBox').scrollTo({top: Math.max(0, li.offsetTop), behavior:'smooth'});
+}
+
 /* ---------- Pemutar ---------- */
 function onYouTubeIframeAPIReady(){
   ytPlayer = new YT.Player('yt', {
-    playerVars:{playsinline:1, rel:0, modestbranding:1, controls:1},
+    // tampilan bersih: tanpa kontrol, keyboard, fullscreen, anotasi, dan video terkait
+    playerVars:{playsinline:1, rel:0, modestbranding:1, controls:0, disablekb:1, fs:0, iv_load_policy:3, cc_load_policy:0},
     events:{
       onReady(){ ytReady = true; if(pending != null){ play(pending); pending = null; } },
-      onStateChange(e){ if(e.data === YT.PlayerState.ENDED) clipEnded(); }
+      onStateChange(e){
+        const S = YT.PlayerState, sh = $('shield');
+        if(e.data === S.PLAYING){
+          clipActive = true;                                          // klip benar-benar mulai
+          sh.classList.remove('cover','show'); $('replay').textContent = '⏸';
+        } else if(e.data === S.PAUSED){
+          sh.classList.add('show'); $('replay').textContent = '▶';
+        } else if(e.data === S.ENDED){
+          sh.classList.add('cover','show'); $('replay').textContent = '▶';   // tutup layar akhir YouTube
+          clipEnded();
+        }
+      },
+      onError(){ clipActive = true; clipEnded(); }                    // video tak bisa diputar -> lanjut
     }
   });
 }
@@ -200,44 +270,50 @@ const tag = document.createElement('script');
 tag.src = 'https://www.youtube.com/iframe_api';
 document.head.appendChild(tag);
 
-function clipEnded(){ if($('auto').checked && cur < results.length-1) play(cur+1); }
+/* Urutan: hanya klip yang sudah PLAYING yang boleh memicu lanjut, dan hanya sekali (clipActive),
+   jadi event ENDED ganda/basi dari YouTube tidak membuat baris loncat (1 -> 3).
+   Jeda 0,5 detik sebelum klip berikutnya. */
+const GAP_MS = 500;
+let clipActive = false, advTimer = null;
+function clipEnded(){
+  if(!clipActive) return;
+  clipActive = false;
+  if($('auto').checked && cur < results.length-1){
+    const from = cur;
+    clearTimeout(advTimer);
+    advTimer = setTimeout(() => { if(cur === from) play(from + 1); }, GAP_MS);
+  }
+}
 
 function play(i){
   if(i < 0 || i >= results.length) return;
+  clearTimeout(advTimer);
+  clipActive = false;
   const r = results[i];
   cur = i;
-  render();
-  const li = $('list').querySelector('li.on'); if(li) li.scrollIntoView({block:'nearest', behavior:'smooth'});
-  $('now').innerHTML = `<div class="txt">${hl(r.text)}</div><div class="ipa">${esc(r.ipa)}</div><div class="src">${esc(r.title)} • ${fmt(r.start)}</div>`;
+  document.querySelectorAll('#list li.on').forEach(x => x.classList.remove('on'));
+  const li = $('list').children[i]; if(li) li.classList.add('on');
+  $('counter').textContent = `${cur+1}/${results.length}`;
+  $('title').textContent = `${r.title} • ${fmt(r.start)}`;
+  scrollToCurrent();
 
   const start = Math.max(0, r.start - PAD_BEFORE), end = r.end + PAD_AFTER;
-  audio.pause();
-  if(r.videoId){
-    $('audioBox').style.display = 'none';
-    if(!ytReady){ pending = i; return; }
-    ytPlayer.loadVideoById({videoId:r.videoId, startSeconds:start, endSeconds:end});
-  } else {
-    if(ytReady) ytPlayer.pauseVideo();
-    $('audioBox').style.display = 'flex';
-    $('cover').src = r.image; $('cover').style.display = r.image ? '' : 'none';
-    $('audioTitle').textContent = r.title;
-    const go = () => { audio.currentTime = start; audio.play().catch(()=>{}); };
-    audio._end = end;
-    if(audio.getAttribute('data-src') !== r.audio){
-      audio.setAttribute('data-src', r.audio);
-      audio.src = r.audio;
-      audio.addEventListener('loadedmetadata', go, {once:true});
-      audio.load();
-    } else go();
-  }
+  if(!ytReady){ pending = i; return; }
+  ytPlayer.loadVideoById({videoId:r.videoId, startSeconds:start, endSeconds:end});
 }
-audio.addEventListener('timeupdate', () => {
-  if(audio._end && audio.currentTime >= audio._end){ audio._end = 0; audio.pause(); clipEnded(); }
-});
 
 $('prev').onclick = () => play(cur-1);
 $('next').onclick = () => play(cur+1);
-$('replay').onclick = () => { if(cur >= 0) play(cur); };
+/* play / pause (tap video atau tombol); jika klip sudah selesai, putar ulang klip itu */
+function toggle(){
+  if(!ytReady || cur < 0) return;
+  const s = ytPlayer.getPlayerState();
+  if(s === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+  else if(s === YT.PlayerState.PAUSED) ytPlayer.playVideo();
+  else play(cur);
+}
+$('replay').onclick = toggle;
+$('shield').onclick = toggle;
 
 loadAll();
 </script>
