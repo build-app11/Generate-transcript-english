@@ -20,6 +20,13 @@
   .player #yt,.player iframe{position:absolute;inset:0;width:100%;height:100%}
   @supports (aspect-ratio:1){ .player{width:min(100%,calc(42dvh*16/9))} }
 
+  /* lapisan penutup di atas iframe: menyembunyikan UI YouTube (hover, judul, link) dan hanya menerima tap play/pause */
+  .shield{position:absolute;inset:0;z-index:2;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;user-select:none}
+  .shield.cover{background:#000}
+  .shield .big{display:none;width:76px;height:76px;border-radius:50%;background:rgba(0,0,0,.45);border:3px solid rgba(255,255,255,.85);
+               color:#fff;font-size:32px;align-items:center;justify-content:center;padding-left:5px}
+  .shield.show .big{display:flex}
+
   .ctrl{flex:none;display:flex;align-items:center;gap:6px;padding:6px 14px;border-bottom:1px solid var(--line);background:#fff}
   .ctrl .title{flex:1;min-width:0;font-size:13px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .ctrl button{border:0;background:#f0f1f4;color:#222;border-radius:10px;padding:6px 12px;font-size:15px}
@@ -60,7 +67,7 @@
     <div class="status" id="status">Memuat data…</div>
   </header>
 
-  <div class="player"><div id="yt"></div></div>
+  <div class="player"><div id="yt"></div><div class="shield cover show" id="shield"><span class="big">▶</span></div></div>
 
   <div class="ctrl">
     <div class="title" id="title">—</div>
@@ -225,12 +232,21 @@ function scrollToCurrent(){
 /* ---------- Pemutar ---------- */
 function onYouTubeIframeAPIReady(){
   ytPlayer = new YT.Player('yt', {
-    playerVars:{playsinline:1, rel:0, modestbranding:1, controls:1},
+    // tampilan bersih: tanpa kontrol, keyboard, fullscreen, anotasi, dan video terkait
+    playerVars:{playsinline:1, rel:0, modestbranding:1, controls:0, disablekb:1, fs:0, iv_load_policy:3, cc_load_policy:0},
     events:{
       onReady(){ ytReady = true; if(pending != null){ play(pending); pending = null; } },
       onStateChange(e){
-        if(e.data === YT.PlayerState.PLAYING) clipActive = true;      // klip benar-benar mulai
-        else if(e.data === YT.PlayerState.ENDED) clipEnded();
+        const S = YT.PlayerState, sh = $('shield');
+        if(e.data === S.PLAYING){
+          clipActive = true;                                          // klip benar-benar mulai
+          sh.classList.remove('cover','show'); $('replay').textContent = '⏸';
+        } else if(e.data === S.PAUSED){
+          sh.classList.add('show'); $('replay').textContent = '▶';
+        } else if(e.data === S.ENDED){
+          sh.classList.add('cover','show'); $('replay').textContent = '▶';   // tutup layar akhir YouTube
+          clipEnded();
+        }
       },
       onError(){ clipActive = true; clipEnded(); }                    // video tak bisa diputar -> lanjut
     }
@@ -274,7 +290,16 @@ function play(i){
 
 $('prev').onclick = () => play(cur-1);
 $('next').onclick = () => play(cur+1);
-$('replay').onclick = () => { if(cur >= 0) play(cur); };
+/* play / pause (tap video atau tombol); jika klip sudah selesai, putar ulang klip itu */
+function toggle(){
+  if(!ytReady || cur < 0) return;
+  const s = ytPlayer.getPlayerState();
+  if(s === YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
+  else if(s === YT.PlayerState.PAUSED) ytPlayer.playVideo();
+  else play(cur);
+}
+$('replay').onclick = toggle;
+$('shield').onclick = toggle;
 
 loadAll();
 </script>
