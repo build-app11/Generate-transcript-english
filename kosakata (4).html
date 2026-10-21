@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<title>Latihan Kosakata · Learning Fun</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#EEF2FF;--fg:#14162B;--muted:#4F5575;--accent:#FFD23F;--accent-soft:#FFF0B3;--line:#D3D9F2;--bar:#FFFFFF;--head:#14162B;--field:#FFFFFF;--warn:#B3261E;--ink:#14162B;--shadow:#14162B;--on:#14162B;--accent-text:#1F5FB8;--ui:#0B7A58;--ui-soft:#DDF5EC;--ui-on:#FFFFFF;--font-ui:"Albert Sans",system-ui,sans-serif;--font-display:"Fredoka","Albert Sans",system-ui,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101226;--fg:#F2F3FF;--muted:#A9AED6;--accent-soft:#4A3F14;--line:#2A2F55;--bar:#1B1E3A;--head:#F2F3FF;--field:#1B1E3A;--warn:#FF8A7D;--ink:#7A80C4;--shadow:#04050E;--accent-text:#8DB8FF;--ui:#34D3A1;--ui-soft:#12352B;--ui-on:#0B0D1E;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-ui);padding:0 20px;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+main{max-width:34rem;margin:0 auto;padding-block:32px 48px;display:flex;flex-direction:column;gap:22px}
+h1{margin:0;font:700 2rem/1.15 var(--font-display);color:var(--head)}
+.lead{margin:0;color:var(--muted);line-height:1.55}
+.lab{font-weight:700;font-size:.95rem;color:var(--head)}
+.g{display:flex;flex-direction:column;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:700 .9rem var(--font-ui);padding:9px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.chip[aria-pressed=true]{background:var(--accent);color:var(--on)}
+.chip:focus-visible,.qzo:focus-visible,.go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.dd{position:relative}
+.ddb{width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;font:600 .95rem var(--font-ui);text-align:left;padding:13px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg);cursor:pointer;box-shadow:3px 3px 0 var(--shadow)}
+.ddb:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.ddb span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ddb i{flex:none;font-style:normal;transition:transform .15s}
+.ddb[aria-expanded=true] i{transform:rotate(180deg)}
+.ls{display:flex;flex-direction:column;margin-top:8px;border:1.5px solid var(--line);border-radius:12px;background:var(--field);max-height:19rem;overflow:auto}
+.lsel{width:100%;font:600 .95rem var(--font-ui);padding:12px 14px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg)}
+.x{display:inline-flex;align-items:center;gap:6px;font:700 .85rem var(--font-ui);padding:8px 12px;border:2px solid var(--ink);border-radius:10px;background:var(--bar);color:var(--fg);cursor:pointer;flex:none}
+.x:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.ls label{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;font-size:.92rem;line-height:1.4}
+.ls label:last-child{border:0}
+.ls input{margin-top:3px;accent-color:var(--ui)}
+.ls small{display:block;color:var(--muted)}
+.go{font:700 1.05rem var(--font-ui);background:var(--ui);color:var(--ui-on);border:0;border-radius:12px;padding:15px 18px;cursor:pointer}
+.go:disabled{opacity:.55;cursor:default}
+#msg{min-height:1.4em;font-size:.92rem;color:var(--muted);line-height:1.5}
+#msg.err{color:var(--warn);font-weight:600}
+#quiz .top{display:flex;align-items:center;gap:12px;margin-bottom:22px}
+.bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+.n{font:700 .85rem var(--font-ui);color:var(--muted);min-width:3.2em;text-align:right}
+.qzb{display:flex;flex-direction:column;align-items:center;gap:18px}
+.qzt{font:600 .85rem/1.4 var(--font-ui);color:var(--accent-text);background:var(--accent-soft);padding:8px 14px;border-radius:12px;text-align:center}
+.qzg{display:grid;grid-template-columns:1fr 1fr;gap:14px;width:100%}
+.qzc{display:flex;flex-direction:column;gap:10px}
+.qzo{font:700 1.05rem/1.25 var(--font-ui);padding:12px 10px;border:2.5px solid var(--ink);border-radius:12px;background:var(--bar);color:var(--fg);box-shadow:3px 3px 0 var(--shadow);cursor:pointer;overflow-wrap:anywhere}
+.qzo.sel{background:var(--accent);color:var(--on)}
+.qzo.ok{background:var(--ui-soft);border-color:var(--ui);color:var(--ui);box-shadow:none}
+.qzo.bad{background:var(--accent-soft);border-color:var(--warn);color:var(--warn)}
+.qzo:disabled{cursor:default}
+.qzw{font:700 2rem/1.2 var(--font-display);color:var(--head);text-align:center;overflow-wrap:anywhere}
+.qzs{font:500 .95rem/1.5 var(--font-ui);color:var(--muted);text-align:center}
+.qzs b{color:var(--head)}
+.qzopts{display:flex;flex-direction:column;gap:10px;width:100%}
+.qzfb{width:100%;padding:10px 14px;border-radius:12px;font:600 .95rem/1.45 var(--font-ui);border:2px solid var(--line);text-align:center}
+.qzfb.ok{background:var(--ui-soft);color:var(--ui);border-color:var(--ui)}
+.qzfb.bad{background:var(--accent-soft);color:var(--head);border-color:var(--warn)}
+.foot{margin-top:24px}
+.foot .go{width:100%}
+.res h2{margin:0 0 8px;font:700 1.6rem var(--font-display);color:var(--head)}
+.res ul{padding-left:1.2rem;line-height:1.7}
+
+/* ===== Responsif, lega & eye-catching ===== */
+:root{--yellow:#FFD23F;--coral:#FF6B5E;--mint:#2ED3A0;--purple:#A07CFA;--blue:#4C84FF;--surface:var(--bar)}
+html{-webkit-text-size-adjust:100%}
+body{font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-inline:clamp(14px,4vw,40px)}
+body::before,body::after{content:"";position:fixed;z-index:-1;border:2.5px solid var(--ink);pointer-events:none}
+body::before{right:-40px;top:60px;width:130px;height:130px;border-radius:50%;background:var(--yellow)}
+body::after{left:-44px;bottom:110px;width:110px;height:110px;border-radius:30px;background:var(--mint);transform:rotate(18deg)}
+:focus-visible{outline:3px solid var(--blue)!important;outline-offset:3px}
+main{max-width:36rem;padding-block:clamp(20px,5vw,48px) 64px;gap:0}
+#setup,#quiz{display:flex;flex-direction:column;gap:28px;padding:clamp(20px,5vw,36px);background:var(--bar);border:2.5px solid var(--ink);border-radius:26px;box-shadow:7px 7px 0 var(--shadow)}
+#quiz{gap:0}
+#quiz[hidden],#setup[hidden]{display:none}
+.g{gap:12px}
+h1{font-size:clamp(1.9rem,6vw,2.7rem);line-height:1.1;letter-spacing:-.01em;text-wrap:balance}
+.g:has(h1){gap:14px}
+.lead{font-size:1.05rem;line-height:1.6;max-width:56ch}
+.lab{font:600 1.05rem var(--font-display)}
+.chips{gap:12px}
+.chip{font:600 1rem var(--font-display);padding:10px 18px;border-radius:999px;transition:transform .12s ease,box-shadow .12s ease}
+.chip:hover,.go:not(:disabled):hover{transform:translate(-1px,-1px)}
+.chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.chip[aria-pressed=true]{background:var(--accent);transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.ddb,.lsel{padding:14px 18px;border-radius:999px}
+.lsel{appearance:none;-webkit-appearance:none;box-shadow:3px 3px 0 var(--shadow);cursor:pointer;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%);background-position:calc(100% - 24px) 55%,calc(100% - 18px) 55%;background-size:6px 6px;background-repeat:no-repeat;padding-right:44px}
+.ls{margin-top:12px;border:2.5px solid var(--ink);border-radius:18px;box-shadow:4px 4px 0 var(--shadow)}
+.ls label{padding:14px 16px;gap:12px}
+.go{font:600 1.15rem var(--font-display);padding:16px 24px;border:2.5px solid var(--ink);border-radius:999px;background:var(--yellow);color:var(--on);box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.go:not(:disabled):active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--shadow)}
+.go:disabled{background:var(--line);color:var(--muted);box-shadow:none;opacity:1}
+#msg{min-height:1.5em;text-align:center}
+#quiz .top{gap:16px;margin-bottom:clamp(24px,5vw,40px)}
+.x{border-radius:999px;padding:9px 16px;border-width:2.5px;box-shadow:3px 3px 0 var(--shadow)}
+.bar{height:16px;border:2.5px solid var(--ink);border-radius:999px;background:var(--bar)}
+.bar i{background:var(--mint);border-right:2.5px solid var(--ink)}
+.bar i[style*="width: 0%"],.bar i[style*="width:0%"]{border-right:0}
+.n{font-family:var(--font-display);font-size:1rem}
+.qzb{gap:clamp(20px,4vw,32px)}
+.qzt{font-size:.95rem;padding:10px 18px;border-radius:999px;border:2px solid var(--ink)}
+.qzg{gap:clamp(14px,3vw,24px)}
+.qzc{gap:clamp(12px,2.5vw,18px)}
+.qzo{font:600 1.1rem/1.3 var(--font-display);padding:clamp(14px,3vw,20px) 14px;border-radius:16px;box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.qzo:not(:disabled):hover{transform:translate(-1px,-1px)}
+.qzo:not(:disabled):active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.qzo.ok,.qzo.bad{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.qzw{font-size:clamp(2.2rem,8vw,3.4rem)}
+.qzs{font-size:1.05rem}
+.qzopts{gap:clamp(12px,2.5vw,18px)}
+.qzfb{padding:14px 18px;border-radius:16px;border-width:2.5px}
+.foot{margin-top:clamp(24px,5vw,36px)}
+.res h2{font-size:clamp(1.7rem,5vw,2.2rem);margin-bottom:14px}
+.res ul{line-height:1.8}
+
+@media(max-width:380px){
+  .qzg{grid-template-columns:1fr}
+  .chip{padding:9px 14px}
+}
+@media(min-width:760px){
+  main{max-width:58rem}
+  #setup{display:grid;grid-template-columns:1fr 1fr;column-gap:36px;row-gap:30px;align-items:start}
+  #setup>.g:first-child,#setup>.dd,#setup>.go,#setup>#msg{grid-column:1/-1}
+  #setup>.go{max-width:22rem;justify-self:center;width:100%}
+  body::before{width:180px;height:180px;right:-50px;top:-30px}
+  body::after{width:150px;height:150px;left:-60px;bottom:40px}
+  .qzb{max-width:44rem;margin-inline:auto;width:100%}
+  .foot{max-width:44rem;margin-inline:auto}
+}
+
+/* ===== Header ringkas ===== */
+.lf-hd{max-width:36rem;margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 0 0;display:flex;align-items:center;gap:12px}
+.lf-back{display:grid;place-items:center;width:42px;height:42px;border:2.5px solid var(--ink);border-radius:50%;background:var(--bar);color:var(--fg);text-decoration:none;font:700 1.3rem/1 var(--font-display);box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.lf-back:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.lf-brand{display:inline-flex;align-items:center;gap:10px;font:700 1.25rem/1 var(--font-display);color:var(--head)}
+.lf-brand{text-decoration:none}
+.lf-logo{display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--ink);border-radius:10px;background:var(--yellow);color:var(--on);box-shadow:2px 2px 0 var(--shadow);font-size:.9rem}
+.lf-hd+main{padding-top:clamp(16px,3vw,28px)}
+body:has(#quiz:not([hidden])) .lf-hd{display:none}
+body:has(#quiz:not([hidden])) .lf-hd+main{padding-top:clamp(20px,5vw,48px)}
+@media(min-width:760px){.lf-hd{max-width:58rem}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="lf-hd"><a class="lf-back" href="./" aria-label="Kembali ke daftar latihan">←</a><a class="lf-brand" href="./"><span class="lf-logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff" stroke="#14162B" stroke-width="2" stroke-linejoin="round"/></svg></span>Learning Fun</a></header>
+<main>
+  <section id="setup">
+    <div class="g">
+      <h1>Latihan Kosakata</h1>
+      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet.</p>
+    </div>
+    <div class="g dd"><span class="lab" id="lab-ls">Pelajaran</span><button type="button" class="ddb" id="ddb" aria-expanded="false" aria-controls="ls" aria-labelledby="lab-ls ddb"><span id="ddt">Pilih pelajaran</span><i aria-hidden="true">▾</i></button><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran" hidden></div></div>
+    <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button></div></div>
+    <div class="g"><label class="lab" for="lang">Bahasa terjemahan</label><select class="lsel" id="lang"></select></div>
+    <div class="g"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" id="d-ei" data-v="ei" aria-pressed="true"></button><button class="chip" id="d-ie" data-v="ie" aria-pressed="false"></button></div></div>
+    <div class="g"><span class="lab">Jumlah soal</span><div class="chips" id="c-n"><button class="chip" data-v="4" aria-pressed="false">4</button><button class="chip" data-v="6" aria-pressed="true">6</button><button class="chip" data-v="8" aria-pressed="false">8</button></div></div>
+    <button class="go" id="go" disabled>Mulai</button>
+    <div id="msg" role="status">Memuat daftar pelajaran…</div>
+  </section>
+
+  <section id="quiz" hidden>
+    <div class="top"><button class="x" id="x" type="button" aria-label="Tutup latihan">✕ Tutup</button><div class="bar"><i id="bar"></i></div><span class="n" id="n"></span></div>
+    <div class="qzb" id="body"></div>
+    <div class="foot"><button class="go" id="ok" disabled>OK</button></div>
+  </section>
+</main>
+
+<script>
+/* Data: data/index.json -> {lessons:[{slug,title,...}]}; tiap pelajaran di data/<slug>.json (atau lessons[].url jika ada). */
+const DATA='data/';
+const $=s=>document.querySelector(s);
+const mk=(t,c,x)=>{const n=document.createElement(t);if(c)n.className=c;if(x!=null)n.textContent=x;return n};
+const shuf=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const STOPW=new Set('the and but for with from that this these those have has had was were are been being not you your his her their our they them she him its than then into over after before there here what which who whom when where how very just also more most some any all each such only own same too would could should might will can may about because while until upon onto'.split(' '));
+const LANGS=[['id','Indonesia'],['ms','Melayu'],['jv','Jawa'],['su','Sunda'],['es','Spanyol'],['fr','Prancis'],['de','Jerman'],['it','Italia'],['pt','Portugis'],['nl','Belanda'],['ru','Rusia'],['ar','Arab'],['hi','Hindi'],['ja','Jepang'],['ko','Korea'],['zh-CN','Mandarin'],['th','Thai'],['vi','Vietnam'],['tr','Turki']];
+const LSK='kosakata.lang';
+let saved='id';try{saved=localStorage.getItem(LSK)||'id'}catch(e){}
+const opt={mode:'match',dir:'ei',n:6,tl:LANGS.some(l=>l[0]===saved)?saved:'id'};
+const langName=()=>(LANGS.find(l=>l[0]===opt.tl)||LANGS[0])[1];
+function paintLang(){$('#d-ei').textContent='Inggris → '+langName();$('#d-ie').textContent=langName()+' → Inggris'}
+LANGS.forEach(l=>{const o=mk('option',null,l[1]);o.value=l[0];$('#lang').appendChild(o)});
+$('#lang').value=opt.tl;paintLang();
+$('#lang').addEventListener('change',e=>{opt.tl=e.target.value;try{localStorage.setItem(LSK,opt.tl)}catch(_){}paintLang()});
+let LESSONS=[],Z=null;
+
+/* ---------- pilihan ---------- */
+function bindChips(id,key,num){$(id).addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;
+  opt[key]=num?+b.dataset.v:b.dataset.v;$(id).querySelectorAll('.chip').forEach(x=>x.setAttribute('aria-pressed',String(x===b)))})}
+bindChips('#c-mode','mode');bindChips('#c-dir','dir');bindChips('#c-n','n',true);
+const msg=(t,err)=>{const m=$('#msg');m.textContent=t||'';m.className=err?'err':''};
+const ddb=$('#ddb'),lsEl=$('#ls');
+function ddOpen(o){lsEl.hidden=!o;ddb.setAttribute('aria-expanded',String(o))}
+ddb.addEventListener('click',()=>ddOpen(lsEl.hidden));
+document.addEventListener('click',e=>{if(!lsEl.hidden&&!e.target.closest('.dd'))ddOpen(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!lsEl.hidden){ddOpen(false);ddb.focus()}});
+const picked=()=>[...document.querySelectorAll('#ls input:checked')].map(i=>LESSONS[+i.value]);
+const syncGo=()=>{const p=picked();$('#go').disabled=!p.length;
+  $('#ddt').textContent=!p.length?'Pilih pelajaran':p.length===1?(p[0].title||p[0].slug):p.length+' pelajaran dipilih'};
+
+async function loadIndex(){
+  try{
+    const r=await fetch(DATA+'index.json',{cache:'no-cache'});if(!r.ok)throw 0;
+    const j=await r.json();LESSONS=(j.lessons||[]).filter(l=>l&&l.slug);
+    if(!LESSONS.length)throw 0;
+    const box=$('#ls');
+    LESSONS.forEach((l,i)=>{const lb=mk('label'),cb=document.createElement('input');cb.type='checkbox';cb.value=i;cb.addEventListener('change',syncGo);
+      const t=mk('span',null,l.title||l.slug);t.appendChild(mk('small',null,(l.lines?l.lines+' baris':'')+(l.category?(l.lines?' · ':'')+l.category:'')));
+      lb.append(cb,t);box.appendChild(lb)});
+    msg('Pilih satu atau lebih pelajaran.');
+  }catch(e){msg('Daftar pelajaran tidak bisa dimuat dari '+DATA+'index.json. Buka halaman ini lewat server (bukan file lokal) dan pastikan filenya ada.',true)}
+}
+
+/* ---------- ambil kata dari pelajaran ---------- */
+async function loadWords(l){
+  const r=await fetch(l.url||(DATA+encodeURIComponent(l.slug)+'.json'));if(!r.ok)throw new Error(l.title||l.slug);
+  const d=await r.json(),out=[];
+  if(Array.isArray(d.transcript)){           /* format sync-reader: [kata,mulai,akhir,blok,sorot,fonetik,terjemahan] */
+    const T=d.transcript;
+    T.forEach((w,i)=>{if(w[4])return;out.push({raw:w[0],ctx:T.slice(Math.max(0,i-6),i+7).map(x=>x[0]).join(' ')})})
+  }else if(Array.isArray(d.lines)){          /* format shadowing: lines[].words[].text */
+    d.lines.forEach(L=>{if(L.music)return;const ws=L.words&&L.words.length?L.words.map(w=>w.text):String(L.text||'').split(/\s+/);
+      ws.forEach(w=>out.push({raw:w,ctx:L.text||ws.join(' ')}))})
+  }
+  return out;
+}
+function candidates(all){
+  const seen=new Set(),c=[];
+  all.forEach(o=>{const x=String(o.raw).replace(/^[^\p{L}]+|[^\p{L}]+$/gu,''),l=x.toLowerCase();
+    if(x.length<4||/[\d'’]/.test(x)||/[^\p{L}-]/u.test(x)||STOPW.has(l)||seen.has(l))return;seen.add(l);c.push({en:l,ctx:o.ctx})});
+  return c}
+
+/* ---------- terjemahan (Google gtx, cadangan MyMemory) ---------- */
+const MC={};
+function mt(t){const tl=opt.tl,k=tl+':'+t;if(MC[k])return MC[k];
+  return MC[k]=(async()=>{
+    try{const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl='+encodeURIComponent(tl)+'&dt=t&q='+encodeURIComponent(t));
+      if(!r.ok)throw 0;const j=await r.json();const s=j[0].map(x=>x[0]).join('');if(!s)throw 0;return s}
+    catch(e){try{const r=await fetch('https://api.mymemory.translated.net/get?langpair=en|'+encodeURIComponent(tl)+'&q='+encodeURIComponent(t));
+      const j=await r.json();const s=j.responseData&&j.responseData.translatedText;if(!s||/MYMEMORY WARNING/i.test(s))throw 0;return s}
+      catch(e2){delete MC[k];return ''}}})()}
+async function makePairs(cands,want){
+  const take=shuf(cands).slice(0,want+6);
+  const res=await Promise.all(take.map(o=>mt(o.en).catch(()=>'')));
+  const got=[];
+  take.forEach((o,k)=>{const t=String(res[k]||'').trim().toLowerCase().replace(/[.!?]+$/,'');
+    if(t&&t!==o.en&&t.length<=40&&!got.some(g=>g.id===t))got.push({en:o.en,id:t,ctx:o.ctx})});
+  return got.slice(0,want)}
+
+/* ---------- kuis ---------- */
+const zBody=()=>{const b=$('#body');b.textContent='';return b};
+const zOk=(t,on)=>{const o=$('#ok');o.textContent=t;o.disabled=!on};
+const zProg=(f,l)=>{$('#bar').style.width=Math.round(f*100)+'%';$('#n').textContent=l||''};
+
+const POOLS={},USED=new Set();   /* kandidat kata per pilihan pelajaran; kata yang sudah keluar agar soal baru tidak mengulang */
+let tok=0;
+async function getPool(ls){
+  const key=ls.map(l=>l.slug).join('|');
+  if(!POOLS[key]){const all=(await Promise.all(ls.map(loadWords))).flat();POOLS[key]=candidates(all)}
+  return POOLS[key]}
+async function build(){
+  const pool=await getPool(picked());
+  if(pool.length<4)throw new Error('Kata yang cocok terlalu sedikit di pelajaran ini.');
+  const m=opt.mode==='match',want=m?opt.n:opt.n+3;
+  let fresh=pool.filter(c=>!USED.has(c.en));
+  if(fresh.length<want+6){USED.clear();fresh=pool}
+  const g=await makePairs(fresh,want);
+  if(g.length<(m?3:4))throw new Error('Arti kata tidak berhasil dimuat. Pastikan internet aktif lalu coba lagi.');
+  g.forEach(p=>USED.add(p.en));
+  return{mode:opt.mode,list:g,i:0,total:m?g.length:Math.min(opt.n,g.length),score:0,log:[],phase:'ask'}}
+
+async function start(){
+  if(!picked().length)return;
+  const my=++tok;$('#go').disabled=true;msg('Menyiapkan soal…');
+  try{const z=await build();if(my!==tok)return;Z=z;$('#setup').hidden=true;$('#quiz').hidden=false;msg('');showItem()}
+  catch(e){if(my===tok)msg(e&&e.message?e.message:'Gagal memuat soal.',true)}
+  if(my===tok)syncGo()}
+
+/* soal baru: tetap di layar latihan, langsung cari soal berikutnya */
+async function again(){
+  const my=++tok;Z=null;zProg(0,'');zOk('OK',false);
+  zBody().appendChild(mk('div','qzs','Mencari soal baru…'));
+  try{const z=await build();if(my!==tok)return;Z=z;showItem()}
+  catch(e){if(my!==tok)return;Z={phase:'retry'};zBody().appendChild(mk('div','qzs',e&&e.message?e.message:'Gagal memuat soal.'));zOk('Coba lagi',true)}}
+
+function showItem(){Z.phase='ask';zOk('OK',false);Z.mode==='match'?showMatch():showTrans()}
+
+function showMatch(){
+  const my=Z,b=zBody(),ie=opt.dir==='ie',pairs=my.list;
+  b.appendChild(mk('div','qzt','Ketuk satu kata, lalu pasangannya ('+(ie?langName()+' ↔ Inggris':'Inggris ↔ '+langName())+'). Jawaban salah juga dihitung, hasilnya dibahas di akhir.'));
+  const g=mk('div','qzg'),ca=mk('div','qzc'),cb=mk('div','qzc');g.append(ca,cb);b.appendChild(g);
+  const A=pairs.map((p,k)=>({k,t:ie?p.id:p.en})),B=shuf(pairs.map((p,k)=>({k,t:ie?p.en:p.id})));
+  let sa=null,sb=null,done=0;zProg(0,'0/'+pairs.length);
+  const add=(o,side,col)=>{const x=mk('button','qzo',o.t);x.type='button';
+    x.addEventListener('click',()=>{
+      if(Z!==my||my.phase!=='ask'||x.disabled)return;
+      if(side==='a'){if(sa)sa.x.classList.remove('sel');sa={o,x}}else{if(sb)sb.x.classList.remove('sel');sb={o,x}}
+      x.classList.add('sel');if(!sa||!sb)return;
+      const a1=sa,b1=sb;sa=sb=null;a1.x.classList.remove('sel');b1.x.classList.remove('sel');
+      const ok=a1.o.k===b1.o.k,p=pairs[a1.o.k];
+      my.log.push({ask:a1.o.t,right:ie?p.en:p.id,picked:b1.o.t,ok});
+      a1.x.disabled=true;a1.x.classList.add(ok?'ok':'bad');
+      if(ok){b1.x.disabled=true;b1.x.classList.add('ok')}
+      else{b1.x.classList.add('bad');setTimeout(()=>b1.x.classList.remove('bad'),700)}
+      done++;zProg(done/pairs.length,done+'/'+pairs.length);
+      if(done===pairs.length){my.phase='next';zOk('Lihat hasil',true)}});
+    col.appendChild(x)};
+  A.forEach(o=>add(o,'a',ca));B.forEach(o=>add(o,'b',cb))}
+
+function showTrans(){
+  const my=Z,b=zBody(),ie=opt.dir==='ie',p=my.list[my.i],tot=my.total;
+  zProg(my.i/tot,(my.i+1)+'/'+tot);
+  const ask=ie?p.id:p.en,right=ie?p.en:p.id;
+  b.appendChild(mk('div','qzt',ie?'Apa bahasa Inggrisnya?':'Apa artinya dalam bahasa '+langName()+'?'));
+  b.appendChild(mk('div','qzw',ask));
+  if(!ie&&p.ctx){const s=mk('div','qzs'),re=new RegExp('('+p.en.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','i');
+    p.ctx.split(re).forEach(part=>{if(part.toLowerCase()===p.en)s.appendChild(mk('b',null,part));else s.append(part)});b.appendChild(s)}
+  const d=shuf(my.list.filter(x=>x!==p)).slice(0,3).map(x=>ie?x.en:x.id);
+  const box=mk('div','qzopts'),fb=mk('div','qzfb');fb.hidden=true;b.append(box,fb);
+  shuf([right,...d]).forEach(o=>{const x=mk('button','qzo',o);x.type='button';
+    x.addEventListener('click',()=>{
+      if(Z!==my||my.phase!=='ask')return;my.phase='next';
+      [...box.children].forEach(y=>{y.disabled=true;if(y.textContent===right)y.classList.add('ok')});
+      fb.hidden=false;const ok=o===right;
+      my.log.push({ask,right,picked:o,ok});
+      if(ok){my.score++;fb.className='qzfb ok';fb.textContent='✓ Benar'}
+      else{x.classList.add('bad');fb.className='qzfb bad';fb.textContent='✗ Jawaban: '+right}
+      zOk(my.i+1>=tot?'Lihat hasil':'Lanjut',true)});
+    box.appendChild(x)})}
+
+function result(){
+  Z.phase='result';zProg(1,'');
+  const log=Z.log,good=log.filter(x=>x.ok),bad=log.filter(x=>!x.ok),r=mk('div','res');
+  zBody().appendChild(r);
+  r.appendChild(mk('h2',null,'Skor '+good.length+' dari '+log.length));
+  if(bad.length){
+    r.appendChild(mk('p','lead','Yang salah:'));
+    const ul=mk('ul');bad.forEach(x=>ul.appendChild(mk('li',null,x.ask+' → pilihanmu “'+x.picked+'”, yang benar “'+x.right+'”')));r.appendChild(ul)}
+  if(good.length){
+    r.appendChild(mk('p','lead','Yang benar:'));
+    const ul=mk('ul');good.forEach(x=>ul.appendChild(mk('li',null,x.ask+' = '+x.right)));r.appendChild(ul)}
+  else r.appendChild(mk('p','lead','Belum ada yang benar kali ini. Coba lagi.'));
+  if(!bad.length)r.appendChild(mk('p','lead','Semua benar. Mantap!'));
+  zOk('Soal baru',true)}
+
+$('#ok').addEventListener('click',()=>{
+  if(!Z)return;
+  if(Z.phase==='result'||Z.phase==='retry'){again();return}
+  if(Z.phase==='next'){if(Z.mode==='match'){result();return}Z.i++;Z.i>=Z.total?result():showItem()}});
+function exit(){tok++;Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;syncGo()}
+$('#x').addEventListener('click',exit);
+$('#go').addEventListener('click',start);
+loadIndex();
+</script>
+<script>
+/* Bilah tab bawah Learning Fun (jangan dipasang di player video/audio).
+   Ubah TABS untuk menambah/mengganti menu,  */
+(() => {
+  const TABS = [
+    { id: 'beranda',  label: 'Beranda',   href: './',            match: ['', 'index'],
+      icon: '<path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.5 9.8V19a1 1 0 0 0 1 1H9.5v-5.5h5V20h3a1 1 0 0 0 1-1V9.8"/>' },
+    { id: 'cari',     label: 'Cari',      href: 'playphrase.html', match: ['playphrase', 'phrase'],
+      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' },
+    { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
+      icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
+    { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+  ];
+  const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  const css = document.createElement('style');
+  css.textContent = `
+#lfnav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:20;width:100%;max-width:560px;display:flex;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface,var(--bar,#fff));border:2.5px solid var(--lfline,var(--line,#14162B));border-bottom:0;border-radius:20px 20px 0 0;font-family:var(--font-display,'Fredoka',system-ui,sans-serif)}
+#lfnav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:0;border-radius:14px;color:var(--muted,#4F5575);text-decoration:none;font-weight:600;font-size:.8rem;line-height:1.1}
+#lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#lfnav a[aria-current=page]{color:#F2B705}
+#lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
+:root{--lfline:var(--ink)}`;
+  document.head.appendChild(css);
+  const nav = document.createElement('nav');
+  nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
+  nav.innerHTML = TABS.map(t =>
+    `<a href="${t.href}"${t.match.includes(file) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
+  const mount = () => {
+    document.body.appendChild(nav);
+    document.body.style.paddingBottom = 'calc(84px + env(safe-area-inset-bottom,0px))';   // supaya isi tidak tertutup bilah
+  };
+  document.body ? mount() : addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+</body>
+</html>
