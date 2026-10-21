@@ -143,7 +143,15 @@ h1, h2, h3, p { margin: 0; }
 .pfill { display: block; height: 100%; width: 0; background: var(--mint); border-right: 2.5px solid var(--line); transition: width 0.4s ease; }
 .pfill[style*="width: 0%"] { border-right: 0; }
 
-.tools { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-top: 28px; }
+.tools { display: flex; flex-direction: column; gap: 14px; margin-top: 28px; }
+.selects { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.sel { position: relative; display: block; }
+.sel::after { content: ""; position: absolute; right: 20px; top: 50%; width: 8px; height: 8px; border-right: 2.5px solid currentColor; border-bottom: 2.5px solid currentColor; transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+.sel select { width: 100%; appearance: none; -webkit-appearance: none; padding: 11px 44px 11px 18px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font: 600 1rem var(--font); box-shadow: 3px 3px 0 var(--shadow); cursor: pointer; text-overflow: ellipsis; }
+.sel option { background: var(--surface); color: var(--ink); }
+.sel.on { color: var(--on); }
+.sel.on select { background: var(--yellow); color: var(--on); }
+.sel.on option { color: var(--ink); }
 .chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 12px; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px;
@@ -157,7 +165,7 @@ h1, h2, h3, p { margin: 0; }
 .chip[aria-pressed="true"] { background: var(--c); color: var(--on); transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--shadow); }
 .chip[aria-pressed="true"] .n { color: var(--on); }
 .chip[aria-pressed="true"] .dot { background: var(--surface); }
-.search { position: relative; display: block; flex: 1 1 220px; max-width: 340px; margin-left: auto; }
+.search { position: relative; display: block; }
 .search svg { position: absolute; left: 15px; top: 50%; translate: 0 -50%; color: var(--muted); pointer-events: none; }
 .search input { width: 100%; padding: 11px 16px 11px 44px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
 .search input::placeholder { color: var(--muted); }
@@ -232,7 +240,6 @@ h1, h2, h3, p { margin: 0; }
 }
 @media (max-width: 640px) {
   .nav { display: none; }
-  .search { max-width: none; margin-left: 0; flex-basis: 100%; }
   .grid { gap: 28px; }
   .b2 { right: 4px; bottom: 0; width: 80px; height: 80px; }
 }
@@ -240,6 +247,29 @@ h1, h2, h3, p { margin: 0; }
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* Tag: slider ke samping */
+.tagrow { flex-wrap: nowrap; gap: 12px; }
+.tagrow-label { flex: none; }
+.tagchips { flex: 1; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding: 4px 36px 4px 2px; cursor: grab;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent); }
+.tagchips::-webkit-scrollbar { display: none; }
+.tagchips.drag { cursor: grabbing; user-select: none; }
+.tagchips li { flex: none; }
+.tagchip { white-space: nowrap; }
+.tags { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.tags::-webkit-scrollbar { display: none; }
+.tag { flex: none; white-space: nowrap; }
+
+/* Langganan channel */
+.views { gap: 10px; }
+.chip .n { margin-left: 2px; }
+.fol { display: inline-block; max-width: 100%; padding: 1px 10px; border: 2px solid var(--line); border-radius: 999px; background: var(--surface); color: var(--ink); font-size: 0.82rem; font-weight: 700; line-height: 1.5; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.fol i { font-style: normal; margin-right: 5px; }
+.fol:hover { background: color-mix(in srgb, var(--mint) 30%, var(--surface)); }
+.fol[aria-pressed="true"] { background: var(--mint); color: var(--on); }
+.fol:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+.sel.dim select { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -334,12 +364,19 @@ h1, h2, h3, p { margin: 0; }
     </div>
 
     <div class="tools">
-      <ul id="cats" class="chips"></ul>
+      <div class="chips views" role="group" aria-label="Tampilan daftar">
+        <button class="chip" type="button" data-view="all" style="--c: var(--yellow)" aria-pressed="true">Semua<span class="n" id="vtAllN"></span></button>
+        <button class="chip" type="button" data-view="subs" style="--c: var(--mint)" aria-pressed="false">Langganan<span class="n" id="vtSubsN"></span></button>
+      </div>
       <label class="search">
         <span class="sr">Cari latihan</span>
         <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M20 20l-4-4" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
         <input id="q" type="search" placeholder="Cari latihan" autocomplete="off">
       </label>
+      <div class="selects">
+        <label class="sel"><span class="sr">Kategori</span><select id="catSel"></select></label>
+        <label class="sel"><span class="sr">Channel</span><select id="chanSel"></select></label>
+      </div>
     </div>
     <div id="tagrow" class="tagrow" hidden>
       <span class="tagrow-label">Tag</span>
@@ -522,6 +559,7 @@ h1, h2, h3, p { margin: 0; }
           title: String(l.title || '').trim(),
           description: String(l.description || '').trim() || (n ? n + ' baris latihan dengan IPA di setiap kata.' : ''),
           category: String(l.category || '').trim() || 'Latihan',
+          channel: String(l.channel || '').trim(),
           youtube: /^[A-Za-z0-9_-]{11}$/.test(l.videoId || '') ? l.videoId : '',
           audio: typeof l.audio === 'string' && l.audio.trim() !== '',
           duration: fmtDur(l.duration),
@@ -650,7 +688,7 @@ h1, h2, h3, p { margin: 0; }
   }
 
   /* ---------- Susun daftar ---------- */
-  const state = { items: [], q: '', cat: '*', tag: '', loaded: false };
+  const state = { items: [], q: '', cat: '*', chan: '*', tag: '', view: 'all', loaded: false };
 
   // Halaman di luar database (mis. alat) didaftarkan lewat posts.json; keduanya digabung.
   function toItems(files, manifest, union) {
@@ -677,6 +715,7 @@ h1, h2, h3, p { margin: 0; }
         title: m.title || page.title || pretty(it.path),
         description: m.description || page.description || '',
         category: m.category || page.category || (isLesson(it.path) ? 'Latihan' : 'Postingan'),
+        channel: String((typeof m.channel === 'string' ? m.channel : page.channel) || '').trim(),
         order: Number.isFinite(m.order) ? m.order : null,
         glyph: m.glyph || GLYPHS[hash(it.path) % GLYPHS.length],
         youtube: /^[A-Za-z0-9_-]{11}$/.test(yt) ? yt : '',
@@ -700,11 +739,19 @@ h1, h2, h3, p { margin: 0; }
   }
 
   /* ---------- Tampilan ---------- */
-  const elList = $('#list'), elCats = $('#cats'), elStatus = $('#status'), elQ = $('#q'), elHint = $('#hint');
+  const elList = $('#list'), elCat = $('#catSel'), elChan = $('#chanSel'), elStatus = $('#status'), elQ = $('#q'), elHint = $('#hint');
   const elProg = $('#progress'), elTagRow = $('#tagrow'), elTags = $('#tags');
   const PLAY_SVG = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
 
   const getSeen = () => new Set(store.get('lf:seen') || []);
+  const getSubList = () => { const v = store.get('lf:subs'); return Array.isArray(v) ? v.filter(x => typeof x === 'string' && x.trim()) : []; };
+  const getSubs = () => new Set(getSubList().map(x => x.toLowerCase()));
+  function toggleSub(name) {
+    const k = String(name).trim().toLowerCase(); if (!k) return;
+    const list = getSubList(), has = list.some(x => x.toLowerCase() === k);
+    store.set('lf:subs', has ? list.filter(x => x.toLowerCase() !== k) : [...list, String(name).trim()]);
+    render();
+  }
   function markSeen(p) { const s = getSeen(); s.add(p); store.set('lf:seen', [...s]); }
 
   function renderSkeleton() {
@@ -714,7 +761,7 @@ h1, h2, h3, p { margin: 0; }
   }
 
   function renderError() {
-    elCats.innerHTML = '';
+    elCat.innerHTML = ''; elChan.innerHTML = '';
     elHint.textContent = '';
     elStatus.textContent = '';
     elList.innerHTML = '<li class="empty"><p>Daftar latihan belum bisa dimuat. Muat ulang halaman ini untuk mencoba lagi.</p><button class="btn btn-small" type="button" data-act="reload">Muat ulang</button></li>';
@@ -736,18 +783,40 @@ h1, h2, h3, p { margin: 0; }
     const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b, 'id'));
     if (state.cat !== '*' && !counts[state.cat]) state.cat = '*';
 
-    const chip = (key, label, n, color) =>
-      `<li><button class="chip c-${color}" type="button" data-cat="${esc(key)}" aria-pressed="${state.cat === key}"><span class="dot" aria-hidden="true"></span>${esc(label)}<span class="n">${n}</span></button></li>`;
-    elCats.innerHTML = all.length > 0 && cats.length > 1
-      ? chip('*', 'Semua', all.length, 'yellow') + cats.map(c => chip(c, c, counts[c], catInfo(c).color)).join('')
-      : '';
+    const opt = (v, label) => `<option value="${esc(v)}">${esc(label)}</option>`;
+    elCat.innerHTML = opt('*', `Semua kategori (${all.length})`) + cats.map(c => opt(c, `${c} (${counts[c]})`)).join('');
+    elCat.value = state.cat;
+    elCat.parentElement.hidden = !(all.length > 0 && cats.length > 1);
+    elCat.parentElement.classList.toggle('on', state.cat !== '*');
     elHint.textContent = state.cat !== '*' ? catInfo(state.cat).hint : '';
     renderProgress(all);
 
-    // Tag yang ditampilkan hanya milik kategori yang sedang dipilih.
     const pool = all.filter(r => state.cat === '*' || r.category === state.cat);
+    const subs = getSubs(), isSub = c => !!c && subs.has(c.toLowerCase());
+    const vpool = state.view === 'subs' ? pool.filter(r => isSub(r.channel)) : pool;
+    $('#vtAllN').textContent = all.length;
+    $('#vtSubsN').textContent = all.filter(r => isSub(r.channel)).length;
+    document.querySelectorAll('[data-view]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === state.view)));
+
+    // Channel: mengikuti kategori yang dipilih. Disembunyikan jika belum ada pelajaran yang punya channel.
+    const NONE = '__none', chs = new Map();
+    vpool.forEach(r => {
+      const k = r.channel || NONE, e = chs.get(k) || { label: r.channel || 'Tanpa channel', n: 0 };
+      e.n++; chs.set(k, e);
+    });
+    const named = [...chs.entries()].filter(([k]) => k !== NONE).sort((a, b) => b[1].n - a[1].n || a[1].label.localeCompare(b[1].label, 'id'));
+    if (state.chan !== '*' && !chs.has(state.chan)) state.chan = '*';
+    elChan.innerHTML = opt('*', `${state.view === 'subs' ? 'Semua channel diikuti' : 'Semua channel'} (${vpool.length})`) + named.map(([k, e]) => opt(k, `${e.label} (${e.n})`)).join('') +
+      (named.length && chs.has(NONE) ? opt(NONE, `Tanpa channel (${chs.get(NONE).n})`) : '');
+    elChan.value = state.chan;
+    elChan.parentElement.hidden = false;   // kolom channel selalu tampil, meski belum ada channel
+    elChan.parentElement.classList.toggle('dim', !named.length);
+    elChan.parentElement.classList.toggle('on', state.chan !== '*');
+    const chPool = vpool.filter(r => state.chan === '*' || (r.channel || NONE) === state.chan);
+
+    // Tag: hanya milik kategori dan channel yang sedang dipilih.
     const tagInfo = new Map();
-    pool.forEach(r => r.tags.forEach(t => {
+    chPool.forEach(r => r.tags.forEach(t => {
       const k = t.toLowerCase();
       const e = tagInfo.get(k) || { label: t, n: 0 };
       e.n++;
@@ -760,13 +829,18 @@ h1, h2, h3, p { margin: 0; }
       `<li><button class="tagchip" type="button" data-tag="${esc(k)}" aria-pressed="${state.tag === k}">${esc(e.label)}<span class="n">${e.n}</span></button></li>`).join('');
 
     const q = state.q.trim().toLowerCase();
-    const shown = pool.filter(r =>
+    const shown = chPool.filter(r =>
       (!state.tag || r.tags.some(t => t.toLowerCase() === state.tag)) &&
       (!q || (r.title + ' ' + r.description + ' ' + r.category + ' ' + r.tags.join(' ')).toLowerCase().includes(q)));
 
     if (!all.length) {
       elStatus.textContent = '';
       elList.innerHTML = '<li class="empty"><p>Belum ada latihan.</p></li>';
+      return;
+    }
+    if (state.view === 'subs' && !vpool.length) {
+      elStatus.textContent = '';
+      elList.innerHTML = `<li class="empty"><p>${subs.size ? 'Belum ada latihan dari channel yang kamu ikuti' + (state.cat !== '*' ? ' di kategori ini' : '') + '.' : 'Belum ada channel yang diikuti. Klik nama channel di kartu latihan untuk berlangganan.'}</p><button class="btn btn-small" type="button" data-act="allview">Lihat semua latihan</button></li>`;
       return;
     }
     elStatus.textContent = shown.length === all.length ? `${all.length} halaman` : `${shown.length} dari ${all.length} halaman`;
@@ -776,6 +850,11 @@ h1, h2, h3, p { margin: 0; }
       return;
     }
     const seenSet = getSeen();
+    const fol = r => {
+      if (!r.channel) return '';
+      const on = isSub(r.channel);
+      return `<span class="fol" role="button" tabindex="0" data-chan="${esc(r.channel)}" aria-pressed="${on}" title="${on ? 'Berhenti mengikuti channel ini' : 'Ikuti channel ini'}"><i aria-hidden="true">${on ? '✓' : '＋'}</i>${esc(r.channel)}</span>`;
+    };
     elList.innerHTML = shown.map(r => {
       const info = catInfo(r.category);
       const media = r.youtube
@@ -799,6 +878,7 @@ h1, h2, h3, p { margin: 0; }
             <span class="pill">Audio</span>
             ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
             ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
+            ${fol(r)}
           </span>
         </span>
         ${cover}
@@ -813,6 +893,7 @@ h1, h2, h3, p { margin: 0; }
             ${r.audio ? '<span class="pill">Audio</span>' : ''}
             ${r.isNew ? '<span class="pill new">Baru</span>' : ''}
             ${seenSet.has(r.path) ? '<span class="pill seen">Sudah dicoba</span>' : ''}
+            ${fol(r)}
           </span>
           <span class="t">${esc(r.title)}</span>
           ${r.description ? `<span class="desc">${esc(r.description)}</span>` : ''}
@@ -824,27 +905,48 @@ h1, h2, h3, p { margin: 0; }
   }
 
   elQ.addEventListener('input', () => { state.q = elQ.value; if (state.loaded) render(); });
-  elCats.addEventListener('click', e => {
-    const b = e.target.closest('[data-cat]');
-    if (!b) return;
-    state.cat = b.dataset.cat;
-    render();
-  });
+  elCat.addEventListener('change', () => { state.cat = elCat.value; state.chan = '*'; render(); });
+  elChan.addEventListener('change', () => { state.chan = elChan.value; render(); });
   elTags.addEventListener('click', e => {
     const b = e.target.closest('[data-tag]');
     if (!b) return;
     state.tag = state.tag === b.dataset.tag ? '' : b.dataset.tag;
     render();
   });
-  const onCardOpen = e => { const a = e.target.closest('a.card'); if (a) markSeen(a.dataset.path); };
+  const onCardOpen = e => { if (e.target.closest('[data-chan]')) return; const a = e.target.closest('a.card'); if (a) markSeen(a.dataset.path); };
   elList.addEventListener('click', e => {
+    const f = e.target.closest('[data-chan]');
+    if (f) { e.preventDefault(); e.stopPropagation(); toggleSub(f.dataset.chan); return; }
     onCardOpen(e);
     const a = e.target.closest('[data-act]');
     if (!a) return;
     if (a.dataset.act === 'reload') location.reload();
-    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; state.tag = ''; elQ.value = ''; render(); elQ.focus(); }
+    if (a.dataset.act === 'allview') { state.view = 'all'; state.chan = '*'; render(); }
+    if (a.dataset.act === 'clear') { state.q = ''; state.cat = '*'; state.chan = '*'; state.tag = ''; elQ.value = ''; render(); elQ.focus(); }
   });
   elList.addEventListener('auxclick', onCardOpen);
+  elList.addEventListener('keydown', e => {
+    const f = e.target.closest && e.target.closest('[data-chan]');
+    if (f && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); e.stopPropagation(); toggleSub(f.dataset.chan); }
+  });
+  document.querySelector('.views').addEventListener('click', e => {
+    const b = e.target.closest('[data-view]'); if (!b || b.dataset.view === state.view) return;
+    state.view = b.dataset.view; state.chan = '*'; state.tag = '';
+    if (state.loaded) render();
+  });
+  // Geser tag dengan mouse (di layar sentuh sudah bisa digeser langsung).
+  (() => {
+    let down = false, moved = false, x0 = 0, s0 = 0;
+    elTags.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; down = true; moved = false; x0 = e.clientX; s0 = elTags.scrollLeft; });
+    addEventListener('pointermove', e => {
+      if (!down) return;
+      const dx = e.clientX - x0;
+      if (!moved && Math.abs(dx) > 5) { moved = true; elTags.classList.add('drag'); }
+      if (moved) elTags.scrollLeft = s0 - dx;
+    });
+    addEventListener('pointerup', () => { down = false; elTags.classList.remove('drag'); });
+    elTags.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
+  })();
   // Jika thumbnail gagal dimuat, tampilkan simbol IPA sebagai gantinya.
   elList.addEventListener('error', e => {
     if (e.target.tagName !== 'IMG') return;
@@ -878,6 +980,40 @@ h1, h2, h3, p { margin: 0; }
     }
   }
   init();
+})();
+</script>
+<script>
+/* Bilah tab bawah Learning Fun (jangan dipasang di player video/audio).
+   Ubah TABS untuk menambah/mengganti menu,  */
+(() => {
+  const TABS = [
+    { id: 'cari',     label: 'Cari',     href: 'playphrase.html', match: ['playphrase', 'phrase'],
+      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' },
+    { id: 'video',    label: 'Video',    href: './',            match: ['', 'index'],
+      icon: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/>' },
+    { id: 'path',     label: 'Path',     href: 'path.html',     match: ['path'],
+      icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
+    { id: 'kosakata', label: 'Kosakata', href: 'kosakata.html', match: ['kosakata'],
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+  ];
+  const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  const css = document.createElement('style');
+  css.textContent = `
+#lfnav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:20;width:100%;max-width:560px;display:flex;gap:6px;padding:8px 10px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface,#fff);border:2.5px solid var(--line,#14162B);border-bottom:0;border-radius:20px 20px 0 0;font-family:var(--font-display,'Fredoka',system-ui,sans-serif)}
+#lfnav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:2.5px solid transparent;border-radius:14px;color:var(--muted,#4F5575);text-decoration:none;font-weight:600;font-size:.8rem;line-height:1.1}
+#lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#lfnav a[aria-current=page]{background:var(--yellow,#FFD23F);border-color:var(--line,#14162B);color:var(--on,#14162B);box-shadow:2px 2px 0 var(--shadow,#14162B)}
+#lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}`;
+  document.head.appendChild(css);
+  const nav = document.createElement('nav');
+  nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
+  nav.innerHTML = TABS.map(t =>
+    `<a href="${t.href}"${t.match.includes(file) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
+  const mount = () => {
+    document.body.appendChild(nav);
+    document.body.style.paddingBottom = 'calc(84px + env(safe-area-inset-bottom,0px))';   // supaya isi tidak tertutup bilah
+  };
+  document.body ? mount() : addEventListener('DOMContentLoaded', mount);
 })();
 </script>
 </body>
