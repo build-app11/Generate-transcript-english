@@ -339,14 +339,18 @@ loadAll();
 #lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #lfnav a[aria-current=page]{color:#F2B705}
 #lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
-#app{height:calc(100dvh - 84px - env(safe-area-inset-bottom,0px))}`;
+#app{height:calc(100dvh - var(--lfh,84px))}
+.bar{padding:10px 16px 8px}
+.chips{padding-bottom:10px}`;
   document.head.appendChild(css);
   const nav = document.createElement('nav');
   nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
   nav.innerHTML = TABS.map(t =>
-    `<a href="${t.href}"${t.match.includes(file) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
+    `<a href="${t.href}"${t.match.some(m => m === file || (m && file.includes(m))) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
   const mount = () => {
     document.body.appendChild(nav);
+    const fit = () => document.documentElement.style.setProperty('--lfh', nav.offsetHeight + 'px');
+    fit(); addEventListener('resize', fit);
   };
   document.body ? mount() : addEventListener('DOMContentLoaded', mount);
 })();
