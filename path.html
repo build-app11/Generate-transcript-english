@@ -225,5 +225,40 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
   init();
 })();
 </script>
+<script>
+/* Bilah tab bawah Learning Fun (jangan dipasang di player video/audio).
+   Ubah TABS untuk menambah/mengganti menu,  */
+(() => {
+  const TABS = [
+    { id: 'beranda',  label: 'Beranda',   href: './',            match: ['', 'index'],
+      icon: '<path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.5 9.8V19a1 1 0 0 0 1 1H9.5v-5.5h5V20h3a1 1 0 0 0 1-1V9.8"/>' },
+    { id: 'cari',     label: 'Cari',      href: 'playphrase.html', match: ['playphrase', 'phrase'],
+      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' },
+    { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
+      icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
+    { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+  ];
+  const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  const css = document.createElement('style');
+  css.textContent = `
+#lfnav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:20;width:100%;max-width:560px;display:flex;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface,var(--bar,#fff));border:2.5px solid var(--lfline,var(--line,#14162B));border-bottom:0;border-radius:20px 20px 0 0;font-family:var(--font-display,'Fredoka',system-ui,sans-serif)}
+#lfnav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:0;border-radius:14px;color:var(--muted,#4F5575);text-decoration:none;font-weight:600;font-size:.8rem;line-height:1.1}
+#lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#lfnav a[aria-current=page]{color:#F2B705}
+#lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
+#toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}`;
+  document.head.appendChild(css);
+  const nav = document.createElement('nav');
+  nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
+  nav.innerHTML = TABS.map(t =>
+    `<a href="${t.href}"${t.match.some(m => m === file || (m && file.includes(m))) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
+  const mount = () => {
+    document.body.appendChild(nav);
+    document.body.style.paddingBottom = 'calc(84px + env(safe-area-inset-bottom,0px))';   // supaya isi tidak tertutup bilah
+  };
+  document.body ? mount() : addEventListener('DOMContentLoaded', mount);
+})();
+</script>
 </body>
 </html>
