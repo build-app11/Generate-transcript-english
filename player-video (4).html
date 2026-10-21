@@ -344,6 +344,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
       if (!l || typeof l.text !== 'string' || !isFinite(l.start) || l.start < 0) return;
       var ts = stamp(l.start);
       out.push(ts + ' ' + l.text.replace(/[\r\n]+/g, ' '), ts + ' ' + String(l.ipa == null ? '' : l.ipa).replace(/[\r\n]+/g, ' '));
+      if (l.tr) out.push(ts + ' ≫ ' + String(l.tr).replace(/[\r\n]+/g, ' '));
     });
     if (!out.length) throw new Error('Tidak ada baris yang valid di JSON.');
     return out.join('\n');
