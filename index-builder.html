@@ -195,7 +195,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
   const $ = (s) => document.querySelector(s);
   const SLUG_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
   const NOW = new Date().toISOString();
-  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'image', 'feed', 'duration', 'added'];
+  const KNOWN = ['slug', 'title', 'videoId', 'audio', 'lines', 'description', 'category', 'tags', 'order', 'image', 'feed', 'duration', 'added', 'channel'];
   const isHttp = (v) => typeof v === 'string' && /^https?:\/\/\S+$/.test(v.trim());
   // Cari link RSS podcast di JSON audio: kunci langsung, objek bersarang (mis. podcast.rss), atau nilai URL bergaya feed.
   const feedOf = (j) => {
@@ -279,6 +279,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
         lines: nLines,
         description: str(j.description),
         category: str(j.category),
+        channel: str(j.channel),
         tags: tagsOf(j.tags),
         image: imgOf(j),
         feed: feedOf(j),
@@ -308,6 +309,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
           slug, title: f.title, videoId: f.videoId, audio: f.audio || str(o && o.audio), lines: f.lines,
           description: f.description || str(o && o.description),
           category: f.category || str(o && o.category),
+          channel: f.channel || str(o && o.channel),
           tags: f.tags.length ? f.tags : tagsOf(o && o.tags),
           image: f.image || str(o && o.image),
           feed: f.feed || str(o && o.feed),
@@ -319,7 +321,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       } else {
         base = {
           slug, title: str(o.title) || slug, videoId: /^[\w-]{11}$/.test(o.videoId || '') ? o.videoId : '', audio: str(o.audio), lines: Number(o.lines) || 0,
-          description: str(o.description), category: str(o.category), tags: tagsOf(o.tags), image: str(o.image), feed: str(o.feed), duration: Math.round(Number(o.duration)) || 0,
+          description: str(o.description), category: str(o.category), channel: str(o.channel), tags: tagsOf(o.tags), image: str(o.image), feed: str(o.feed), duration: Math.round(Number(o.duration)) || 0,
           order: Number.isFinite(o.order) ? o.order : undefined,
           added: (typeof o.added === 'string' && o.added) || ''
         };
@@ -342,6 +344,7 @@ code { font-family: var(--font-mono); font-size: 0.9em; padding: 0 5px; border-r
       if (b.audio) e.audio = b.audio;
       if (b.description) e.description = b.description;
       if (r.category) e.category = r.category;
+      if (b.channel) e.channel = b.channel;
       if (r.tags.length) e.tags = r.tags;
       if (isAudioOnly(b)) {
         if (b.duration > 0) e.duration = b.duration;
