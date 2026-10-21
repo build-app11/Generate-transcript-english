@@ -101,6 +101,8 @@ body.pv { margin: 0; overflow: hidden; }
 #toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 40; max-width: calc(100vw - 32px); padding: 10px 16px; border-radius: 12px; background: var(--ink); color: var(--bg); font-size: 0.88rem; font-weight: 600; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.25); }
 #toast:empty { display: none; }
 #toast.bad { background: var(--bad); color: #fff; }
+.gback{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px;padding:6px 14px;border:2.5px solid var(--line,#14162B);border-radius:999px;background:var(--surface,#fff);color:var(--ink,#14162B);font:700 .9rem var(--font-en,system-ui,sans-serif);text-decoration:none;box-shadow:3px 3px 0 var(--shadow,#14162B)}
+.gback:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}
 </style>
 </head>
 <body>
@@ -108,6 +110,7 @@ body.pv { margin: 0; overflow: hidden; }
 <div id="vIn">
 <main class="wrap">
   <header>
+    <a class="gback" href="index.html" aria-label="Kembali ke beranda">← Beranda</a>
     <h1>Pembuat halaman shadowing</h1>
     <p class="lead">Isi link video dan tempel transkrip dari toPhonetics. Hasilnya satu file HTML yang siap diunggah, dengan transkrip yang menyorot baris sesuai waktu video, fonetik per kata, fitur ulang, dan kecepatan.</p>
   </header>
