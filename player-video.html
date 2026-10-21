@@ -297,6 +297,21 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .line.sh-rec{--sh:var(--sh-rec)}
 .line.sh-play{--sh:var(--sh-play)}
 .line:is(.sh-listen,.sh-echo,.sh-rec,.sh-play){background:color-mix(in srgb,var(--sh) 14%,var(--surface));box-shadow:inset 0 0 0 2.5px var(--sh)}
+
+/* terjemahan per baris */
+.line .tr{margin:6px 0 0;font-size:calc(0.95rem * var(--fs, 1));line-height:1.4;color:var(--muted)}
+.notr .line .tr{display:none}
+.line.drilled:not(.reveal) .tr{filter:blur(9px)}
+.vpop #bTr{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-en);font-weight:600;font-size:0.85rem}
+.vpop #bTr .g{font-family:var(--font-ipa);font-size:1.2rem}
+/* skor shadowing: badge persen per baris, kata yang kurang jelas berwarna merah */
+.sc{flex:none;align-self:flex-start;min-width:46px;margin-top:2px;padding:1px 8px;text-align:center;border:2px solid var(--line);border-radius:999px;background:var(--surface);font:600 0.78rem var(--font-mono);font-variant-numeric:tabular-nums}
+.sc.good{color:var(--ok)}.sc.mid{color:var(--warn)}.sc.low{color:var(--bad)}
+.w.bad b,.w.bad i{color:var(--bad)}
+.w.good b,.w.good i{color:var(--ok)}
+.sc.none{color:var(--muted)}
+.w.bad b{text-decoration:underline wavy var(--bad);text-decoration-thickness:1.5px;text-underline-offset:4px}
+
 </style>
 </head>
 <body>
@@ -329,6 +344,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
       if (!l || typeof l.text !== 'string' || !isFinite(l.start) || l.start < 0) return;
       var ts = stamp(l.start);
       out.push(ts + ' ' + l.text.replace(/[\r\n]+/g, ' '), ts + ' ' + String(l.ipa == null ? '' : l.ipa).replace(/[\r\n]+/g, ' '));
+      if (l.tr) out.push(ts + ' ≫ ' + String(l.tr).replace(/[\r\n]+/g, ' '));
     });
     if (!out.length) throw new Error('Tidak ada baris yang valid di JSON.');
     return out.join('\n');
@@ -347,42 +363,6 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     s.textContent = $b('appjs').textContent;
     document.body.appendChild(s);
     var bt = $b('boot'); if (bt) bt.remove();
-    pathDone();
-  }
-
-  /* Tombol "Selesai": hanya muncul jika halaman dibuka dari path.html */
-  function pathDone() {
-    var slug = new URLSearchParams(location.search).get('q') || '';
-    var SK = 'lf:from:' + slug, back = 'path.html';
-    try {
-      var r = document.referrer ? new URL(document.referrer) : null;
-      if (r && r.origin === location.origin && /\/path(\.html)?$/.test(r.pathname)) {
-        sessionStorage.setItem(SK, r.pathname + r.search);   // ingat saat halaman di-reload
-      }
-      var from = sessionStorage.getItem(SK);
-      if (!from || !slug) return;
-      back = from;
-    } catch (e) { return; }
-    var css = document.createElement('style');
-    css.textContent = '#doneBtn{display:flex;align-items:center;justify-content:center;flex:none;width:100%;max-width:420px;margin:18px auto 8px;padding:12px 22px;border:2.5px solid var(--line);border-radius:999px;background:var(--accent);color:var(--accent-ink);font:600 1.1rem var(--font-display,var(--font-en,system-ui));box-shadow:3px 3px 0 var(--shadow);cursor:pointer}#doneBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}';
-    document.head.appendChild(css);
-    var btn = document.createElement('button');
-    btn.id = 'doneBtn'; btn.type = 'button'; btn.textContent = 'Selesai ✓';
-    btn.addEventListener('click', function () {
-      try {
-        var p = JSON.parse(localStorage.getItem('lf:path')) || {};
-        if (!p.done || typeof p.done !== 'object') p.done = {};
-        p.done[slug] = { at: Date.now() };
-        localStorage.setItem('lf:path', JSON.stringify(p));
-        localStorage.setItem('lf:path:pending', 'null');     // jangan tanya lagi di path
-      } catch (e) {}
-      location.href = back;
-    });
-    var list = $b('list');
-    function put() { if (list.lastElementChild !== btn) list.appendChild(btn); }
-    put();
-    // list dirender ulang oleh aplikasi -> pasang lagi tombolnya di akhir
-    new MutationObserver(put).observe(list, { childList: true });
   }
   function fromText(txt) {
     var j;
@@ -444,6 +424,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     <div class="pop" id="lpop" hidden role="group" aria-label="Jumlah pengulangan"></div>
     <div class="pop vpop" id="vpop" hidden>
       <button id="bIpa" aria-pressed="true"><span class="g">ə</span>Fonetik</button>
+      <button id="bTr" aria-pressed="true" hidden><span class="g">≫</span>Terjemahan</button>
       <div class="szrow"><span>Ukuran font</span><button id="fsVal" aria-label="Ukuran font, tekan untuk kembali ke awal">100%</button></div>
       <div class="szslide">
         <button id="fsDown" aria-label="Perkecil font">A−</button>
@@ -481,13 +462,29 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
 
 <script type="text/plain" id="appjs">
 
+/* Waktu fleksibel di awal baris: [00:17], (00:17), 00:17, 0:17, 00:00:17, boleh pakai pecahan detik (00:17.48) */
+const TS_LINE = /^\s*[\[(]?\s*(?:(\d{1,2}):)?(\d{1,3}):(\d{2})(?:[.,](\d{1,3}))?\s*[\])]?\s*(.*)$/;
+function tsLine(l) {
+  const m = l.match(TS_LINE);
+  if (!m) return null;
+  const t = (+m[1] || 0) * 3600 + +m[2] * 60 + +m[3] + (m[4] ? +('0.' + m[4]) : 0);
+  return [Math.round(t * 1000) / 1000, m[5].trim()];
+}
+
+/* Angka waktu di mana pun (juga dalam satu paragraf) menandai awal baris baru. Teks sesudahnya, sampai angka waktu berikutnya, jadi isi baris itu. */
+const TS_ANY = /(^|[^\d:.])(?:[\[(]\s*)?(?:(\d{1,2}):)?(\d{1,3}):(\d{2})(?:[.,](\d{1,3}))?(?![\d:])\s*[\])]?/g;
+function splitTs(raw) {
+  const parts = String(raw).replace(/\r\n?/g, '\n')
+    .replace(TS_ANY, (m, g, h, mi, sc, f) => g + '\u0001[' + (h ? h + ':' : '') + mi + ':' + sc + (f ? '.' + f : '') + '] ')
+    .split('\u0001');
+  return parts.slice(1).map((p) => p.replace(/\s+/g, ' ').trim()).join('\n');
+}
+
 function parseTranskrip(raw) {
   const ent = [];
-  raw.split(/\r?\n/).forEach((l) => {
-    let m = l.match(/^\s*\[(\d{1,2}):(\d{2}):(\d{2})\]\s*(.*)$/);
-    if (m) { ent.push([+m[1] * 3600 + +m[2] * 60 + +m[3], m[4].trim()]); return; }
-    m = l.match(/^\s*\[(\d{1,3}):(\d{2})\]\s*(.*)$/);
-    if (m) ent.push([+m[1] * 60 + +m[2], m[3].trim()]);
+  splitTs(raw).split('\n').forEach((l) => {
+    const e = tsLine(l);
+    if (e) ent.push(e);
   });
   const tidy = (s) => s.replace(/"\s+(\S)/g, '"$1').replace(/\s+([.,?!])/g, '$1').replace(/ - /g, '-').replace(/\s+/g, ' ').trim();
   const out = [];
@@ -497,10 +494,13 @@ function parseTranskrip(raw) {
     let t = ent[i][0];
     const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);
     i += 2;
+    let tr = '';
+    if (i < ent.length && ent[i][0] === ent[i - 1][0] && /^≫/.test(ent[i][1])) { tr = ent[i][1].replace(/^≫\s*/, '').replace(/\s+/g, ' ').trim(); i++; }
     if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;
     prev = t;
     const a = en.split(' '), b = ip.split(' ');
     const d = { t, en, ip };
+    if (tr) d.tr = tr;
     if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);
     if (/^\[\s*music\s*\]/i.test(en)) d.m = 1;
     out.push(d);
@@ -523,7 +523,7 @@ if (titleEl) {
   chk();
 }
 if (!DATA.length) {
-  document.getElementById('list').innerHTML = '<div class="empty">Transkrip kosong atau formatnya tidak dikenali. Pastikan setiap baris diawali [00:00:17] dan berpasangan: teks Inggris lalu IPA.</div>';
+  document.getElementById('list').innerHTML = '<div class="empty">Transkrip kosong atau formatnya tidak dikenali. Pastikan setiap baris diawali waktu (mis. 00:17, [00:17], atau (00:17)) dan berpasangan: teks Inggris lalu IPA.</div>';
   throw new Error('Transkrip kosong');
 }
 const RATES = [0.5, 0.75, 1, 1.25, 1.5];
@@ -553,8 +553,8 @@ let loopMax = 0, loopCap = 0, loopDone = 0;
 try { const lm = +localStorage.getItem('uk-loopmax'); if (lm >= 1 && lm <= 3) loopMax = lm; } catch (e) {}
 let rate = 1, loopIdx = null, activeIdx = -1, dragging = false;
 let userScrollUntil = 0, lastLoopSeek = 0, holdUntil = 0, shownPlaying = null, lastLinkSec = -1;
-const PINKEY = 'uk-pins:' + VIDEO_ID;
 let pins = new Set();
+const PINKEY = 'uk-pins:' + VIDEO_ID;
 try { pins = new Set(JSON.parse(localStorage.getItem(PINKEY) || '[]')); } catch (e) {}
 try { if (localStorage.getItem('uk-ipa') === '0') { app.classList.add('noipa'); $('#bIpa').setAttribute('aria-pressed', 'false'); } } catch (e) {}
 
@@ -571,7 +571,7 @@ DATA.forEach((d, i) => {
     ? '<div class="ws">' + d.w.map(([a, b]) => '<span class="w"><b>' + esc(a) + '</b><i>' + esc(b) + '</i></span>').join('') + '</div>'
     : '<div class="ws"><span class="w"><b>' + esc(d.en) + '</b><i>' + esc(d.ip) + '</i></span></div>';
   const drb = d.m ? '' : '<button class="drb" aria-label="Drill baris: buram dan ulang" tabindex="-1">' + eyeSvg + '</button>';
-  el.innerHTML = '<div class="body">' + body + '</div>' + drb + '<button class="pinb" aria-label="Simpan baris" tabindex="-1">' + pinSvg + '</button>';
+  el.innerHTML = '<div class="body">' + body + (d.tr ? '<p class="tr">' + esc(d.tr) + '</p>' : '') + '</div><span class="sc" hidden></span>' + drb + '<button class="pinb" aria-label="Simpan baris" tabindex="-1">' + pinSvg + '</button>';
   list.appendChild(el);
   lines.push(el);
 });
@@ -580,6 +580,14 @@ emptyEl.className = 'empty'; emptyEl.hidden = true;
 emptyEl.textContent = 'Belum ada baris tersimpan. Tekan ikon pin di sebuah baris untuk menyimpannya.';
 list.appendChild(emptyEl);
 $('#count').textContent = DATA.length;
+if (DATA.some((d) => d.tr)) $('#bTr').hidden = false;
+try { if (localStorage.getItem('uk-tr') === '0') { app.classList.add('notr'); $('#bTr').setAttribute('aria-pressed', 'false'); } } catch (e) {}
+$('#bTr').addEventListener('click', () => {
+  const off = app.classList.toggle('notr');
+  $('#bTr').setAttribute('aria-pressed', String(!off));
+  try { localStorage.setItem('uk-tr', off ? '0' : '1'); } catch (e) {}
+  if (activeIdx >= 0) setTimeout(() => scrollToLine(activeIdx, true), 50);
+});
 
 function updatePinUI() {
   $('#pinCount').textContent = pins.size;
@@ -1039,11 +1047,11 @@ let baseLbl = 'mode timer', flash = '', flashT = null, shownKey = null;
 const stopSvg = '<svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
 const dictOn = () => app.classList.contains('dictation');
 
-const SH_LBL = { listen: 'dengar', echo: 'echo', rec: 'merekam', play: 'memutar rekamanmu' };
+const SH_LBL = { listen: 'dengar', echo: 'echo', rec: 'merekam', play: 'memutar rekamanmu', score: 'menilai suaramu' };
 function refreshStatus() {
-  let s = baseLbl;
+  let s = baseLbl + avgScoreTxt();
   if (flash) s = flash;
-  else if (sh.on) s = 'shadowing · baris ' + (sh.idx + 1) + ' · ' + (SH_LBL[sh.state] || 'siap');
+  else if (sh.on) s = 'shadowing · baris ' + (sh.idx + 1) + ' · ' + (SH_LBL[sh.state] || 'siap') + avgScoreTxt();
   else if (dictOn()) s = dictSummary();
   $('#modeLbl').textContent = s;
 }
@@ -1102,7 +1110,9 @@ document.addEventListener('click', (e) => { if (!lpop.hidden && !e.target.closes
 
 /* ---------- shadowing otomatis: dengar, echo, rekam (tombol Stop), putar langsung, lalu baris berikutnya ---------- */
 const recs = new Map();
-const sh = { on: false, starting: false, idx: 0, state: 'idle', tok: 0, t0: 0, seen: false, end: 0, echoStart: 0, echoDur: 0, stream: null, mime: '', mr: null, recTimer: null, aud: null, gapTimer: null };
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const scores = new Map();
+const sh = { on: false, starting: false, idx: 0, state: 'idle', tok: 0, t0: 0, seen: false, end: 0, echoStart: 0, echoDur: 0, stream: null, mime: '', mr: null, recTimer: null, aud: null, gapTimer: null, sr: null, scoreP: null, srOnly: false, srRec: false, miss: 0 };
 const pinOnly = () => app.classList.contains('only-pinned') && pins.size > 0;
 function shNext(from) {
   for (let j = Math.max(0, from); j < DATA.length; j++) {
@@ -1120,13 +1130,14 @@ function setShState(s) {
   refreshStatus(); updatePlayBtn();
 }
 function shRun(from) {
+  scAbort(); sh.srRec = false;
   clearTimeout(sh.gapTimer); clearTimeout(sh.recTimer);
   if (sh.aud) { try { sh.aud.pause(); } catch (e) {} sh.aud = null; }
   sh.tok++;
   if (sh.mr && sh.mr.state !== 'inactive') { try { sh.mr.stop(); } catch (e) {} }
   setShState('idle');
   const j = shNext(from);
-  if (j < 0) { shStop('shadowing selesai'); return; }
+  if (j < 0) { shStop('shadowing selesai' + avgScoreTxt()); return; }
   sh.idx = j;
   const d = DATA[j];
   sh.end = Math.max(d.s + 0.5, d.le - 0.3);
@@ -1143,10 +1154,173 @@ function shEcho() {
 }
 function shStopRec() {
   clearTimeout(sh.recTimer); sh.recTimer = null;
-  if (sh.mr && sh.mr.state !== 'inactive') { try { sh.mr.stop(); } catch (e) {} }
+  if (sh.mr && sh.mr.state !== 'inactive') { try { sh.mr.stop(); } catch (e) {} return; }
+  if (sh.srRec) {
+    /* mode skor saja (tanpa rekaman ulang): tunggu hasil pengenalan, lalu lanjut ke baris berikutnya */
+    sh.srRec = false;
+    const tok = sh.tok, p = scStop();
+    setShState('score');
+    Promise.race([p || 0, new Promise((r) => setTimeout(r, 3000))]).then(() => {
+      if (sh.on && tok === sh.tok) sh.gapTimer = setTimeout(() => shRun(sh.idx + 1), 700);
+    });
+  }
+}
+/* ---------- skor shadowing: speech recognition browser; kata yang kurang jelas ditandai merah ---------- */
+function lev(a, b) {
+  const m = a.length, n = b.length;
+  if (!m) return n; if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, j) => j);
+  for (let i = 1; i <= m; i++) {
+    const cur = [i];
+    for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    prev = cur;
+  }
+  return prev[n];
+}
+const NUMS = { zero: 0, one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10, eleven: 11, twelve: 12, thirteen: 13, fourteen: 14, fifteen: 15, sixteen: 16, seventeen: 17, eighteen: 18, nineteen: 19, twenty: 20 };
+const numW = (w) => (Object.prototype.hasOwnProperty.call(NUMS, w) ? String(NUMS[w]) : w);
+const CJ = new Map([['iam', 'im'], ['ihave', 'ive'], ['iwill', 'ill'], ['youare', 'youre'], ['youhave', 'youve'], ['youwill', 'youll'], ['weare', 'were'], ['wehave', 'weve'], ['theyare', 'theyre'], ['theyhave', 'theyve'], ['itis', 'its'], ['thatis', 'thats'], ['hereis', 'heres'], ['thereis', 'theres'], ['whatis', 'whats'], ['letus', 'lets'], ['donot', 'dont'], ['doesnot', 'doesnt'], ['didnot', 'didnt'], ['cannot', 'cant'], ['cantnot', 'cant'], ['willnot', 'wont'], ['isnot', 'isnt'], ['arenot', 'arent'], ['wasnot', 'wasnt'], ['havenot', 'havent'], ['couldnot', 'couldnt'], ['wouldnot', 'wouldnt'], ['shouldnot', 'shouldnt'], ['goingto', 'gonna'], ['wantto', 'wanna'], ['gotto', 'gotta']]);
+const sameW = (a, b) => a === b || CJ.get(b) === a || (a.length >= 4 && b.length >= 4 && lev(a, b) <= Math.floor(Math.max(a.length, b.length) / 5));
+function alignWords(exp, rec) {
+  const n = exp.length, m = rec.length;
+  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = 1; i <= n; i++) {
+    for (let j = 1; j <= m; j++) {
+      let v = Math.max(dp[i - 1][j], dp[i][j - 1]);
+      if (sameW(exp[i - 1], rec[j - 1])) v = Math.max(v, dp[i - 1][j - 1] + 1);
+      if (j > 1 && sameW(exp[i - 1], rec[j - 2] + rec[j - 1])) v = Math.max(v, dp[i - 1][j - 2] + 1);
+      dp[i][j] = v;
+    }
+  }
+  const ok = new Array(n).fill(false);
+  let i = n, j = m;
+  while (i > 0 && j > 0) {
+    if (sameW(exp[i - 1], rec[j - 1]) && dp[i][j] === dp[i - 1][j - 1] + 1) { ok[i - 1] = true; i--; j--; }
+    else if (j > 1 && sameW(exp[i - 1], rec[j - 2] + rec[j - 1]) && dp[i][j] === dp[i - 1][j - 2] + 1) { ok[i - 1] = true; i--; j -= 2; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) i--; else j--;
+  }
+  return ok;
+}
+function avgScoreTxt() {
+  const a = [...scores.values()].filter((x) => x.heard);
+  return a.length ? ' · skor ' + Math.round(a.reduce((s, x) => s + x.pct, 0) / a.length) + '%' : '';
+}
+let scMuteWarn = false;
+function paintScore(i) {
+  const s = scores.get(i), el = lines[i], d = DATA[i];
+  if (!s || !el) return;
+  el.querySelectorAll('.w').forEach((w, k) => {
+    w.classList.toggle('bad', !!d.w && !!s.heard && s.bad.includes(k));
+    w.classList.toggle('good', !!d.w && !!s.heard && (s.good || []).includes(k));
+  });
+  const b = el.querySelector('.sc');
+  if (!b) return;
+  b.hidden = false;
+  if (!s.heard) { b.textContent = '—'; b.className = 'sc none'; b.title = 'Suara tidak terdeteksi'; return; }
+  b.textContent = s.pct + '%';
+  b.className = 'sc ' + (s.pct >= 80 ? 'good' : s.pct >= 50 ? 'mid' : 'low');
+  b.title = 'Skor pengucapan' + (s.text ? ' · terdengar: ' + s.text : '');
+}
+function clearScores() {
+  scores.clear();
+  lines.forEach((el) => {
+    el.querySelectorAll('.w.bad, .w.good').forEach((w) => w.classList.remove('bad', 'good'));
+    const b = el.querySelector('.sc'); if (b) { b.hidden = true; b.textContent = ''; }
+  });
+  refreshStatus();
+}
+function scoreLine(i, segs) {
+  const d = DATA[i], toks = d.w ? d.w.map((x) => x[0]) : d.en.split(' ');
+  const flat = [];
+  toks.forEach((tk, k) => normW(tk).forEach((w) => flat.push({ w: numW(w), k })));
+  if (!flat.length) return;
+  const got = segs.filter(Boolean);
+  const nAlt = Math.max(1, ...got.map((s) => s.length));
+  const okAny = new Array(flat.length).fill(false);
+  let heard = false;
+  for (let a = 0; a < nAlt; a++) {
+    const rec = normW(got.map((s) => s[a] || s[0]).join(' ')).map(numW);
+    if (rec.length) heard = true;
+    alignWords(flat.map((x) => x.w), rec).forEach((v, n) => { if (v) okAny[n] = true; });
+  }
+  const badK = new Set(), seenK = new Set();
+  flat.forEach((x, n) => { seenK.add(x.k); if (!okAny[n]) badK.add(x.k); });
+  const text = got.map((s) => s[0] || '').join(' ').replace(/\s+/g, ' ').trim();
+  scores.set(i, {
+    pct: Math.round((100 * okAny.filter(Boolean).length) / flat.length), heard, text,
+    bad: [...badK], good: heard ? [...seenK].filter((k) => !badK.has(k)) : []
+  });
+  paintScore(i); refreshStatus();
+  if (heard) { sh.miss = 0; return; }
+  if (!sh.on) return;
+  sh.miss++;
+  if (sh.miss >= 2 && !sh.srOnly) {
+    /* rekaman dan pengenal suara berebut mikrofon: lepas rekaman, biarkan pengenal suara yang memakai mikrofon */
+    sh.srOnly = true;
+    if (sh.stream) { sh.stream.getTracks().forEach((x) => x.stop()); sh.stream = null; }
+    flashStatus('mikrofon dipakai khusus untuk skor, rekaman ulang dimatikan');
+  } else if (sh.srOnly && !scMuteWarn) {
+    scMuteWarn = true;
+    flashStatus('suara belum terbaca. Bicara lebih dekat ke mikrofon, atau pakai Chrome.');
+  }
+}
+let scBroken = false, scWarned = false;
+function scoreFail(err) {
+  if (/not-allowed|service-not-allowed|language-not-supported/.test(err)) scBroken = true;
+  if (scWarned) return;
+  scWarned = true;
+  const why = /not-allowed/.test(err) ? 'izin pengenalan suara ditolak' : err === 'audio-capture' ? 'mikrofon sedang dipakai perekam' : err === 'network' ? 'butuh koneksi internet' : err;
+  flashStatus('skor tidak tersedia: ' + why);
+}
+function scStart() {
+  sh.sr = null; sh.scoreP = null;
+  if (!SR || scBroken) return;
+  let r;
+  try { r = new SR(); } catch (e) { return; }
+  r.lang = 'en-US'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+  const o = { r, segs: [], err: '', i: sh.idx, fin: null };
+  r.onresult = (ev) => {
+    for (let k = ev.resultIndex; k < ev.results.length; k++) {
+      const res = ev.results[k], alts = [];
+      for (let a = 0; a < res.length; a++) alts.push(res[a].transcript);
+      o.segs[k] = alts;
+    }
+  };
+  r.onerror = (ev) => { o.err = ev.error || 'error'; };
+  o.done = new Promise((ok) => { o.fin = ok; r.onend = ok; });
+  let started = false;
+  const tr = sh.stream && sh.stream.getAudioTracks && sh.stream.getAudioTracks()[0];
+  if (tr && tr.clone) { try { r.start(tr.clone()); started = true; } catch (e) { started = false; } }
+  if (!started) { try { r.start(); } catch (e) { return; } }
+  sh.sr = o;
+}
+function scStop() {
+  const o = sh.sr;
+  if (!o) return null;
+  sh.sr = null;
+  try { o.r.stop(); } catch (e) {}
+  setTimeout(o.fin, 2500);
+  return o.done.then(() => {
+    const soft = !o.err || o.err === 'no-speech' || o.err === 'aborted' || (o.err === 'audio-capture' && !sh.srOnly);
+    if (!soft) { scoreFail(o.err); return; }
+    scoreLine(o.i, o.segs);
+  });
+}
+function scAbort() {
+  const o = sh.sr;
+  sh.sr = null;
+  if (o) { try { o.r.abort(); } catch (e) {} }
 }
 function shRecord() {
   const i = sh.idx, tok = sh.tok;
+  if (sh.srOnly) {
+    sh.srRec = true;
+    scStart();
+    setShState('rec');
+    const dd = DATA[i];
+    sh.recTimer = setTimeout(shStopRec, ((dd.le - dd.s) * 1.5 + 3) * 1000);
+    return;
+  }
   let mr;
   try { mr = new MediaRecorder(sh.stream, sh.mime ? { mimeType: sh.mime } : undefined); }
   catch (e) { shStop('rekam suara tidak didukung'); return; }
@@ -1155,6 +1329,7 @@ function shRecord() {
   mr.onstop = () => {
     clearTimeout(sh.recTimer); sh.recTimer = null;
     if (sh.mr === mr) sh.mr = null;
+    const sp = sh.on && tok === sh.tok ? scStop() : (scAbort(), null);
     if (!sh.on || tok !== sh.tok) return;
     if (!chunks.length) { shRun(sh.idx + 1); return; }
     const old = recs.get(i);
@@ -1162,10 +1337,16 @@ function shRecord() {
     const url = URL.createObjectURL(new Blob(chunks, { type: mr.mimeType || sh.mime || 'audio/webm' }));
     recs.set(i, { url });
     lines[i].classList.add('hasrec');
-    shPlayback(url);
+    sh.scoreP = sp;
+    /* urutan: nilai dulu (badge dan warna kata muncul), baru putar rekamanmu */
+    setShState('score');
+    Promise.race([sp || 0, new Promise((r) => setTimeout(r, 3500))]).then(() => {
+      if (sh.on && tok === sh.tok) shPlayback(url);
+    });
   };
   sh.mr = mr;
   mr.start();
+  scStart();
   setShState('rec');
   const d = DATA[i];
   sh.recTimer = setTimeout(shStopRec, ((d.le - d.s) * 1.5 + 3) * 1000);
@@ -1175,7 +1356,15 @@ function shPlayback(url) {
   setShState('play');
   const a = new Audio(url);
   sh.aud = a;
-  const done = () => { if (sh.aud === a && tok === sh.tok) { sh.aud = null; sh.gapTimer = setTimeout(() => shRun(sh.idx + 1), 400); } };
+  const done = () => {
+    if (sh.aud === a && tok === sh.tok) {
+      sh.aud = null;
+      const p = sh.scoreP;
+      Promise.race([p || 0, new Promise((r) => setTimeout(r, 2800))]).then(() => {
+        if (sh.on && tok === sh.tok) sh.gapTimer = setTimeout(() => shRun(sh.idx + 1), p ? 900 : 400);
+      });
+    }
+  };
   a.onended = done; a.onerror = done;
   a.play().catch(done);
 }
@@ -1190,9 +1379,10 @@ function shTick(nowMs, t) {
   }
 }
 function shPress() {
-  if (sh.state === 'rec') shStopRec(); else shStop('shadowing dihentikan');
+  if (sh.state === 'rec') shStopRec(); else shStop('shadowing dihentikan' + avgScoreTxt());
 }
 function shStop(msg) {
+  scAbort(); sh.srRec = false;
   sh.on = false; sh.tok++;
   clearTimeout(sh.gapTimer); clearTimeout(sh.recTimer);
   if (sh.mr && sh.mr.state !== 'inactive') { try { sh.mr.stop(); } catch (e) {} }
@@ -1215,6 +1405,9 @@ async function shStart() {
   if (dictOn()) setDict(false);
   setLoop(null);
   closeTip();
+  scMuteWarn = false; sh.srOnly = false; sh.srRec = false; sh.miss = 0;
+  clearScores();
+  if (!SR) flashStatus('skor suara tidak didukung browser ini, shadowing tetap berjalan');
   sh.stream = stream;
   sh.mime = ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg;codecs=opus'].find((m) => MediaRecorder.isTypeSupported(m)) || '';
   sh.on = true;
@@ -1401,7 +1594,7 @@ function applyAV() {
 $('#mVideo').addEventListener('click', () => { avAudio = false; lsSet('uk-av', 'v'); applyAV(); });
 $('#mAudio').addEventListener('click', () => { avAudio = true; lsSet('uk-av', 'a'); applyAV(); });
 
-/* ---------- video bersih: ketuk video = play/jeda ---------- */
+/* ---------- video bersih: ketuk video = play/jeda; tombol kembali ---------- */
 $('#ytov').addEventListener('click', () => { if (sh.on) return; if (isPlaying()) pause(); else play(); });
 ['#hback'].forEach((s) => $(s).addEventListener('click', (e) => { if (location.href.indexOf('about:') === 0) e.preventDefault(); }));
 
