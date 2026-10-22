@@ -23,16 +23,16 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-#app{height:100vh;height:100dvh;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+#app{height:100vh;height:calc(var(--vh,1vh)*100);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 
 header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px var(--gut);padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .brand{display:inline-flex;align-items:center;gap:10px;font:700 clamp(1.1rem,1rem + .5vw,1.4rem)/1 var(--font-display)}
 .logo{display:grid;place-items:center;width:36px;height:36px;border:2.5px solid var(--line);border-radius:11px;background:var(--yellow);color:var(--on);box-shadow:3px 3px 0 var(--shadow);font-size:.95rem;padding-left:2px;flex:none}
 .status{font-size:.85rem;font-weight:600;color:var(--muted);text-align:right;max-width:60%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
-.player{grid-area:player;flex:none;position:relative;background:#000;aspect-ratio:16/9;width:calc(100% - 2*var(--gut));max-height:42vh;max-height:42dvh;margin:4px auto 0;border:2.5px solid var(--line);border-radius:20px;box-shadow:5px 5px 0 var(--shadow);overflow:hidden}
+.player{grid-area:player;flex:none;position:relative;background:#000;aspect-ratio:16/9;width:calc(100% - 2*var(--gut));max-height:calc(var(--vh,1vh)*36);margin:4px auto 0;border:2.5px solid var(--line);border-radius:20px;box-shadow:5px 5px 0 var(--shadow);overflow:hidden}
 .player #yt,.player iframe{position:absolute;inset:0;width:100%;height:100%}
-@supports (aspect-ratio:1){.player{width:min(100% - 2*var(--gut),calc(42dvh*16/9))}}
+@supports (aspect-ratio:1){.player{width:min(100% - 2*var(--gut),calc(var(--vh,1vh)*36*16/9))}}
 
 .shield{position:absolute;inset:0;z-index:2;cursor:pointer;display:flex;align-items:center;justify-content:center;background:transparent;user-select:none}
 .shield.cover{background:#000}
@@ -48,7 +48,7 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
 .ctrl label input{accent-color:var(--mint);width:16px;height:16px;margin:0}
 .counter{font:600 .9rem var(--font-display);color:var(--muted);min-width:46px;text-align:center}
 
-.list{grid-area:list;flex:1;min-height:0;overflow-y:auto;position:relative;margin:0 var(--gut);padding:0 clamp(14px,3vw,24px);background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.list{grid-area:list;flex:1 0 auto;min-height:max(170px,calc(var(--vh,1vh)*30));overflow-y:auto;position:relative;margin:0 var(--gut);padding:0 clamp(14px,3vw,24px);background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .list::after{content:'';display:block;height:70%}
 .list ul{margin:0;padding:0;list-style:none}
 .list li{position:relative;padding:clamp(12px,2vw,16px) 30px clamp(12px,2vw,16px) 0;border-top:2px dashed var(--rule);cursor:pointer;font-family:var(--font-display);font-weight:500;font-size:var(--fs-li);line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
@@ -97,9 +97,10 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
   #app{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr) auto;
     grid-template-areas:"head head" "player list" "ctrl list" "fill bar";column-gap:var(--gut)}
   header{padding-bottom:6px}
-  .player{width:min(100% - 2*var(--gut),calc((100dvh - var(--lfh,84px) - 150px)*16/9));max-height:none;align-self:start;margin:4px 0 0 var(--gut)}
+  #app{overflow-y:hidden}
+  .player{width:min(100% - 2*var(--gut),calc((var(--vh,1vh)*100 - var(--lfh,84px) - 150px)*16/9));max-height:none;align-self:start;margin:4px 0 0 var(--gut)}
   .ctrl{padding:14px 0 10px var(--gut);align-self:start}
-  .list{margin:0 var(--gut) 0 0;min-height:0}
+  .list{margin:0 var(--gut) 0 0;min-height:0;flex:1}
   .bar{padding:12px var(--gut) 8px 0}
 }
 
@@ -122,10 +123,25 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
   .player{border-radius:16px;box-shadow:4px 4px 0 var(--shadow)}
 }
 
-/* Layar sangat pendek (portrait kecil): pemutar lebih kecil agar daftar tetap terlihat */
-@media(max-height:620px) and (orientation:portrait){
-  .player{max-height:30dvh}
-  @supports (aspect-ratio:1){.player{width:min(100% - 2*var(--gut),calc(30dvh*16/9))}}
+/* Layar pendek (portrait, mis. Redmi 5A): semua dipadatkan agar transkrip tetap terlihat */
+@media(max-height:720px) and (orientation:portrait){
+  header{padding-top:calc(6px + env(safe-area-inset-top,0px));padding-bottom:4px}
+  .logo{width:30px;height:30px}
+  .lf-back{width:36px;height:36px}
+  .player{max-height:calc(var(--vh,1vh)*25);border-radius:16px;box-shadow:4px 4px 0 var(--shadow)}
+  @supports (aspect-ratio:1){.player{width:min(100% - 2*var(--gut),calc(var(--vh,1vh)*25*16/9))}}
+  .ctrl{padding-top:10px;padding-bottom:8px;gap:6px}
+  .ctrl .title{display:none}
+  .ctrl button{min-width:40px;height:40px}
+  .ctrl label{min-height:40px}
+  .list{min-height:max(190px,calc(var(--vh,1vh)*36))}
+  .list li.on{font-size:clamp(1.25rem,1rem + 1.4vw,1.6rem);padding-bottom:14px}
+  .list li{padding-top:10px;padding-bottom:10px}
+  .list::after{height:40%}
+  .bar{padding-top:10px}
+  .chips{padding-bottom:8px}
+  .chip{padding:4px 12px;font-size:.95rem}
+  .box{padding-top:2px;padding-bottom:2px}
 }
 </style>
 </head>
@@ -165,6 +181,10 @@ const INDEX_URL = 'data/index.json';
 const lessonUrl = slug => `data/${slug}.json`;   // ubah jika nama file materi berbeda
 const PAD_BEFORE = 0.15, PAD_AFTER = 0.25, LAST_LINE_LEN = 5, MAX_LEN = 15;
 /* ========================== */
+
+/* tinggi layar sebenarnya (Chrome lama tidak mengenal dvh) */
+const setVh = () => document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+setVh(); addEventListener('resize', setVh); addEventListener('orientationchange', () => setTimeout(setVh, 250));
 
 const $ = id => document.getElementById(id);
 const esc = s => s.replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -398,7 +418,7 @@ loadAll();
 #lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #lfnav a[aria-current=page]{color:#F2B705}
 #lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
-#app{height:calc(100vh - var(--lfh,84px));height:calc(100dvh - var(--lfh,84px))}
+#app{height:calc(100vh - var(--lfh,84px));height:calc(var(--vh,1vh)*100 - var(--lfh,84px))}
 .bar{padding:10px var(--gut,16px) 8px}
 .chips{padding-bottom:10px}
 @media(max-width:360px){#lfnav a{font-size:.72rem}#lfnav svg{width:22px;height:22px}}
