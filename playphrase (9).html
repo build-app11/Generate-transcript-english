@@ -23,7 +23,7 @@ html,body{height:100%;margin:0}
 body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 button,input{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-#app{height:100vh;height:calc(var(--vh,1vh)*100);overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+#app{height:100vh;height:calc(var(--vh,1vh)*100);overflow:hidden;display:flex;flex-direction:column;width:100%;max-width:1200px;margin:0 auto;padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
 
 header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px var(--gut);padding-top:calc(10px + env(safe-area-inset-top,0px))}
 .brand{display:inline-flex;align-items:center;gap:10px;font:700 clamp(1.1rem,1rem + .5vw,1.4rem)/1 var(--font-display)}
@@ -48,7 +48,7 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
 .ctrl label input{accent-color:var(--mint);width:16px;height:16px;margin:0}
 .counter{font:600 .9rem var(--font-display);color:var(--muted);min-width:46px;text-align:center}
 
-.list{grid-area:list;flex:1 0 auto;min-height:max(170px,calc(var(--vh,1vh)*30));overflow-y:auto;position:relative;margin:0 var(--gut);padding:0 clamp(14px,3vw,24px);background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.list{grid-area:list;flex:1 1 0;min-height:0;overflow-y:auto;position:relative;margin:0 var(--gut);padding:0 clamp(14px,3vw,24px);background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);scroll-behavior:smooth;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .list::after{content:'';display:block;height:70%}
 .list ul{margin:0;padding:0;list-style:none}
 .list li{position:relative;padding:clamp(12px,2vw,16px) 30px clamp(12px,2vw,16px) 0;border-top:2px dashed var(--rule);cursor:pointer;font-family:var(--font-display);font-weight:500;font-size:var(--fs-li);line-height:1.45;color:var(--muted);overflow-wrap:anywhere}
@@ -134,14 +134,19 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
   .ctrl .title{display:none}
   .ctrl button{min-width:40px;height:40px}
   .ctrl label{min-height:40px}
-  .list{min-height:max(190px,calc(var(--vh,1vh)*36))}
-  .list li.on{font-size:clamp(1.25rem,1rem + 1.4vw,1.6rem);padding-bottom:14px}
+  .list li.on{font-size:clamp(1.2rem,1rem + 1.2vw,1.5rem);padding-bottom:14px}
   .list li{padding-top:10px;padding-bottom:10px}
   .list::after{height:40%}
   .bar{padding-top:10px}
   .chips{padding-bottom:8px}
   .chip{padding:4px 12px;font-size:.95rem}
   .box{padding-top:2px;padding-bottom:2px}
+}
+/* Layar sangat pendek: saran kata disembunyikan, kolom cari tetap di atas tab navigasi */
+@media(max-height:600px) and (orientation:portrait){
+  .chips{display:none}
+  .player{max-height:calc(var(--vh,1vh)*22)}
+  @supports (aspect-ratio:1){.player{width:min(100% - 2*var(--gut),calc(var(--vh,1vh)*22*16/9))}}
 }
 </style>
 </head>
@@ -160,7 +165,6 @@ header{grid-area:head;flex:none;display:flex;align-items:center;justify-content:
     <button id="replay" class="main" aria-label="Ulang">▶</button>
     <button id="next" aria-label="Berikutnya">⏭</button>
     <span class="counter" id="counter">0/0</span>
-    <label><input type="checkbox" id="auto" checked>Auto</label>
   </div>
 
   <div class="list" id="listBox"><ul id="list"></ul></div>
@@ -356,7 +360,7 @@ let clipActive = false, advTimer = null;
 function clipEnded(){
   if(!clipActive) return;
   clipActive = false;
-  if($('auto').checked && cur < results.length-1){
+  if(cur < results.length-1){
     const from = cur;
     clearTimeout(advTimer);
     advTimer = setTimeout(() => { if(cur === from) play(from + 1); }, GAP_MS);
