@@ -4,62 +4,116 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Jalur belajar · Learning Fun</title>
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
 <script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap">
 <style>
-:root{--bg:#EEF2FF;--surface:#FFFFFF;--ink:#14162B;--on:#14162B;--muted:#4F5575;--line:#14162B;--shadow:#14162B;--rule:#D3D9F2;--yellow:#FFD23F;--coral:#FF6B5E;--blue:#4C84FF;--mint:#2ED3A0;--purple:#A07CFA;--font:'Albert Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'Fredoka','Albert Sans',system-ui,sans-serif;color-scheme:light}
+:root{--bg:#EEF2FF;--surface:#FFFFFF;--ink:#14162B;--on:#14162B;--muted:#4F5575;--line:#14162B;--shadow:#14162B;--rule:#D3D9F2;--yellow:#FFD23F;--coral:#FF6B5E;--blue:#4C84FF;--mint:#2ED3A0;--purple:#A07CFA;--font:'Albert Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'Fredoka','Albert Sans',system-ui,sans-serif;
+  --gut:clamp(14px,4vw,40px);--mw:36rem;--nw:clamp(68px,22vw,92px);--nh:calc(var(--nw)*.86);color-scheme:light}
 @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;color-scheme:dark}}
 :root[data-theme="dark"]{--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;color-scheme:dark}
-*{box-sizing:border-box}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom,0px)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px));padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+/* bulatan dekorasi, sama seperti halaman Kosa Kata */
+body::before,body::after{content:"";position:fixed;z-index:-1;border:2.5px solid var(--line);pointer-events:none}
+body::before{right:-40px;top:60px;width:130px;height:130px;border-radius:50%;background:var(--yellow)}
+body::after{left:-44px;bottom:110px;width:110px;height:110px;border-radius:30px;background:var(--mint);transform:rotate(18deg)}
 button,a{font:inherit;color:inherit}
 :focus-visible{outline:3px solid var(--blue);outline-offset:3px}
-.top{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:2.5px solid var(--line);padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top,0px))}
-.top-in{max-width:520px;margin:0 auto;display:flex;align-items:center;gap:10px}
-.top h1{font:600 1.3rem/1.1 var(--font-display);margin:0 auto 0 0}
-.back{text-decoration:none;font:700 1.4rem/1 var(--font-display);padding:2px 8px}
+
+/* header ringkas: tombol kembali + merek */
+.lf-hd{max-width:var(--mw);margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 0 0;display:flex;align-items:center;gap:12px}
+.lf-back{flex:none;display:grid;place-items:center;width:42px;height:42px;border:2.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);text-decoration:none;font:700 1.3rem/1 var(--font-display);box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.lf-back:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.lf-brand{display:inline-flex;align-items:center;gap:10px;min-width:0;font:700 clamp(1.05rem,1rem + .4vw,1.25rem)/1 var(--font-display);color:var(--ink);text-decoration:none}
+.lf-logo{flex:none;display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--line);border-radius:10px;background:var(--yellow);box-shadow:2px 2px 0 var(--shadow)}
+
+main{max-width:var(--mw);margin:0 auto;padding:clamp(16px,3vw,28px) 0 24px}
+
+/* kartu pembuka */
+.hero{display:flex;flex-direction:column;gap:12px;padding:clamp(18px,5vw,30px);background:var(--surface);border:2.5px solid var(--line);border-radius:26px;box-shadow:7px 7px 0 var(--shadow)}
+.hero h1{margin:0;font:700 clamp(1.7rem,6vw,2.6rem)/1.1 var(--font-display);letter-spacing:-.01em}
+.lead{margin:0;color:var(--muted);line-height:1.6;font-size:clamp(.95rem,.9rem + .3vw,1.05rem);max-width:56ch}
+.hero-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+
 .chip,.btn{border:2.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-family:var(--font-display);font-weight:600;cursor:pointer;text-decoration:none}
-.chip{padding:4px 14px;box-shadow:3px 3px 0 var(--shadow)}
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:6px 18px;font-size:1rem;box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
 .chip.fire{background:var(--yellow);color:var(--on)}
-.btn{display:flex;align-items:center;justify-content:center;width:100%;margin-top:10px;padding:11px 22px;box-shadow:3px 3px 0 var(--shadow)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin-top:12px;padding:12px 22px;font-size:1.1rem;box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
 .btn:active,.chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
 .btn.pri{background:var(--yellow);color:var(--on)}
-main{max-width:520px;margin:0 auto;padding:0 16px 56px}
-.unit{margin-top:20px;padding:16px 20px;border:2.5px solid var(--line);border-radius:18px;box-shadow:4px 4px 0 var(--shadow);background:var(--c);color:var(--on)}
-.unit b{display:block;font:700 1.6rem/1.15 var(--font-display)}
+
+/* unit */
+.unit{margin-top:clamp(22px,5vw,34px);padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,24px);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow);background:var(--c);color:var(--on);font-size:clamp(.9rem,.85rem + .3vw,1rem)}
+.unit b{display:block;font:700 clamp(1.35rem,1.1rem + 1.2vw,1.8rem)/1.15 var(--font-display)}
 .c-purple{--c:var(--purple)}.c-blue{--c:var(--blue)}.c-coral{--c:var(--coral)}.c-mint{--c:var(--mint)}
-.trail{position:relative;margin:0 -16px}
-.trail svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+/* jalur */
+.trail{position:relative;margin:36px 0 0}
+.trail svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
 .trail path{fill:none;stroke:var(--muted);stroke-width:4;stroke-linecap:round;stroke-dasharray:1 13;opacity:.55}
-.nw{position:absolute;width:88px;height:76px;transform:translate(-50%,-50%)}
-.node{position:relative;width:88px;height:76px;display:grid;place-items:center;border:2.5px solid var(--line);border-radius:50%/48%;background:var(--surface);color:var(--ink);font:600 1.7rem var(--font-display);box-shadow:0 7px 0 var(--shadow);cursor:pointer;transition:transform .08s,box-shadow .08s}
+.nw{position:absolute;width:var(--nw);height:var(--nh);-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%)}
+.node{position:relative;width:var(--nw);height:var(--nh);display:grid;place-items:center;padding:0;border:2.5px solid var(--line);border-radius:50%/48%;background:var(--surface);color:var(--ink);font:600 calc(var(--nw)*.3) var(--font-display);box-shadow:0 7px 0 var(--shadow);cursor:pointer;transition:transform .08s,box-shadow .08s}
 .node:active{transform:translateY(5px);box-shadow:0 2px 0 var(--shadow)}
 .node.cur{background:var(--yellow);color:var(--on)}
 .node.done{background:var(--mint);color:var(--on)}
 .node.lock{background:var(--rule);color:var(--muted);cursor:not-allowed;opacity:.85}
-.tip{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);padding:1px 14px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:600 1rem var(--font-display);white-space:nowrap;animation:bob 1.6s ease-in-out infinite}
+.tip{position:absolute;bottom:calc(100% + 14px);left:50%;transform:translateX(-50%);padding:1px 14px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font:600 1rem var(--font-display);white-space:nowrap;animation:bob 1.6s ease-in-out infinite}
 @keyframes bob{50%{transform:translate(-50%,-5px)}}
 .msg{padding:56px 12px;text-align:center;color:var(--muted)}
-dialog{border:2.5px solid var(--line);border-radius:20px;background:var(--surface);color:var(--ink);padding:22px;width:min(92vw,380px);box-shadow:6px 6px 0 var(--shadow)}
+
+/* dialog */
+dialog{border:2.5px solid var(--line);border-radius:26px;background:var(--surface);color:var(--ink);padding:clamp(18px,5vw,26px);width:min(calc(100vw - 32px),400px);max-height:calc(var(--vh,1vh)*88);overflow:auto;box-shadow:7px 7px 0 var(--shadow)}
 dialog::backdrop{background:rgba(20,22,43,.55)}
-dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
+dialog h2{font:700 1.5rem/1.2 var(--font-display);margin:0 0 6px}
 .meta{margin:0 0 14px;color:var(--muted)}
-#toast{position:fixed;left:50%;bottom:calc(24px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;padding:10px 18px;border:2.5px solid var(--line);border-radius:14px;background:var(--ink);color:var(--bg);font-weight:600;box-shadow:3px 3px 0 var(--shadow)}
+#toast{position:fixed;left:50%;bottom:calc(var(--lfh,84px) + 12px);transform:translateX(-50%);z-index:50;max-width:calc(100vw - 32px);text-align:center;padding:10px 18px;border:2.5px solid var(--line);border-radius:999px;background:var(--ink);color:var(--bg);font-weight:600;box-shadow:3px 3px 0 var(--shadow)}
+
+/* ===== Responsif ===== */
+@media(max-width:380px){
+  .hero{border-radius:22px;box-shadow:5px 5px 0 var(--shadow)}
+  .chip{padding:6px 14px}
+  .tip{font-size:.9rem;padding:0 10px}
+}
+@media(min-width:760px){
+  :root{--mw:44rem}
+  body::before{width:180px;height:180px;right:-50px;top:-30px}
+  body::after{width:150px;height:150px;left:-60px;bottom:40px}
+}
+@media(min-width:1100px){:root{--mw:50rem}}
+/* HP landscape / layar pendek */
+@media(orientation:landscape) and (max-height:560px){
+  :root{--nw:68px}
+  body::before,body::after{display:none}
+  .lf-hd{padding-top:calc(8px + env(safe-area-inset-top,0px))}
+  .hero{padding:14px 18px;gap:8px}
+  .hero h1{font-size:1.5rem}
+  .lead{font-size:.9rem}
+  .trail{margin-top:30px}
+}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header class="top"><div class="top-in">
-  <a class="back" href="./" aria-label="Kembali ke daftar latihan">←</a>
-  <h1>Jalur belajar</h1>
-  <span class="chip fire" id="streak" title="Hari berturut-turut berlatih">🔥 0</span>
-  <button class="chip" id="menuBtn">Progres</button>
-</div></header>
+<header class="lf-hd"><a class="lf-back" href="./" aria-label="Kembali ke daftar latihan">←</a><a class="lf-brand" href="./"><span class="lf-logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff" stroke="#14162B" stroke-width="2" stroke-linejoin="round"/></svg></span>Learning Fun</a></header>
 
-<main id="path"><p class="msg">Memuat jalur…</p></main>
+<main>
+  <section class="hero">
+    <h1>Jalur belajar</h1>
+    <p class="lead">Selesaikan latihan satu per satu. Setiap latihan yang selesai membuka latihan berikutnya.</p>
+    <div class="hero-row">
+      <span class="chip fire" id="streak" title="Hari berturut-turut berlatih">🔥 0</span>
+      <button class="chip" id="menuBtn" type="button">Progres</button>
+    </div>
+  </section>
+  <div id="path"><p class="msg">Memuat jalur…</p></div>
+</main>
 
 <dialog id="sheet"></dialog>
 
@@ -75,6 +129,11 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
 <div id="toast" role="status" hidden></div>
 
 <script>
+/* tinggi layar sebenarnya (Chrome lama tidak mengenal dvh) */
+const setVh=()=>document.documentElement.style.setProperty('--vh',(window.innerHeight*0.01)+'px');
+setVh();addEventListener('resize',setVh);addEventListener('orientationchange',()=>setTimeout(setVh,250));
+</script>
+<script>
 (() => {
   const CFG = {
     index: 'data/index.json',
@@ -83,7 +142,7 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
     perUnit: 5,                         // jumlah latihan per unit
     key: 'lf:path'                      // progres
   };
-  const COL = ['purple', 'blue', 'coral', 'mint'], ROW = 120;
+  const COL = ['purple', 'blue', 'coral', 'mint'];
   const $ = (s, r = document) => r.querySelector(s);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const store = {
@@ -137,14 +196,18 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
     if (c && first) { first = false; c.scrollIntoView({ block: 'center' }); }
   }
 
+  /* posisi node mengikuti lebar jalur & ukuran node (responsif) */
   function layout() {
     document.querySelectorAll('.trail').forEach(t => {
-      const W = t.clientWidth, nodes = [...t.querySelectorAll('.nw')], amp = Math.min(80, W / 2 - 100);
+      const W = t.clientWidth, nodes = [...t.querySelectorAll('.nw')];
+      if (!nodes.length) return;
+      const nw = nodes[0].offsetWidth || 88, nh = nodes[0].offsetHeight || 76;
+      const row = nh + 44, amp = Math.max(0, Math.min(W * 0.22, W / 2 - nw / 2 - 20, 150));
       const pts = nodes.map((n, k) => {
-        const x = Math.round(W / 2 + Math.sin(k * 1.1) * amp), y = k * ROW + 55;
+        const x = Math.round(W / 2 + Math.sin(k * 1.1) * amp), y = Math.round(k * row + nh / 2 + 18);
         n.style.left = x + 'px'; n.style.top = y + 'px'; return [x, y];
       });
-      t.style.height = nodes.length * ROW + 'px';
+      t.style.height = nodes.length * row + 'px';
       let d = '';
       pts.forEach(([x, y], k) => {
         if (!k) { d += `M${x} ${y}`; return; }
@@ -154,7 +217,10 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
       t.querySelector('svg').innerHTML = `<path d="${d}"/>`;
     });
   }
-  let rt; addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(layout, 100); });
+  let rt;
+  const relayout = () => { clearTimeout(rt); rt = setTimeout(layout, 100); };
+  addEventListener('resize', relayout);
+  addEventListener('orientationchange', () => setTimeout(layout, 300));
 
   /* ---- sheet ---- */
   const sheet = h => { const d = $('#sheet'); d.innerHTML = h; if (!d.open) d.showModal(); };
@@ -244,10 +310,16 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
   css.textContent = `
 #lfnav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:20;width:100%;max-width:560px;display:flex;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface,var(--bar,#fff));border:2.5px solid var(--lfline,var(--line,#14162B));border-bottom:0;border-radius:20px 20px 0 0;font-family:var(--font-display,'Fredoka',system-ui,sans-serif)}
 #lfnav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:0;border-radius:14px;color:var(--muted,#4F5575);text-decoration:none;font-weight:600;font-size:.8rem;line-height:1.1}
+#lfnav a span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 #lfnav a[aria-current=page]{color:#F2B705}
 #lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
-#toast{bottom:calc(96px + env(safe-area-inset-bottom,0px))!important}`;
+@media(max-width:360px){#lfnav a{font-size:.72rem}#lfnav svg{width:22px;height:22px}}
+@media(orientation:landscape) and (max-height:560px){
+  #lfnav{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+  #lfnav a{flex-direction:row;justify-content:center;gap:6px;padding:4px}
+  #lfnav svg{width:20px;height:20px}
+}`;
   document.head.appendChild(css);
   const nav = document.createElement('nav');
   nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
@@ -255,7 +327,12 @@ dialog h2{font:600 1.4rem/1.2 var(--font-display);margin:0 0 6px}
     `<a href="${t.href}"${t.match.some(m => m === file || (m && file.includes(m))) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
   const mount = () => {
     document.body.appendChild(nav);
-    document.body.style.paddingBottom = 'calc(84px + env(safe-area-inset-bottom,0px))';   // supaya isi tidak tertutup bilah
+    const fit = () => {
+      const h = nav.offsetHeight;
+      document.documentElement.style.setProperty('--lfh', h + 'px');
+      document.body.style.paddingBottom = (h + 16) + 'px';   // supaya isi tidak tertutup bilah
+    };
+    fit(); addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250));
   };
   document.body ? mount() : addEventListener('DOMContentLoaded', mount);
 })();
