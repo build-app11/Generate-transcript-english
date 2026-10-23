@@ -1,0 +1,14 @@
+{
+  "appId": "zone.id.learningfun",
+  "appName": "Learning Fun",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "learningfun.zone.id"
+  },
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
