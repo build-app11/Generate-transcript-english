@@ -283,15 +283,14 @@ body.quizing .lf-hd+main{padding-top:clamp(16px,5vw,48px)}
   <section id="setup">
     <div class="g">
       <h1>Latihan Kosakata</h1>
-      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet. Mode Hafalan (SRS) dan ★ Review (kata berbintang dari pemutar video) memakai deck .apkg, .csv, atau .txt yang kamu impor sendiri (tanpa internet setelah diimpor).</p>
+      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet. Mode Hafalan (SRS) memakai deck .apkg, .csv, atau .txt yang kamu impor sendiri (tanpa internet setelah diimpor). Kata yang kamu bintangi di pemutar video tersimpan ke deck pilihanmu, lengkap dengan artinya, jadi tidak perlu mencari terjemahan lagi.</p>
     </div>
     <div class="g dd" id="g-ls"><span class="lab" id="lab-ls">Pelajaran</span><button type="button" class="ddb" id="ddb" aria-expanded="false" aria-controls="ls" aria-labelledby="lab-ls ddb"><span id="ddt">Pilih pelajaran</span><i aria-hidden="true">▾</i></button><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran" hidden></div></div>
     <div class="g dd" id="g-anki" hidden><span class="lab" id="lab-as">Deck Anki</span><button type="button" class="ddb" id="adb" aria-expanded="false" aria-controls="als" aria-labelledby="lab-as adb"><span id="adt">Pilih deck</span><i aria-hidden="true">▾</i></button><div class="ls" id="als" role="group" aria-label="Pilih deck Anki" hidden></div><div class="arow"><button type="button" class="x" id="adeck">＋ Deck</button><button type="button" class="x" id="aadd">＋ Kartu</button><button type="button" class="x" id="aimp">＋ Impor .apkg / .csv / .txt</button><input type="file" id="afile" accept=".apkg,.csv,.txt" multiple hidden><button type="button" class="x" id="astat">Statistik</button><button type="button" class="x" id="aopt">Opsi SRS</button><button type="button" class="x" id="asmp">Contoh CSV</button><label class="mdr" style="flex-basis:100%"><input type="checkbox" id="ahdr" checked> CSV/TXT: baris pertama = judul kolom</label></div><div class="qzs" id="srsinfo" hidden></div></div>
-    <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button><button class="chip" data-v="srs" aria-pressed="false">Hafalan (SRS)</button><button class="chip" data-v="review" aria-pressed="false">★ Review</button></div></div>
+    <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button><button class="chip" data-v="srs" aria-pressed="false">Hafalan (SRS)</button></div></div>
     <div class="g" id="g-lang"><label class="lab" for="lang">Bahasa terjemahan</label><select class="lsel" id="lang"></select></div>
     <div class="g" id="g-dir"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" id="d-ei" data-v="ei" aria-pressed="true"></button><button class="chip" id="d-ie" data-v="ie" aria-pressed="false"></button></div></div>
     <div class="g" id="g-n"><span class="lab">Jumlah soal</span><div class="chips" id="c-n"><button class="chip" data-v="4" aria-pressed="false">4</button><button class="chip" data-v="6" aria-pressed="true">6</button><button class="chip" data-v="8" aria-pressed="false">8</button></div></div>
-    <div class="g" id="g-star" hidden><span class="lab">Kata berbintang (dari popup arti di pemutar video)</span><div id="star-list" class="stlist"></div></div>
     <div class="g" id="g-new" hidden><span class="lab">Kartu baru per hari</span><div class="chips" id="c-new"><button class="chip" data-v="10" aria-pressed="false">10</button><button class="chip" data-v="20" aria-pressed="true">20</button><input type="number" id="i-new" min="1" inputmode="numeric" aria-label="Jumlah kartu baru per hari (isi sendiri)" class="orow-in"></div></div>
     <button class="go" id="go" disabled>Mulai</button>
     <div id="msg" role="status">Memuat daftar pelajaran…</div>
@@ -342,17 +341,15 @@ function syncGo(){const an=deckMode(),p=sel();$('#go').disabled=!p.length;
   if(an)$('#adt').textContent=!p.length?'Pilih deck':p.length===1?p[0].group.title:p.length+' bagian dipilih';
   else $('#ddt').textContent=!p.length?'Pilih pelajaran':p.length===1?(p[0].title||p[0].slug):p.length+' pelajaran dipilih';
   srsInfo()}
-function applyMode(){const an=deckMode(),sr=opt.mode==='srs',rv=opt.mode==='review';
-  if(rv)refreshStar(true);
-  $('#g-ls').hidden=an;$('#g-anki').hidden=!sr;$('#g-star').hidden=!rv;$('#g-lang').hidden=an;$('#g-dir').hidden=an;$('#g-n').hidden=an;$('#g-new').hidden=!an;
-  if(rv)msg(starList().length?'Review kata yang kamu bintangi di pemutar video.':'Belum ada kata berbintang. Ketuk ☆ di popup arti kata pada pemutar video.');
-  else if(sr)msg(PACKS.length?'Pilih satu atau lebih bagian deck.':'Impor file .apkg, .csv, atau .txt dulu untuk mulai.');
+function applyMode(){const an=deckMode(),sr=an;
+  $('#g-ls').hidden=an;$('#g-anki').hidden=!sr;$('#g-lang').hidden=an;$('#g-dir').hidden=an;$('#g-n').hidden=an;$('#g-new').hidden=!an;
+  if(sr)msg(PACKS.length?'Pilih satu atau lebih bagian deck.':'Impor file .apkg, .csv, atau .txt dulu untuk mulai.');
   else if(LOADERR)msg(LOADERR,true);else msg(LESSONS.length?'Pilih satu atau lebih pelajaran.':'');
   syncGo()}
 $('#c-mode').addEventListener('click',applyMode);
 /* ---------- deck Anki (.apkg): impor di browser, disimpan di IndexedDB ---------- */
 const PACKS=[],MEDIA=new Map(),MURL={},CARDMEM=new Map();let IDBP=null,LOADERR='';
-const deckMode=()=>opt.mode==='srs'||opt.mode==='review';
+const deckMode=()=>opt.mode==='srs';
 const CDN='https://cdnjs.cloudflare.com/ajax/libs/';
 const MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',mp3:'audio/mpeg',ogg:'audio/ogg',wav:'audio/wav',m4a:'audio/mp4',aac:'audio/aac',mp4:'video/mp4'};
 const CLOZE=/\{\{c\d+::([\s\S]*?)(?:::[\s\S]*?)?\}\}/g;
@@ -545,7 +542,10 @@ async function savePack(ctx,mapped){
   for(const nm of keep){const num=inv[nm]!=null?inv[nm]:inv[safeDec(nm)];const ze=num!=null&&zip.file(String(num));if(!ze)continue;
     const ext=(nm.split('.').pop()||'').toLowerCase();
     const bl=new Blob([await ze.async('uint8array')],{type:MIME[ext]||''});MEDIA.set(pack.id+'|'+nm,bl);blobs.push({k:pack.id+'|'+nm,blob:bl})}
-  if(old){await removePack(old,true,true)}
+  if(old){const own=[];old.groups.forEach(g=>g.notes.forEach(n=>{if(n.mod&&!n.star)own.push(n)}));
+    if(own.length){const g=g0(pack),ids=new Set();pack.groups.forEach(x=>x.notes.forEach(n=>ids.add(n.id)));
+      own.forEach(n=>{if(!ids.has(n.id))g.notes.push(n)});ensureCust(pack,true,own.some(n=>n.mid===CUSTM.rev))}
+    await removePack(old,true,true)}
   PACKS.push(pack);
   try{await tx('packs','readwrite',s=>s.put(pack));await tx('media','readwrite',s=>{blobs.forEach(b=>s.put(b))})}catch(e){}
   let pg=null;if(ctx.prog)try{pg=await applyProg(pack,ctx.prog)}catch(e){}
@@ -560,7 +560,7 @@ async function removePack(p,quiet,keepCards){
   if(!keepCards){[...CARDMEM.keys()].forEach(k=>{if(k.startsWith(p.id+'|'))CARDMEM.delete(k)});try{await tx('cards','readwrite',s=>s.delete(rg()));await tx('revlog','readwrite',s=>s.delete(rg()))}catch(e){}}
   if(!quiet){renderAnki();msg('Deck “'+p.name+'” dihapus.')}}
 
-function pickedAnki(){if(opt.mode==='review'){const p=PACKS.find(x=>x.id==='__star');return p?[{pack:p,group:p.groups[0]}]:[]}
+function pickedAnki(){
   return[...document.querySelectorAll('#als input:checked')].map(i=>{const[pid,gid]=i.value.split('|'),pack=PACKS.find(p=>p.id===pid);
   return pack&&{pack,group:pack.groups.find(g=>g.gid===gid)}}).filter(x=>x&&x.group)}
 
@@ -585,7 +585,7 @@ function renderAnki(){
     all.addEventListener('click',()=>{const cbs=[...box.querySelectorAll('input[data-p="'+p.id+'"]')],on=!cbs.every(c=>c.checked);cbs.forEach(c=>c.checked=on);syncGo()});
     kt.addEventListener('click',()=>remap(p));
     del.addEventListener('click',()=>{if(p.id==='__star'){if(confirm('Hapus semua kata berbintang beserta progres reviewnya?')){try{localStorage.removeItem(STARKEY)}catch(e){}removePack(p,true,false).then(()=>refreshStar())}return}if(confirm('Hapus deck “'+p.name+'” beserta progres belajarnya dari perangkat ini?'))removePack(p)});
-    const ex=mk('button','x','Ekspor');ex.type='button';ex.title='Ekspor deck: .apkg (dengan progres), .csv, atau .txt';ex.addEventListener('click',()=>exportPack(p).catch(e=>msg(e&&e.message||'Gagal ekspor.',true)));h.append(all,kt,ex,del);box.appendChild(h);
+    const ex=mk('button','x','Ekspor');ex.type='button';ex.title='Ekspor deck: .apkg (dengan progres), .csv, atau .txt';ex.addEventListener('click',()=>exportPack(p).catch(e=>msg(e&&e.message||'Gagal ekspor.',true)));const isi=mk('button','x','Isi');isi.type='button';isi.title='Lihat daftar kosakata di deck ini';isi.addEventListener('click',()=>deckDlg(p.id));h.append(all,isi,kt,ex,del);box.appendChild(h);
     p.groups.forEach(g=>{const v=p.id+'|'+g.gid,lb=mk('label'),cb=document.createElement('input');cb.type='checkbox';cb.value=v;cb.dataset.p=p.id;cb.checked=keep.has(v);cb.addEventListener('change',syncGo);
       const t=mk('span',null,g.title);t.appendChild(mk('small',null,g.notes.length+' kartu'));lb.append(cb,t);box.appendChild(lb)})});
   syncGo()}
@@ -1150,12 +1150,14 @@ const STARKEY='lf:starred',escS=v=>String(v||'').replace(/&/g,'&amp;').replace(/
 function starList(){try{const a=JSON.parse(localStorage.getItem(STARKEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&x.w):[]}catch(e){return[]}}
 const CUSTM={basic:'1700000000100',rev:'1700000000101'};
 const customModels=()=>({[CUSTM.basic]:{name:'Basic (Kosakata)',fields:['Front','Back'],front:['Front'],back:['Back'],reverse:false,cloze:false},[CUSTM.rev]:{name:'Basic dan terbalik (Kosakata)',fields:['Front','Back'],front:['Front'],back:['Back'],reverse:true,cloze:false}});
-const customPacks=()=>PACKS.filter(p=>p.custom);
+const customPacks=()=>PACKS.filter(p=>p.id!=='__star');
+const g0=p=>p.groups[0]||(p.groups.push({gid:'g0',title:'Semua kartu',notes:[]}),p.groups[0]);
+function ensureCust(p,b,r){if(!p.models)return false;const m=customModels();if(b&&!p.models[CUSTM.basic])p.models[CUSTM.basic]=m[CUSTM.basic];if(r&&!p.models[CUSTM.rev])p.models[CUSTM.rev]=m[CUSTM.rev];return true}
 const savePackIDB=p=>tx('packs','readwrite',s=>s.put(Object.assign({},p,{groups:p.groups.map(g=>Object.assign({},g,{notes:g.notes.filter(n=>!n.star)}))}))).catch(()=>{});
 function pubDecks(){try{localStorage.setItem('lf:decks',JSON.stringify([{id:'__star',name:'Kata Berbintang'}].concat(customPacks().map(p=>({id:p.id,name:p.name})))))}catch(e){}}
 function syncStar(){
   const sl=starList(),cp=customPacks(),ids=new Set(cp.map(p=>p.id));
-  cp.forEach(p=>{const g=p.groups[0];g.notes=g.notes.filter(n=>!n.star).concat(sl.filter(x=>x.deck===p.id).slice().reverse().map(x=>{const ar=x.id||x.en||'';
+  cp.forEach(p=>{const g=g0(p),mine=sl.filter(x=>x.deck===p.id);if(mine.length&&!ensureCust(p,true,false))return;g.notes=g.notes.filter(n=>!n.star).concat(mine.slice().reverse().map(x=>{const ar=x.id||x.en||'';
     return{id:'w'+hsh(x.w),mid:CUSTM.basic,star:true,f:{Front:escS(x.w)+(x.ipa?'<br>'+escS(x.ipa):''),Back:escS(ar)+(x.id&&x.en?'<br>'+escS(x.en):'')},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:escS(x.w),back:escS(ar),kind:'basic'}}))});
   pubDecks();
   const i=PACKS.findIndex(p=>p.id==='__star'),old=i>=0?PACKS[i]:null;if(i>=0)PACKS.splice(i,1);
@@ -1171,31 +1173,52 @@ function newDeckDlg(){
     const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,added:Date.now(),custom:true,groups:[{gid:'g0',title:'Semua kartu',notes:[]}],models:customModels()};
     PACKS.push(p);await savePackIDB(p);close();renderAnki();msg('Deck “'+nm+'” dibuat. Ketuk ＋ Kartu untuk mengisinya.')};
   ok.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
-function addCardDlg(){
+function addCardDlg(pre,edit){
   if(!customPacks().length){newDeckDlg();return}
-  const {pn}=modal('Tambah kartu'),sel=mk('select','lsel'),fr=mk('textarea','lsel'),bk=mk('textarea','lsel'),rl=mk('label','mdr'),rv=document.createElement('input'),er=mk('div','qzs'),lst=mk('div','stlist'),ad=mk('button','go','Tambah');
+  const {pn,close}=modal(edit?'Ubah kartu':'Tambah kartu'),sel=mk('select','lsel'),fr=mk('textarea','lsel'),bk=mk('textarea','lsel'),rl=mk('label','mdr'),rv=document.createElement('input'),er=mk('div','qzs'),lst=mk('div','stlist'),ad=mk('button','go',edit?'Simpan perubahan':'Tambah');
   customPacks().forEach(p=>{const o=mk('option',null,p.name);o.value=p.id;sel.appendChild(o)});
+  if(pre&&PACKS.some(p=>p.id===pre))sel.value=pre;if(edit)sel.disabled=true;
   fr.rows=bk.rows=2;fr.placeholder='Depan (kata / pertanyaan)';bk.placeholder='Jawaban (arti)';rv.type='checkbox';rl.append(rv,mk('span',null,'Buat kartu terbalik (jawaban → depan)'));ad.type='button';
-  pn.append(sel,fr,bk,rl,er,ad,lst);
-  const cur=()=>PACKS.find(p=>p.id===sel.value),h=v=>escS(v.trim()).replace(/\n/g,'<br>');
-  const list=()=>{lst.textContent='';const p=cur();if(!p)return;const own=p.groups[0].notes.filter(n=>!n.star);
-    if(!own.length){lst.appendChild(mk('div','qzs','Belum ada kartu buatanmu di deck ini.'));return}
-    own.slice().reverse().forEach(n=>{const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,plain(n.q)));t.appendChild(mk('small',null,plain(n.back)));
-      const d=mk('button','x','Hapus');d.type='button';d.addEventListener('click',async()=>{p.groups[0].notes=p.groups[0].notes.filter(x=>x!==n);await savePackIDB(p);renderAnki();list()});r.append(t,d);lst.appendChild(r)})};
+  const br=s=>String(s||'').replace(/<br\s*\/?>/gi,'\n').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&');
+  if(edit){fr.value=br(edit.f.Front);bk.value=br(edit.f.Back);rv.checked=edit.mid===CUSTM.rev}
+  pn.append(sel,fr,bk,rl,er,ad);if(!edit)pn.appendChild(lst);
+  const cur=()=>PACKS.find(p=>p.id===sel.value),h=v=>escS(v.trim()).replace(/\n/g,'<br>'),own=p=>g0(p).notes.filter(n=>n.mod&&!n.star);
+  const list=()=>{lst.textContent='';const p=cur();if(!p)return;const o=own(p);
+    if(!o.length){lst.appendChild(mk('div','qzs','Belum ada kartu tambahanmu di deck ini.'));return}
+    o.slice().reverse().forEach(n=>{const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,plain(n.q)));t.appendChild(mk('small',null,plain(n.back)));
+      const d=mk('button','x','Hapus');d.type='button';d.addEventListener('click',async()=>{g0(p).notes=g0(p).notes.filter(x=>x!==n);await savePackIDB(p);renderAnki();list()});r.append(t,d);lst.appendChild(r)})};
   ad.addEventListener('click',async()=>{const p=cur(),a=fr.value.trim(),b=bk.value.trim();if(!a||!b)return er.textContent='Isi depan dan jawaban.';
-    const ns=p.groups[0].notes;let id=Date.now();while(ns.some(n=>n.id===String(id)))id++;
-    ns.push({id:String(id),mid:rv.checked?CUSTM.rev:CUSTM.basic,f:{Front:h(a),Back:h(b)},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:h(a),back:h(b),kind:'basic',mod:Date.now()});
-    await savePackIDB(p);fr.value=bk.value='';er.textContent='Ditambahkan ✓ ('+ns.filter(n=>!n.star).length+' kartu buatanmu)';renderAnki();list();fr.focus()});
-  sel.addEventListener('change',list);list();fr.focus()}
-function renderStar(){
-  const box=$('#star-list'),a=starList();box.textContent='';
-  if(!a.length){box.appendChild(mk('div','qzs','Belum ada kata berbintang. Ketuk ☆ di popup arti kata pada pemutar video, lalu kembali ke sini.'));return}
-  a.forEach(x=>{const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,x.w+(x.ipa?'  '+x.ipa:'')));t.appendChild(mk('small',null,x.id||x.en||'(arti belum dimuat)'));
-    const d=mk('button','x','Hapus ★');d.type='button';d.addEventListener('click',()=>{try{localStorage.setItem(STARKEY,JSON.stringify(starList().filter(y=>y.w!==x.w)))}catch(e){}refreshStar()});r.append(t,d);box.appendChild(r)})}
-function refreshStar(quiet){syncStar();renderStar();if(!quiet){renderAnki();syncGo()}}
+    if(!ensureCust(p,true,rv.checked))return er.textContent='Deck ini diimpor dengan versi lama. Impor ulang file .apkg-nya dulu.';
+    const ns=g0(p).notes,mid=rv.checked?CUSTM.rev:CUSTM.basic,key=plain(h(a)).toLowerCase();
+    let n=edit||ns.find(x=>x.mod&&!x.star&&plain(x.q).toLowerCase()===key),upd=!!n;
+    if(n){Object.assign(n,{mid,f:{Front:h(a),Back:h(b)},q:h(a),back:h(b),mod:Date.now()})}
+    else{let id=Date.now();while(ns.some(x=>x.id===String(id)))id++;
+      ns.push({id:String(id),mid,f:{Front:h(a),Back:h(b)},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:h(a),back:h(b),kind:'basic',mod:Date.now()})}
+    await savePackIDB(p);renderAnki();
+    if(edit){close();deckDlg(p.id);return}
+    fr.value=bk.value='';er.textContent=(upd?'Diperbarui ✓':'Ditambahkan ✓')+' ('+own(p).length+' kartu tambahanmu)';list();fr.focus()});
+  sel.addEventListener('change',list);if(!edit)list();fr.focus()}
+function deckDlg(pid){
+  const p0=PACKS.find(x=>x.id===pid);if(!p0)return;
+  const {pn,close}=modal('Isi deck: '+p0.name),q=mk('input','lsel'),cnt=mk('div','qzs'),lst=mk('div','stlist'),bar=mk('div','arow'),add=mk('button','x','＋ Kartu');
+  q.type='search';q.placeholder='Cari kata atau arti…';add.type='button';add.addEventListener('click',()=>{close();addCardDlg(pid)});bar.appendChild(add);lst.style.maxHeight='55vh';
+  pn.append(q,cnt,lst,bar);
+  const draw=()=>{const p=PACKS.find(x=>x.id===pid);if(!p){close();return}const k=q.value.trim().toLowerCase();lst.textContent='';let tot=0,shown=0;
+    p.groups.forEach(g=>g.notes.forEach(n=>{tot++;const a=plain(n.q),b=plain(n.back);if(k&&!(a+' '+b).toLowerCase().includes(k))return;if(shown>=300){shown++;return}shown++;
+      const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,(n.star||p.id==='__star'?'★ ':'')+a));t.appendChild(mk('small',null,b));
+      if(p.groups.length>1)t.appendChild(mk('small',null,g.title));r.appendChild(t);
+      if(n.mod&&!n.star){const e=mk('button','x','Ubah');e.type='button';e.addEventListener('click',()=>{close();addCardDlg(pid,n)});r.appendChild(e)}
+      if(n.mod||n.star||p.id==='__star'){const d=mk('button','x','Hapus');d.type='button';d.addEventListener('click',async()=>{
+        if(n.star||p.id==='__star'){try{localStorage.setItem(STARKEY,JSON.stringify(starList().filter(y=>'w'+hsh(y.w)!==n.id)))}catch(e){}refreshStar()}
+        else{g.notes=g.notes.filter(x=>x!==n);await savePackIDB(p);renderAnki()}draw()});r.appendChild(d)}
+      lst.appendChild(r)}));
+    cnt.textContent=(k?shown+' dari ':'')+tot+' kartu'+(shown>300?' (menampilkan 300 pertama, gunakan pencarian)':'');
+    if(!shown)lst.appendChild(mk('div','qzs',tot?'Tidak ada yang cocok.':'Deck ini masih kosong.'))};
+  q.addEventListener('input',draw);draw()}
+function refreshStar(quiet){syncStar();if(!quiet){renderAnki();syncGo()}}
 window.addEventListener('storage',e=>{if(e.key===STARKEY)refreshStar()});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!Z)refreshStar()});
-loadPacks().then(()=>{syncStar();renderAnki();renderStar()});
+loadPacks().then(()=>{syncStar();renderAnki()});
 loadIndex();
 </script>
 <script>
