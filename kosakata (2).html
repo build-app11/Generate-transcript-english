@@ -286,7 +286,7 @@ body.quizing .lf-hd+main{padding-top:clamp(16px,5vw,48px)}
       <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet. Mode Hafalan (SRS) dan ★ Review (kata berbintang dari pemutar video) memakai deck .apkg, .csv, atau .txt yang kamu impor sendiri (tanpa internet setelah diimpor).</p>
     </div>
     <div class="g dd" id="g-ls"><span class="lab" id="lab-ls">Pelajaran</span><button type="button" class="ddb" id="ddb" aria-expanded="false" aria-controls="ls" aria-labelledby="lab-ls ddb"><span id="ddt">Pilih pelajaran</span><i aria-hidden="true">▾</i></button><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran" hidden></div></div>
-    <div class="g dd" id="g-anki" hidden><span class="lab" id="lab-as">Deck Anki</span><button type="button" class="ddb" id="adb" aria-expanded="false" aria-controls="als" aria-labelledby="lab-as adb"><span id="adt">Pilih deck</span><i aria-hidden="true">▾</i></button><div class="ls" id="als" role="group" aria-label="Pilih deck Anki" hidden></div><div class="arow"><button type="button" class="x" id="aimp">＋ Impor .apkg / .csv / .txt</button><input type="file" id="afile" accept=".apkg,.csv,.txt" multiple hidden><button type="button" class="x" id="astat">Statistik</button><button type="button" class="x" id="aopt">Opsi SRS</button><button type="button" class="x" id="asmp">Contoh CSV</button><label class="mdr" style="flex-basis:100%"><input type="checkbox" id="ahdr" checked> CSV/TXT: baris pertama = judul kolom</label></div><div class="qzs" id="srsinfo" hidden></div></div>
+    <div class="g dd" id="g-anki" hidden><span class="lab" id="lab-as">Deck Anki</span><button type="button" class="ddb" id="adb" aria-expanded="false" aria-controls="als" aria-labelledby="lab-as adb"><span id="adt">Pilih deck</span><i aria-hidden="true">▾</i></button><div class="ls" id="als" role="group" aria-label="Pilih deck Anki" hidden></div><div class="arow"><button type="button" class="x" id="adeck">＋ Deck</button><button type="button" class="x" id="aadd">＋ Kartu</button><button type="button" class="x" id="aimp">＋ Impor .apkg / .csv / .txt</button><input type="file" id="afile" accept=".apkg,.csv,.txt" multiple hidden><button type="button" class="x" id="astat">Statistik</button><button type="button" class="x" id="aopt">Opsi SRS</button><button type="button" class="x" id="asmp">Contoh CSV</button><label class="mdr" style="flex-basis:100%"><input type="checkbox" id="ahdr" checked> CSV/TXT: baris pertama = judul kolom</label></div><div class="qzs" id="srsinfo" hidden></div></div>
     <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button><button class="chip" data-v="srs" aria-pressed="false">Hafalan (SRS)</button><button class="chip" data-v="review" aria-pressed="false">★ Review</button></div></div>
     <div class="g" id="g-lang"><label class="lab" for="lang">Bahasa terjemahan</label><select class="lsel" id="lang"></select></div>
     <div class="g" id="g-dir"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" id="d-ei" data-v="ei" aria-pressed="true"></button><button class="chip" id="d-ie" data-v="ie" aria-pressed="false"></button></div></div>
@@ -405,20 +405,20 @@ async function readApkg(file){
   let models,decks,rows,prog=null;
   try{
     const c=db.exec('select models,decks from col')[0].values[0];models=JSON.parse(c[0]);decks=JSON.parse(c[1]);
-    rows=(db.exec('select c.did,n.id,n.mid,n.flds from notes n join cards c on c.nid=n.id group by n.id order by n.id')[0]||{values:[]}).values;
+    rows=(db.exec('select c.did,n.id,n.mid,n.flds,n.guid from notes n join cards c on c.nid=n.id group by n.id order by n.id')[0]||{values:[]}).values;
     try{const q=x=>(db.exec(x)[0]||{values:[]}).values;prog={crt:db.exec('select crt from col')[0].values[0][0],cs:q('select id,nid,ord,type,queue,due,ivl,factor,reps,lapses,left from cards'),rv:q('select id,cid,ease,ivl,lastIvl,time,type from revlog')}}catch(e){prog=null}
   }catch(e){db.close();throw new Error(OLDMSG)}
   db.close();
   if(rows.length===1&&/^Please update to the latest Anki/.test(String(rows[0][3])))throw new Error(OLDMSG);
 
   const byDeck={},info={};
-  rows.forEach(([did,nid,mid,flds])=>{
+  rows.forEach(([did,nid,mid,flds,guid])=>{
     const m=models[mid];if(!m)return;
     const names=m.flds.slice().sort((a,b)=>a.ord-b.ord).map(f=>f.name),parts=String(flds).split('\x1f'),F={};
     names.forEach((nm,i)=>F[nm]=parts[i]||'');
     const f=nm=>{const i=names.findIndex(x=>x.toLowerCase()===nm.toLowerCase());return i<0?'':(parts[i]||'')};
     const clozeField=parts.find(p=>/\{\{c\d+::/.test(p));
-    const n={id:String(nid),mid:String(mid),f:F,rubric:f('Rubric'),unit:f('Unit'),choices:f('Choices'),img:f('Image'),aud:f('Audio'),extra:f('AudioText')||f('Extra')||f('Back Extra')};
+    const n={id:String(nid),mid:String(mid),guid:String(guid||''),f:F,rubric:f('Rubric'),unit:f('Unit'),choices:f('Choices'),img:f('Image'),aud:f('Audio'),extra:f('AudioText')||f('Extra')||f('Back Extra')};
     if(clozeField){n.kind='cloze';n.q=clozeField}
     else{const q=f('Front')||parts[0],bk=f('Back')||parts[1];n.q=q;n.back=bk;n.kind=plain(q)&&plain(bk)?'basic':'other'}
     const mi=info[mid]=info[mid]||{mid:String(mid),name:m.name,fields:names,count:0,sample:F,cloze:false};
@@ -430,7 +430,7 @@ async function readApkg(file){
   if(!dids.length)throw new Error('Tidak ada kartu yang bisa dipakai di “'+file.name+'”.');
   const top={};dids.forEach(d=>{const t=dn(d).split('::')[0];top[t]=(top[t]||0)+byDeck[d].length});
   const name=Object.keys(top).sort((a,b)=>top[b]-top[a])[0];
-  const groups=dids.map(d=>({title:dn(d).split('::').slice(1).join(' › ')||dn(d),notes:byDeck[d]}))
+  const groups=dids.map(d=>({title:dn(d).split('::').slice(1).join(' › ')||dn(d),notes:byDeck[d],dname:dn(d)}))
     .sort((a,b)=>a.title.localeCompare(b.title,undefined,{numeric:true}));
   groups.forEach((g,i)=>g.gid='g'+i);
   return{zip,name,groups,models:Object.values(info),prog}}
@@ -575,6 +575,7 @@ async function remap(p){
   msg('Pengaturan kartu “'+p.name+'” disimpan.');syncGo()}
 
 function renderAnki(){
+  pubDecks();
   const box=$('#als'),keep=new Set([...box.querySelectorAll('input:checked')].map(i=>i.value));box.textContent='';
   if(!PACKS.length)box.appendChild(mk('div','qzs','Belum ada deck. Ketuk “＋ Impor .apkg / .csv / .txt” untuk memilih file.'));
   PACKS.forEach(p=>{
@@ -590,6 +591,7 @@ function renderAnki(){
   syncGo()}
 
 $('#aimp').addEventListener('click',()=>$('#afile').click());
+$('#adeck').addEventListener('click',newDeckDlg);$('#aadd').addEventListener('click',addCardDlg);
 $('#afile').addEventListener('change',async e=>{
   const files=[...e.target.files];e.target.value='';if(!files.length)return;
   $('#aimp').disabled=true;let err='';
@@ -670,7 +672,7 @@ async function srsCards(gs){
 function srsQueues(cards,now){
   const today=dayKey(now),left=Math.max(0,opt.newDay-cards.filter(c=>c.r.fd===today).length);
   let nq=cards.filter(c=>c.r.state==='new').sort((a,b)=>a.ord-b.ord);if(SRS.order==='rand')nq=shuf(nq);const newq=nq.slice(0,left);
-  let rv=shuf(cards.filter(c=>c.r.state==='review'&&c.r.due<=now));if(SRS.revOrder==='due')rv.sort((a,b)=>dnum(a.r.due)-dnum(b.r.due));else if(SRS.revOrder==='ivl')rv.sort((a,b)=>(a.r.ivl||0)-(b.r.ivl||0));
+  let rv=shuf(cards.filter(c=>c.r.state==='review'&&dnum(c.r.due)<=dnum(now)));if(SRS.revOrder==='due')rv.sort((a,b)=>dnum(a.r.due)-dnum(b.r.due));else if(SRS.revOrder==='ivl')rv.sort((a,b)=>(a.r.ivl||0)-(b.r.ivl||0));
   const revq=rv.slice(0,Math.round(SRS.maxRev*((SRS.easy||[])[new Date(now-SRS.dayStart*3600000).getDay()]||1)));
   const lr=cards.filter(c=>isLearn(c.r)&&c.r.due<=now+SRS.ahead*MIN).length;
   return{newq,revq,lr}}
@@ -739,7 +741,7 @@ async function srsNext(){
   fl.addEventListener('click',e=>{if(!e.target.closest('audio,a,button,input'))my.flip()});
   my.rate=async r=>{
     if(Z!==my||my.phase!=='srate')return;my.phase='saving';
-    const now=Date.now(),pre=c.r.state,pv=c.r.ivl||0,n2=apply(c.r,r,now);c.r=n2;my.done++;my.tally[r-1]++;saveCard(n2);logRev({k:n2.pid+'|'+now+'|'+Math.random().toString(36).slice(2,6),pid:n2.pid,cid:n2.nid+'|'+c.ord,t:now,r,s:pre,pi:pv,i:n2.ivl||0,ms:Math.min(60000,now-(my.t0||now))});if(n2.susp)my.cards.splice(my.cards.indexOf(c),1);
+    const now=Date.now(),pre=c.r.state,pv=c.r.ivl||0,n2=apply(c.r,r,now);c.r=n2;my.done++;my.tally[r-1]++;saveCard(n2);logRev({k:n2.pid+'|'+now+'|'+Math.random().toString(36).slice(2,6),pid:n2.pid,cid:n2.nid+'|'+c.ord,t:now,r,s:pre,pi:pv,e:n2.ease||0,i:n2.ivl||0,ms:Math.min(60000,now-(my.t0||now))});if(n2.susp)my.cards.splice(my.cards.indexOf(c),1);
     const sib=x=>x.n.id!==c.n.id||x.pack.id!==c.pack.id;if(SRS.buryNew)my.newq=my.newq.filter(sib);if(SRS.buryRev)my.revq=my.revq.filter(sib);
     srsNext()}}
 
@@ -913,35 +915,39 @@ CREATE TABLE revlog(id integer primary key,cid integer not null,usn integer not 
 CREATE TABLE graves(usn integer not null,oid integer not null,type integer not null);
 CREATE INDEX ix_notes_usn on notes(usn);CREATE INDEX ix_cards_usn on cards(usn);CREATE INDEX ix_revlog_usn on revlog(usn);CREATE INDEX ix_cards_nid on cards(nid);CREATE INDEX ix_cards_sched on cards(did,queue,due);CREATE INDEX ix_revlog_cid on revlog(cid);CREATE INDEX ix_notes_csum on notes(csum);`);
   const prog=await loadCards(p.id),rg=IDBKeyRange.bound(p.id+'|',p.id+'|\uffff'),rl=(await tx('revlog','readonly',s=>s.getAll(rg)))||[];
-  const single=p.groups.length===1&&p.groups[0].title==='Semua kartu',decks={1:{id:1,name:'Default',mod:sec,usn:0,desc:'',dyn:0,conf:1,collapsed:false,extendNew:10,extendRev:50,newToday:[0,0],revToday:[0,0],lrnToday:[0,0],timeToday:[0,0]}},did={};
-  p.groups.forEach((g,i)=>{const id=1700000000000+i;did[g.gid]=id;decks[id]=Object.assign({},decks[1],{id,name:single?p.name:p.name+'::'+g.title})});
+  const CONFID=1700000000001,single=p.groups.length===1&&p.groups[0].title==='Semua kartu',decks={1:{id:1,name:'Default',mod:sec,usn:0,desc:'',dyn:0,conf:1,collapsed:false,extendNew:10,extendRev:50,newToday:[0,0],revToday:[0,0],lrnToday:[0,0],timeToday:[0,0]}},did={};
+  p.groups.forEach((g,i)=>{const id=1700000000000+i;did[g.gid]=id;decks[id]=Object.assign({},decks[1],{id,conf:CONFID,name:g.dname||(single?p.name:p.name+'::'+g.title)})});
   const mids={},models={};let mi=0;
-  Object.keys(p.models||{}).forEach(k=>{mids[k]=/^\d+$/.test(k)?+k:1600000000000+(mi++)});
+  Object.keys(p.models||{}).forEach(k=>{mids[k]=/^\d+$/.test(k)?+k:1600000000000+(parseInt(hsh(k),36)%900000000)});
   Object.keys(mids).forEach(k=>{const m=p.models[k],notes=[];p.groups.forEach(g=>g.notes.forEach(n=>{if(n.mid===k)notes.push(n)}));
     const ref=a=>a.map(x=>'{{'+x+'}}').join('<br>'),T=(name,ord,q,a)=>({name,ord,qfmt:q,afmt:a,bqfmt:'',bafmt:'',bfont:'',bsize:0,did:null}),idx=a=>a.map(x=>m.fields.indexOf(x)).filter(i=>i>=0);
     let tm,req,type=0;
     if(m.cloze){type=1;const cf=m.fields.find(f=>notes.some(n=>/\{\{c\d+::/.test((n.f||{})[f]||'')))||m.fields[0];tm=[T('Cloze',0,'{{cloze:'+cf+'}}','{{cloze:'+cf+'}}')];req=[[0,'all',[m.fields.indexOf(cf)]]]}
     else{tm=[T('Kartu 1',0,ref(m.front),'{{FrontSide}}<hr id=answer>'+ref(m.back))];req=[[0,'any',idx(m.front)]];
       if(m.reverse){tm.push(T('Kartu 2',1,ref(m.back),'{{FrontSide}}<hr id=answer>'+ref(m.front)));req.push([1,'any',idx(m.back)])}}
-    models[mids[k]]={id:mids[k],name:m.name||'Kosakata',type,mod:sec,usn:-1,sortf:0,did:1,tmpls:tm,flds:m.fields.map((n,i)=>({name:n,ord:i,sticky:false,rtl:false,font:'Arial',size:20,media:[]})),
+    models[mids[k]]={id:mids[k],name:m.name||'Kosakata',type,mod:1,usn:-1,sortf:0,did:1,tmpls:tm,flds:m.fields.map((n,i)=>({name:n,ord:i,sticky:false,rtl:false,font:'Arial',size:20,media:[]})),
       css:'.card{font-family:arial;font-size:20px;text-align:center;color:black;background-color:white}.cloze{font-weight:bold;color:blue}',latexPre:'',latexPost:'',req,tags:[],vers:[]}});
-  const L={delays:SRS.steps,ints:[SRS.grad,SRS.easyIvl,0],initialFactor:Math.round(SRS.startEase*1000),order:SRS.order==='rand'?0:1,perDay:opt.newDay,separate:true,bury:false},
-    dconf={1:{id:1,name:'Default',mod:0,usn:0,maxTaken:60,autoplay:true,timer:0,replayq:true,new:L,rev:{perDay:SRS.maxRev,ease4:SRS.easyBonus,fuzz:.05,minSpace:1,ivlFct:SRS.ivlMod,maxIvl:SRS.maxIvl,bury:false},lapse:{delays:SRS.relearn,mult:SRS.lapseMul,minInt:SRS.lapseMin,leechFails:SRS.leech||8,leechAction:0}}};
+  const dconf={1:{id:1,name:'Default',mod:0,usn:0,maxTaken:60,autoplay:true,timer:0,replayq:true,new:{delays:[1,10],ints:[1,4,0],initialFactor:2500,order:1,perDay:20,separate:true,bury:false},rev:{perDay:200,ease4:1.3,fuzz:.05,minSpace:1,ivlFct:1,maxIvl:36500,bury:false,hardFactor:1.2},lapse:{delays:[10],mult:0,minInt:1,leechFails:8,leechAction:0}}};
+  dconf[CONFID]={id:CONFID,name:'Kosakata',mod:sec,usn:-1,maxTaken:60,autoplay:true,timer:0,replayq:true,
+    new:{delays:SRS.steps,ints:[SRS.grad,SRS.easyIvl,0],initialFactor:Math.round(SRS.startEase*1000),order:SRS.order==='rand'?0:1,perDay:opt.newDay,separate:true,bury:!!SRS.buryNew},
+    rev:{perDay:SRS.maxRev,ease4:SRS.easyBonus,fuzz:.05,minSpace:1,ivlFct:SRS.ivlMod,maxIvl:SRS.maxIvl,bury:!!SRS.buryRev,hardFactor:SRS.hardMul},
+    lapse:{delays:SRS.relearn,mult:SRS.lapseMul,minInt:SRS.lapseMin,leechFails:SRS.leech||8,leechAction:CFG.leechAct==='susp'?0:1},
+    newMix:SRS.mix==='rev'?1:SRS.mix==='new'?2:0,easyDaysPercentages:[1,2,3,4,5,6,0].map(i=>(SRS.easy||[])[i]||1)};
   db.run('INSERT INTO col VALUES(1,?,?,?,11,0,0,0,?,?,?,?,?)',[crt,now,now,JSON.stringify({activeDecks:[1],curDeck:1,newSpread:0,collapseTime:1200,timeLim:0,estTimes:true,dueCounts:true,curModel:null,nextPos:1,sortType:'noteFld',sortBackwards:false,addToCur:true,dayLearnFirst:false}),JSON.stringify(models),JSON.stringify(decks),JSON.stringify(dconf),'{}']);
   const iN=db.prepare("INSERT INTO notes VALUES(?,?,?,?,-1,?,?,?,?,0,'')"),iC=db.prepare("INSERT INTO cards VALUES(?,?,?,?,?,-1,?,?,?,?,?,?,?,?,0,0,0,'')"),iR=db.prepare('INSERT INTO revlog VALUES(?,?,-1,?,?,?,?,?,?)');
   const cid={},mediaSet=new Set();let nid0=now,pos=0;
   for(const g of p.groups)for(const n of g.notes){const m=p.models[n.mid];if(!m)continue;
-    const id=/^\d+$/.test(n.id)?+n.id:nid0++,flds=m.fields.map(f=>(n.f||{})[f]||'').join('\x1f'),sf=plain((n.f||{})[m.fields[0]]||''),ords=m.cloze||!m.reverse?[0]:[0,1];
+    const id=/^\d+$/.test(n.id)?+n.id:1500000000000+(parseInt(hsh(String(n.id)),36)%900000000),flds=m.fields.map(f=>(n.f||{})[f]||'').join('\x1f'),sf=plain((n.f||{})[m.fields[0]]||''),ords=m.cloze||!m.reverse?[0]:[0,1];
     const lk=ords.some(o=>(prog.get(p.id+'|'+n.id+'|'+o)||{}).leech);
-    iN.run([id,hsh(String(n.id)),mids[n.mid],sec,lk?' leech ':'',flds,sf,await sha8(sf)]);mediaNames(n).forEach(x=>mediaSet.add(x));
+    iN.run([id,n.guid||hsh(String(n.id)),mids[n.mid],n.mod?Math.floor(n.mod/1000):1,lk?' leech ':'',flds,sf,await sha8(sf)]);mediaNames(n).forEach(x=>mediaSet.add(x));
     for(const o of ords){const r=prog.get(p.id+'|'+n.id+'|'+o)||{state:'new'},c=id*10+o;cid[n.id+'|'+o]=c;
       let ty=0,q=0,due=pos++,ivl=0,fac=0,left=0;const st=r.state;
-      if(st==='review'){ty=2;q=2;due=Math.max(0,Math.ceil((r.due-crt*1000)/DAYS/1000));ivl=r.ivl||1;fac=Math.round((r.ease||SRS.startEase)*1000)}
+      if(st==='review'){ty=2;q=2;due=dnum(r.due)-dnum(now);ivl=r.ivl||1;fac=Math.round((r.ease||SRS.startEase)*1000)}
       else if(st==='learn'||st==='relearn'){ty=st==='learn'?1:3;q=1;due=Math.floor((r.due||now)/1000);ivl=st==='relearn'?(r.ivl||1):0;fac=Math.round((r.ease||SRS.startEase)*1000);const rem=(st==='relearn'?SRS.relearn:SRS.steps).length-(r.step||0);left=rem*1000+rem}
       if(r.susp)q=-1;
-      iC.run([c,id,did[g.gid],o,sec,ty,q,due,ivl,fac,r.reps||0,r.lapses||0,left])}}
+      iC.run([c,id,did[g.gid],o,r.last?Math.floor(r.last/1000):1,ty,q,due,ivl,fac,r.reps||0,r.lapses||0,left])}}
   const used=new Set();rl.sort((a,b)=>a.t-b.t).forEach(e=>{const c=cid[e.cid];if(!c)return;let id=e.t;while(used.has(id))id++;used.add(id);
-    const ty=e.s==='review'?1:e.s==='relearn'?2:0,iv=e.i>0?e.i:(ty===1?1:-60);iR.run([id,c,e.r,iv,e.pi>0?e.pi:0,0,Math.min(60000,e.ms||0),ty])});
+    const ty=e.s==='review'?1:e.s==='relearn'?2:0,iv=e.i>0?e.i:(ty===1?1:-60);iR.run([id,c,e.r,iv,e.pi>0?e.pi:0,Math.round((e.e||0)*1000),Math.min(60000,e.ms||0),ty])});
   iN.free();iC.free();iR.free();
   const z=new JSZip(),mm={};let k=0;
   for(const nm of mediaSet){const b=(await getBlob(p.id+'|'+nm))||(await getBlob(p.id+'|'+safeDec(nm)));if(!b)continue;mm[k]=nm;z.file(String(k++),b)}
@@ -964,19 +970,19 @@ function exportPack(p){
     const b=mk('button','go',l);b.type='button';b.addEventListener('click',()=>{close();Promise.resolve().then(f).catch(e=>msg(e&&e.message||'Gagal ekspor.',true))});pn.appendChild(b)})}
 /* progres dari .apkg (tabel cards & revlog) */
 async function applyProg(pack,pr){
-  const pid=pack.id,ok=new Set(),cmap={},first={},recs=[],rl=[];pack.groups.forEach(g=>g.notes.forEach(n=>ok.add(n.id)));
+  const pid=pack.id,ok=new Set(),cmap={},first={},lastR={},recs=[],rl=[];pack.groups.forEach(g=>g.notes.forEach(n=>ok.add(n.id)));
   pr.cs.forEach(c=>{cmap[c[0]]=c[1]+'|'+c[2]});
   const ids=new Set(((await tx('revlog','readonly',s=>s.getAll(IDBKeyRange.bound(pid+'|',pid+'|\uffff'))).catch(()=>[]))||[]).map(e=>e.t+'|'+e.cid));
-  pr.rv.forEach(([id,cd,ease,ivl,last,time,type])=>{const c=cmap[cd];if(!c||!ease)return;first[c]=Math.min(first[c]||id,id);const k=id+'|'+c;if(ids.has(k))return;ids.add(k);
+  pr.rv.forEach(([id,cd,ease,ivl,last,time,type])=>{const c=cmap[cd];if(!c||!ease)return;first[c]=Math.min(first[c]||id,id);lastR[c]=Math.max(lastR[c]||0,id);const k=id+'|'+c;if(ids.has(k))return;ids.add(k);
     rl.push({k:pid+'|'+id+'|'+c,pid,cid:c,t:id,r:ease,s:type===1?'review':type===2?'relearn':'learn',pi:Math.max(0,last),i:Math.max(0,ivl),ms:time})});
   const ex=await loadCards(pid);
   pr.cs.forEach(([id,nid,ord,type,queue,due,ivl,factor,reps,lapses,left])=>{
     if(!ok.has(String(nid))||ord>1||(type===0&&queue!==-1))return;
-    const k=pid+'|'+nid+'|'+ord,o=ex.get(k);if(o&&o.state!=='new'&&(o.reps||0)>=reps)return;
+    const k=pid+'|'+nid+'|'+ord,o=ex.get(k),li=lastR[nid+'|'+ord]||0,lo=(o&&o.last)||0;if(o&&o.state!=='new'&&(lo>li||(lo===li&&(o.reps||0)>=reps)))return;
     const st=type===2?'review':type===3?'relearn':type===1?'learn':'new',r={k,pid,nid:String(nid),ord,state:st,reps,lapses,ease:factor?factor/1000:SRS.startEase,ivl:Math.max(0,ivl),susp:queue===-1};
     if(st==='review'||queue===3)r.due=(pr.crt+due*86400)*1000;else if(st!=='new')r.due=due*1000;
     if(st==='learn'||st==='relearn'){const A=st==='relearn'?SRS.relearn:SRS.steps;r.step=Math.max(0,Math.min(A.length-1,A.length-(left%1000)))}
-    if(first[nid+'|'+ord])r.fd=dayKey(first[nid+'|'+ord]);
+    if(first[nid+'|'+ord])r.fd=dayKey(first[nid+'|'+ord]);if(li)r.last=li;
     recs.push(r)});
   recs.forEach(r=>CARDMEM.set(r.k,r));
   await tx('cards','readwrite',s=>{recs.forEach(r=>s.put(r))}).catch(()=>{});await tx('revlog','readwrite',s=>{rl.forEach(e=>s.put(e))}).catch(()=>{});
@@ -1142,12 +1148,45 @@ $('#go').addEventListener('click',start);
 /* ---------- kata berbintang dari pemutar video (localStorage 'lf:starred', satu origin) ---------- */
 const STARKEY='lf:starred',escS=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function starList(){try{const a=JSON.parse(localStorage.getItem(STARKEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&x.w):[]}catch(e){return[]}}
+const CUSTM={basic:'1700000000100',rev:'1700000000101'};
+const customModels=()=>({[CUSTM.basic]:{name:'Basic (Kosakata)',fields:['Front','Back'],front:['Front'],back:['Back'],reverse:false,cloze:false},[CUSTM.rev]:{name:'Basic dan terbalik (Kosakata)',fields:['Front','Back'],front:['Front'],back:['Back'],reverse:true,cloze:false}});
+const customPacks=()=>PACKS.filter(p=>p.custom);
+const savePackIDB=p=>tx('packs','readwrite',s=>s.put(Object.assign({},p,{groups:p.groups.map(g=>Object.assign({},g,{notes:g.notes.filter(n=>!n.star)}))}))).catch(()=>{});
+function pubDecks(){try{localStorage.setItem('lf:decks',JSON.stringify([{id:'__star',name:'Kata Berbintang'}].concat(customPacks().map(p=>({id:p.id,name:p.name})))))}catch(e){}}
 function syncStar(){
+  const sl=starList(),cp=customPacks(),ids=new Set(cp.map(p=>p.id));
+  cp.forEach(p=>{const g=p.groups[0];g.notes=g.notes.filter(n=>!n.star).concat(sl.filter(x=>x.deck===p.id).slice().reverse().map(x=>{const ar=x.id||x.en||'';
+    return{id:'w'+hsh(x.w),mid:CUSTM.basic,star:true,f:{Front:escS(x.w)+(x.ipa?'<br>'+escS(x.ipa):''),Back:escS(ar)+(x.id&&x.en?'<br>'+escS(x.en):'')},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:escS(x.w),back:escS(ar),kind:'basic'}}))});
+  pubDecks();
   const i=PACKS.findIndex(p=>p.id==='__star'),old=i>=0?PACKS[i]:null;if(i>=0)PACKS.splice(i,1);
-  const a=starList().slice().reverse();if(!a.length)return;
+  const a=sl.filter(x=>!x.deck||x.deck==='__star'||!ids.has(x.deck)).reverse();if(!a.length)return;
   const notes=a.map(x=>{const ar=x.id||x.en||'';return{id:'w'+hsh(x.w),mid:'star',f:{Kata:escS(x.w),IPA:escS(x.ipa),Arti:escS(ar),Definisi:x.id&&x.en?escS(x.en):''},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:escS(x.w),back:escS(ar),kind:'basic'}});
   const md=old&&old.models&&old.models.star||{name:'Kata berbintang',fields:['Kata','IPA','Arti','Definisi'],front:['Kata','IPA'],back:['Arti','Definisi'],reverse:false,cloze:false};
   PACKS.unshift({id:'__star',name:'Kata Berbintang',added:1,groups:[{gid:'g0',title:'Semua kartu',notes}],models:{star:md}})}
+
+/* ---------- deck buatan sendiri & tambah kartu ---------- */
+function newDeckDlg(){
+  const {pn,close}=modal('Deck baru'),inp=mk('input','lsel'),ok=mk('button','go','Buat'),er=mk('div','qzs');inp.type='text';inp.placeholder='Nama deck (mis. Kata dari video)';ok.type='button';pn.append(inp,er,ok);inp.focus();
+  const go=async()=>{const nm=inp.value.trim();if(!nm)return er.textContent='Isi nama deck.';if(PACKS.some(p=>p.name===nm))return er.textContent='Nama deck sudah dipakai.';
+    const p={id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,added:Date.now(),custom:true,groups:[{gid:'g0',title:'Semua kartu',notes:[]}],models:customModels()};
+    PACKS.push(p);await savePackIDB(p);close();renderAnki();msg('Deck “'+nm+'” dibuat. Ketuk ＋ Kartu untuk mengisinya.')};
+  ok.addEventListener('click',go);inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()})}
+function addCardDlg(){
+  if(!customPacks().length){newDeckDlg();return}
+  const {pn}=modal('Tambah kartu'),sel=mk('select','lsel'),fr=mk('textarea','lsel'),bk=mk('textarea','lsel'),rl=mk('label','mdr'),rv=document.createElement('input'),er=mk('div','qzs'),lst=mk('div','stlist'),ad=mk('button','go','Tambah');
+  customPacks().forEach(p=>{const o=mk('option',null,p.name);o.value=p.id;sel.appendChild(o)});
+  fr.rows=bk.rows=2;fr.placeholder='Depan (kata / pertanyaan)';bk.placeholder='Jawaban (arti)';rv.type='checkbox';rl.append(rv,mk('span',null,'Buat kartu terbalik (jawaban → depan)'));ad.type='button';
+  pn.append(sel,fr,bk,rl,er,ad,lst);
+  const cur=()=>PACKS.find(p=>p.id===sel.value),h=v=>escS(v.trim()).replace(/\n/g,'<br>');
+  const list=()=>{lst.textContent='';const p=cur();if(!p)return;const own=p.groups[0].notes.filter(n=>!n.star);
+    if(!own.length){lst.appendChild(mk('div','qzs','Belum ada kartu buatanmu di deck ini.'));return}
+    own.slice().reverse().forEach(n=>{const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,plain(n.q)));t.appendChild(mk('small',null,plain(n.back)));
+      const d=mk('button','x','Hapus');d.type='button';d.addEventListener('click',async()=>{p.groups[0].notes=p.groups[0].notes.filter(x=>x!==n);await savePackIDB(p);renderAnki();list()});r.append(t,d);lst.appendChild(r)})};
+  ad.addEventListener('click',async()=>{const p=cur(),a=fr.value.trim(),b=bk.value.trim();if(!a||!b)return er.textContent='Isi depan dan jawaban.';
+    const ns=p.groups[0].notes;let id=Date.now();while(ns.some(n=>n.id===String(id)))id++;
+    ns.push({id:String(id),mid:rv.checked?CUSTM.rev:CUSTM.basic,f:{Front:h(a),Back:h(b)},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:h(a),back:h(b),kind:'basic',mod:Date.now()});
+    await savePackIDB(p);fr.value=bk.value='';er.textContent='Ditambahkan ✓ ('+ns.filter(n=>!n.star).length+' kartu buatanmu)';renderAnki();list();fr.focus()});
+  sel.addEventListener('change',list);list();fr.focus()}
 function renderStar(){
   const box=$('#star-list'),a=starList();box.textContent='';
   if(!a.length){box.appendChild(mk('div','qzs','Belum ada kata berbintang. Ketuk ☆ di popup arti kata pada pemutar video, lalu kembali ke sini.'));return}
