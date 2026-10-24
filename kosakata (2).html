@@ -264,6 +264,7 @@ body.quizing .lf-hd+main{padding-top:clamp(16px,5vw,48px)}
 .pie{width:150px;height:150px;border-radius:50%;margin:4px auto;border:2.5px solid var(--ink)}
 .cal{display:grid;grid-template-rows:repeat(7,11px);grid-auto-flow:column;grid-auto-columns:11px;gap:2px;width:max-content}.cal i{background:var(--line);border-radius:2px}
 .orow-in{width:6rem;font:600 1rem var(--font-display);padding:8px 12px;min-height:44px;border:2.5px solid var(--ink);border-radius:999px;background:var(--field);color:var(--fg);text-align:center}
+.stlist{display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow:auto}.sw2{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:2px solid var(--line);border-radius:14px}.sw2 small{display:block;color:var(--muted);font-weight:500}
 .mds .chips{margin-bottom:6px}.mds .chip{min-height:36px;padding:6px 12px;font-size:.85rem}
 /* ===== Flip kartu ===== */
 .flip{width:100%;perspective:1400px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -282,14 +283,15 @@ body.quizing .lf-hd+main{padding-top:clamp(16px,5vw,48px)}
   <section id="setup">
     <div class="g">
       <h1>Latihan Kosakata</h1>
-      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet. Mode Hafalan (SRS) memakai deck .apkg, .csv, atau .txt yang kamu impor sendiri (tanpa internet setelah diimpor).</p>
+      <p class="lead">Cocokkan kata dan terjemah kata dari pelajaran yang kamu pilih. Arti diambil dari kamus online ke bahasa yang kamu pilih, jadi butuh internet. Mode Hafalan (SRS) dan ★ Review (kata berbintang dari pemutar video) memakai deck .apkg, .csv, atau .txt yang kamu impor sendiri (tanpa internet setelah diimpor).</p>
     </div>
     <div class="g dd" id="g-ls"><span class="lab" id="lab-ls">Pelajaran</span><button type="button" class="ddb" id="ddb" aria-expanded="false" aria-controls="ls" aria-labelledby="lab-ls ddb"><span id="ddt">Pilih pelajaran</span><i aria-hidden="true">▾</i></button><div class="ls" id="ls" role="group" aria-label="Pilih pelajaran" hidden></div></div>
     <div class="g dd" id="g-anki" hidden><span class="lab" id="lab-as">Deck Anki</span><button type="button" class="ddb" id="adb" aria-expanded="false" aria-controls="als" aria-labelledby="lab-as adb"><span id="adt">Pilih deck</span><i aria-hidden="true">▾</i></button><div class="ls" id="als" role="group" aria-label="Pilih deck Anki" hidden></div><div class="arow"><button type="button" class="x" id="aimp">＋ Impor .apkg / .csv / .txt</button><input type="file" id="afile" accept=".apkg,.csv,.txt" multiple hidden><button type="button" class="x" id="astat">Statistik</button><button type="button" class="x" id="aopt">Opsi SRS</button><button type="button" class="x" id="asmp">Contoh CSV</button><label class="mdr" style="flex-basis:100%"><input type="checkbox" id="ahdr" checked> CSV/TXT: baris pertama = judul kolom</label></div><div class="qzs" id="srsinfo" hidden></div></div>
-    <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button><button class="chip" data-v="srs" aria-pressed="false">Hafalan (SRS)</button></div></div>
+    <div class="g"><span class="lab">Mode</span><div class="chips" id="c-mode"><button class="chip" data-v="match" aria-pressed="true">Cocokkan kata</button><button class="chip" data-v="tr" aria-pressed="false">Terjemah kata</button><button class="chip" data-v="srs" aria-pressed="false">Hafalan (SRS)</button><button class="chip" data-v="review" aria-pressed="false">★ Review</button></div></div>
     <div class="g" id="g-lang"><label class="lab" for="lang">Bahasa terjemahan</label><select class="lsel" id="lang"></select></div>
     <div class="g" id="g-dir"><span class="lab">Arah</span><div class="chips" id="c-dir"><button class="chip" id="d-ei" data-v="ei" aria-pressed="true"></button><button class="chip" id="d-ie" data-v="ie" aria-pressed="false"></button></div></div>
     <div class="g" id="g-n"><span class="lab">Jumlah soal</span><div class="chips" id="c-n"><button class="chip" data-v="4" aria-pressed="false">4</button><button class="chip" data-v="6" aria-pressed="true">6</button><button class="chip" data-v="8" aria-pressed="false">8</button></div></div>
+    <div class="g" id="g-star" hidden><span class="lab">Kata berbintang (dari popup arti di pemutar video)</span><div id="star-list" class="stlist"></div></div>
     <div class="g" id="g-new" hidden><span class="lab">Kartu baru per hari</span><div class="chips" id="c-new"><button class="chip" data-v="10" aria-pressed="false">10</button><button class="chip" data-v="20" aria-pressed="true">20</button><input type="number" id="i-new" min="1" inputmode="numeric" aria-label="Jumlah kartu baru per hari (isi sendiri)" class="orow-in"></div></div>
     <button class="go" id="go" disabled>Mulai</button>
     <div id="msg" role="status">Memuat daftar pelajaran…</div>
@@ -340,15 +342,17 @@ function syncGo(){const an=deckMode(),p=sel();$('#go').disabled=!p.length;
   if(an)$('#adt').textContent=!p.length?'Pilih deck':p.length===1?p[0].group.title:p.length+' bagian dipilih';
   else $('#ddt').textContent=!p.length?'Pilih pelajaran':p.length===1?(p[0].title||p[0].slug):p.length+' pelajaran dipilih';
   srsInfo()}
-function applyMode(){const an=deckMode(),sr=opt.mode==='srs';
-  $('#g-ls').hidden=an;$('#g-anki').hidden=!an;$('#g-lang').hidden=an;$('#g-dir').hidden=an;$('#g-n').hidden=sr;$('#g-new').hidden=!sr;
-  if(an)msg(PACKS.length?'Pilih satu atau lebih bagian deck.':'Impor file .apkg, .csv, atau .txt dulu untuk mulai.');
+function applyMode(){const an=deckMode(),sr=opt.mode==='srs',rv=opt.mode==='review';
+  if(rv)refreshStar(true);
+  $('#g-ls').hidden=an;$('#g-anki').hidden=!sr;$('#g-star').hidden=!rv;$('#g-lang').hidden=an;$('#g-dir').hidden=an;$('#g-n').hidden=an;$('#g-new').hidden=!an;
+  if(rv)msg(starList().length?'Review kata yang kamu bintangi di pemutar video.':'Belum ada kata berbintang. Ketuk ☆ di popup arti kata pada pemutar video.');
+  else if(sr)msg(PACKS.length?'Pilih satu atau lebih bagian deck.':'Impor file .apkg, .csv, atau .txt dulu untuk mulai.');
   else if(LOADERR)msg(LOADERR,true);else msg(LESSONS.length?'Pilih satu atau lebih pelajaran.':'');
   syncGo()}
 $('#c-mode').addEventListener('click',applyMode);
 /* ---------- deck Anki (.apkg): impor di browser, disimpan di IndexedDB ---------- */
 const PACKS=[],MEDIA=new Map(),MURL={},CARDMEM=new Map();let IDBP=null,LOADERR='';
-const deckMode=()=>opt.mode==='srs';
+const deckMode=()=>opt.mode==='srs'||opt.mode==='review';
 const CDN='https://cdnjs.cloudflare.com/ajax/libs/';
 const MIME={jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',mp3:'audio/mpeg',ogg:'audio/ogg',wav:'audio/wav',m4a:'audio/mp4',aac:'audio/aac',mp4:'video/mp4'};
 const CLOZE=/\{\{c\d+::([\s\S]*?)(?:::[\s\S]*?)?\}\}/g;
@@ -556,7 +560,8 @@ async function removePack(p,quiet,keepCards){
   if(!keepCards){[...CARDMEM.keys()].forEach(k=>{if(k.startsWith(p.id+'|'))CARDMEM.delete(k)});try{await tx('cards','readwrite',s=>s.delete(rg()));await tx('revlog','readwrite',s=>s.delete(rg()))}catch(e){}}
   if(!quiet){renderAnki();msg('Deck “'+p.name+'” dihapus.')}}
 
-function pickedAnki(){return[...document.querySelectorAll('#als input:checked')].map(i=>{const[pid,gid]=i.value.split('|'),pack=PACKS.find(p=>p.id===pid);
+function pickedAnki(){if(opt.mode==='review'){const p=PACKS.find(x=>x.id==='__star');return p?[{pack:p,group:p.groups[0]}]:[]}
+  return[...document.querySelectorAll('#als input:checked')].map(i=>{const[pid,gid]=i.value.split('|'),pack=PACKS.find(p=>p.id===pid);
   return pack&&{pack,group:pack.groups.find(g=>g.gid===gid)}}).filter(x=>x&&x.group)}
 
 async function remap(p){
@@ -578,7 +583,7 @@ function renderAnki(){
     kt.title='Atur bidang depan, jawaban, dan kartu terbalik';
     all.addEventListener('click',()=>{const cbs=[...box.querySelectorAll('input[data-p="'+p.id+'"]')],on=!cbs.every(c=>c.checked);cbs.forEach(c=>c.checked=on);syncGo()});
     kt.addEventListener('click',()=>remap(p));
-    del.addEventListener('click',()=>{if(confirm('Hapus deck “'+p.name+'” beserta progres belajarnya dari perangkat ini?'))removePack(p)});
+    del.addEventListener('click',()=>{if(p.id==='__star'){if(confirm('Hapus semua kata berbintang beserta progres reviewnya?')){try{localStorage.removeItem(STARKEY)}catch(e){}removePack(p,true,false).then(()=>refreshStar())}return}if(confirm('Hapus deck “'+p.name+'” beserta progres belajarnya dari perangkat ini?'))removePack(p)});
     const ex=mk('button','x','Ekspor');ex.type='button';ex.title='Ekspor deck: .apkg (dengan progres), .csv, atau .txt';ex.addEventListener('click',()=>exportPack(p).catch(e=>msg(e&&e.message||'Gagal ekspor.',true)));h.append(all,kt,ex,del);box.appendChild(h);
     p.groups.forEach(g=>{const v=p.id+'|'+g.gid,lb=mk('label'),cb=document.createElement('input');cb.type='checkbox';cb.value=v;cb.dataset.p=p.id;cb.checked=keep.has(v);cb.addEventListener('change',syncGo);
       const t=mk('span',null,g.title);t.appendChild(mk('small',null,g.notes.length+' kartu'));lb.append(cb,t);box.appendChild(lb)})});
@@ -672,7 +677,7 @@ function srsQueues(cards,now){
 
 let infoTok=0;
 async function srsInfo(){
-  const my=++infoTok,el=$('#srsinfo'),gs=opt.mode==='srs'?pickedAnki():[];
+  const my=++infoTok,el=$('#srsinfo'),gs=deckMode()?pickedAnki():[];
   if(!gs.length){el.hidden=true;return}
   try{const cards=await srsCards(gs);if(my!==infoTok)return;const q=srsQueues(cards,Date.now());
     el.textContent='Hari ini: baru '+q.newq.length+' · belajar '+q.lr+' · ulasan '+q.revq.length;el.hidden=false}
@@ -923,7 +928,7 @@ CREATE INDEX ix_notes_usn on notes(usn);CREATE INDEX ix_cards_usn on cards(usn);
   const L={delays:SRS.steps,ints:[SRS.grad,SRS.easyIvl,0],initialFactor:Math.round(SRS.startEase*1000),order:SRS.order==='rand'?0:1,perDay:opt.newDay,separate:true,bury:false},
     dconf={1:{id:1,name:'Default',mod:0,usn:0,maxTaken:60,autoplay:true,timer:0,replayq:true,new:L,rev:{perDay:SRS.maxRev,ease4:SRS.easyBonus,fuzz:.05,minSpace:1,ivlFct:SRS.ivlMod,maxIvl:SRS.maxIvl,bury:false},lapse:{delays:SRS.relearn,mult:SRS.lapseMul,minInt:SRS.lapseMin,leechFails:SRS.leech||8,leechAction:0}}};
   db.run('INSERT INTO col VALUES(1,?,?,?,11,0,0,0,?,?,?,?,?)',[crt,now,now,JSON.stringify({activeDecks:[1],curDeck:1,newSpread:0,collapseTime:1200,timeLim:0,estTimes:true,dueCounts:true,curModel:null,nextPos:1,sortType:'noteFld',sortBackwards:false,addToCur:true,dayLearnFirst:false}),JSON.stringify(models),JSON.stringify(decks),JSON.stringify(dconf),'{}']);
-  const iN=db.prepare('INSERT INTO notes VALUES(?,?,?,?,-1,?,?,?,?,0,"")'),iC=db.prepare('INSERT INTO cards VALUES(?,?,?,?,?,-1,?,?,?,?,?,?,?,?,0,0,0,"")'),iR=db.prepare('INSERT INTO revlog VALUES(?,?,-1,?,?,?,?,?,?)');
+  const iN=db.prepare("INSERT INTO notes VALUES(?,?,?,?,-1,?,?,?,?,0,'')"),iC=db.prepare("INSERT INTO cards VALUES(?,?,?,?,?,-1,?,?,?,?,?,?,?,?,0,0,0,'')"),iR=db.prepare('INSERT INTO revlog VALUES(?,?,-1,?,?,?,?,?,?)');
   const cid={},mediaSet=new Set();let nid0=now,pos=0;
   for(const g of p.groups)for(const n of g.notes){const m=p.models[n.mid];if(!m)continue;
     const id=/^\d+$/.test(n.id)?+n.id:nid0++,flds=m.fields.map(f=>(n.f||{})[f]||'').join('\x1f'),sf=plain((n.f||{})[m.fields[0]]||''),ords=m.cloze||!m.reverse?[0]:[0,1];
@@ -941,7 +946,8 @@ CREATE INDEX ix_notes_usn on notes(usn);CREATE INDEX ix_cards_usn on cards(usn);
   const z=new JSZip(),mm={};let k=0;
   for(const nm of mediaSet){const b=(await getBlob(p.id+'|'+nm))||(await getBlob(p.id+'|'+safeDec(nm)));if(!b)continue;mm[k]=nm;z.file(String(k++),b)}
   z.file('collection.anki2',db.export());db.close();z.file('media',JSON.stringify(mm));
-  dlFile(await z.generateAsync({type:'blob',compression:'DEFLATE'}),fname(p)+'.apkg');
+  const zb=await z.generateAsync({type:'uint8array',compression:'DEFLATE'});
+  dlFile(new Blob([zb],{type:'application/octet-stream'}),fname(p)+'.apkg');
   msg('Ekspor .apkg selesai: '+Object.keys(cid).length+' kartu, '+used.size+' riwayat ulasan, '+k+' media. Bisa langsung diimpor ke Anki.')}
 function exportText(p,kind){
   const fields=[],seen=new Set();Object.keys(p.models||{}).forEach(k=>p.models[k].fields.forEach(f=>{if(!seen.has(f)){seen.add(f);fields.push(f)}}));
@@ -1038,7 +1044,7 @@ async function getPool(ls){
   if(!POOLS[key]){const all=(await Promise.all(ls.map(loadWords))).flat();POOLS[key]=candidates(all)}
   return POOLS[key]}
 async function build(){
-  if(opt.mode==='srs')return buildSrs();
+  if(deckMode())return buildSrs();
   const pool=await getPool(picked());
   if(pool.length<4)throw new Error('Kata yang cocok terlalu sedikit di pelajaran ini.');
   const m=opt.mode==='match',want=m?opt.n:opt.n+3;
@@ -1133,7 +1139,24 @@ $('#ok').addEventListener('click',()=>{
 function exit(){tok++;Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;document.body.classList.remove('quizing');window.scrollTo(0,0);syncGo()}
 $('#x').addEventListener('click',exit);
 $('#go').addEventListener('click',start);
-loadPacks().then(renderAnki);
+/* ---------- kata berbintang dari pemutar video (localStorage 'lf:starred', satu origin) ---------- */
+const STARKEY='lf:starred',escS=v=>String(v||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function starList(){try{const a=JSON.parse(localStorage.getItem(STARKEY)||'[]');return Array.isArray(a)?a.filter(x=>x&&x.w):[]}catch(e){return[]}}
+function syncStar(){
+  const i=PACKS.findIndex(p=>p.id==='__star'),old=i>=0?PACKS[i]:null;if(i>=0)PACKS.splice(i,1);
+  const a=starList().slice().reverse();if(!a.length)return;
+  const notes=a.map(x=>{const ar=x.id||x.en||'';return{id:'w'+hsh(x.w),mid:'star',f:{Kata:escS(x.w),IPA:escS(x.ipa),Arti:escS(ar),Definisi:x.id&&x.en?escS(x.en):''},rubric:'',unit:'',choices:'',img:'',aud:'',extra:'',q:escS(x.w),back:escS(ar),kind:'basic'}});
+  const md=old&&old.models&&old.models.star||{name:'Kata berbintang',fields:['Kata','IPA','Arti','Definisi'],front:['Kata','IPA'],back:['Arti','Definisi'],reverse:false,cloze:false};
+  PACKS.unshift({id:'__star',name:'Kata Berbintang',added:1,groups:[{gid:'g0',title:'Semua kartu',notes}],models:{star:md}})}
+function renderStar(){
+  const box=$('#star-list'),a=starList();box.textContent='';
+  if(!a.length){box.appendChild(mk('div','qzs','Belum ada kata berbintang. Ketuk ☆ di popup arti kata pada pemutar video, lalu kembali ke sini.'));return}
+  a.forEach(x=>{const r=mk('div','sw2'),t=mk('span');t.appendChild(mk('b',null,x.w+(x.ipa?'  '+x.ipa:'')));t.appendChild(mk('small',null,x.id||x.en||'(arti belum dimuat)'));
+    const d=mk('button','x','Hapus ★');d.type='button';d.addEventListener('click',()=>{try{localStorage.setItem(STARKEY,JSON.stringify(starList().filter(y=>y.w!==x.w)))}catch(e){}refreshStar()});r.append(t,d);box.appendChild(r)})}
+function refreshStar(quiet){syncStar();renderStar();if(!quiet){renderAnki();syncGo()}}
+window.addEventListener('storage',e=>{if(e.key===STARKEY)refreshStar()});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!Z)refreshStar()});
+loadPacks().then(()=>{syncStar();renderAnki();renderStar()});
 loadIndex();
 </script>
 <script>
