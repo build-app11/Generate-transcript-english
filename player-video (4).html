@@ -627,13 +627,18 @@ function lessonEnd(slug,mount){
     var nx=document.createElement('a');nx.className='eb pri';nx.hidden=true;nx.textContent='Lanjut berikutnya →';
     var rv=document.createElement('a');rv.className='eb';rv.href='kosakata.html';rv.textContent='Review kosakata';
     bar.appendChild(nx);bar.appendChild(rv);
-    var U=['data/index.json','index.json'];
+    var note=document.createElement('p');note.hidden=true;note.style.cssText='margin:0;text-align:center;font:500 .9rem var(--font-ui,system-ui);color:var(--muted,#4F5575)';
+    bar.insertBefore(note,rv);
+    var U=['index.json','data/index.json','/index.json','/data/index.json','../index.json','../data/index.json'],norm=function(s){return String(s||'').replace(/\.json$/i,'').toLowerCase()};
     (function go(k){
-      if(k>=U.length)return;
+      if(k>=U.length){note.textContent='Daftar pelajaran (index.json) tidak ditemukan.';note.hidden=false;return}
       fetch(U[k],{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
-        var L=Array.isArray(j)?j:(j&&j.lessons)||[],i=-1;
-        for(var a=0;a<L.length;a++)if(L[a].slug===slug){i=a;break}
-        var n=i>=0?L[i+1]:null;if(!n)return; // pelajaran terakhir: hanya Review kosakata
+        var L=Array.isArray(j)?j:(j&&j.lessons);if(!Array.isArray(L))throw 0;
+        var i=-1,s=norm(slug);
+        for(var a=0;a<L.length;a++)if(norm(L[a].slug)===s){i=a;break}
+        if(i<0){note.textContent='Pelajaran "'+slug+'" tidak ada di index.json.';note.hidden=false;return}
+        var n=L[i+1];
+        if(!n){note.textContent='Ini pelajaran terakhir di daftar.';note.hidden=false;return}
         nx.href=(n.videoId?'player-video.html':'player-audio.html')+'?q='+encodeURIComponent(n.slug);
         nx.hidden=false;
       }).catch(function(){go(k+1)});
