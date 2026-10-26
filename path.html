@@ -151,7 +151,7 @@ setVh();addEventListener('resize',setVh);addEventListener('orientationchange',()
   };
   const day = d => d.toLocaleDateString('sv');
   const isAudio = l => !!l.audio;
-  const href = l => (isAudio(l) ? CFG.audioViewer : CFG.viewer) + '?q=' + encodeURIComponent(l.slug);
+  const href = l => (isAudio(l) ? CFG.audioViewer : CFG.viewer) + '?q=' + encodeURIComponent(l.slug) + '&from=path';
 
   let L = [], S = load(), first = true;
   function load() {
