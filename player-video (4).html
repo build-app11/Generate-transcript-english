@@ -56,11 +56,11 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .top h1 { margin: 0; font-size: 1.05rem; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .top h1.cut { cursor: pointer; }
 .top h1.open { white-space: normal; overflow: visible; text-overflow: clip; text-wrap: balance; }
-.top .sub { margin: 2px 0 0; font-size: .8rem; color: var(--muted); }
+.top .sub { margin: 2px 0 0; font-size: 0.78rem; color: var(--muted); }
 .chips { display: flex; gap: 8px; align-items: center; }
 .chip { min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); font-size: 0.8rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
-.mode { font-family: var(--font-mono); font-size: .8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.mode { font-family: var(--font-mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
 
 /* stage */
 .stage { flex: none; }
@@ -75,7 +75,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .list { position: relative; flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 2px; padding-block: 2px 168px; scrollbar-width: thin; }
 .line { display: flex; align-items: flex-start; gap: 12px; padding: 14px 12px; border-radius: 20px; cursor: pointer; }
 .line:hover { background: color-mix(in srgb, var(--surface) 70%, transparent); }
-.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.line .tm { flex: none; width: 44px; margin-top: 3px; padding: 2px 0; text-align: center; border-radius: 6px; font-family: var(--font-mono); font-size: 0.72rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .line .body { flex: 1; min-width: 0; }
 .ws { display: flex; flex-wrap: wrap; gap: 2px 12px; }
 .w { display: flex; flex-direction: column; }
@@ -100,10 +100,10 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 /* dock */
 .dock { position: absolute; left: var(--gx); right: var(--gx); bottom: calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 3; flex: none; background: color-mix(in srgb, var(--surface) 90%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16); border: 1px solid var(--rule); border-radius: 22px; padding: 10px 12px 10px; display: flex; flex-direction: column; gap: 6px; }
-.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.seek { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .seek input { flex: 1; min-width: 0; accent-color: var(--accent); height: 24px; }
 .btns { display: flex; align-items: center; gap: 2px; }
-.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: .8rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
+.tool { flex: 1; min-width: 0; min-height: 52px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 0.72rem; font-weight: 600; color: var(--muted); border-radius: 12px; }
 .tool svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .tool .glyph { font-family: var(--font-ipa); font-size: 1.35rem; line-height: 22px; height: 22px; }
 .tool[aria-pressed="true"] { color: var(--accent-text); }
@@ -138,7 +138,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
   .play { height: 48px; }
   .pop { right: 100px; }
   .line { padding: 14px 16px; }
-  .line .tm { width: 52px; font-size: .8rem; }
+  .line .tm { width: 52px; font-size: 0.78rem; }
 }
 /* Short landscape phones: two columns so the controls still fit. */
 @media (orientation: landscape) and (min-width: 560px) and (max-height: 540px) {
@@ -170,14 +170,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dmh { font: 700 0.8rem var(--font-en); color: var(--muted); padding: 2px 6px; }
 .dmi { text-align: left; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); color: var(--ink); padding: 9px 10px; font: 600 0.9rem var(--font-en); cursor: pointer; }
 .dmi.on { background: var(--accent); color: var(--accent-ink); }
-.dmn { font-size: .8rem; color: var(--muted); padding: 2px 6px; line-height: 1.4; }
+.dmn { font-size: 0.78rem; color: var(--muted); padding: 2px 6px; line-height: 1.4; }
 .dpb.star svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linejoin: round; }
 .dpb.star[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 .dpb.star[aria-pressed="true"] svg { fill: currentColor; }
 .dpb:focus-visible, .dtab:focus-visible { outline: 3px solid var(--line); outline-offset: 2px; }
 .dpbody { flex: 1; min-height: 0; overflow: auto; padding: 4px 14px 12px; display: flex; flex-direction: column; gap: 12px; }
 .dpid { background: var(--tint); border-radius: 12px; padding: 10px 14px; font-size: 0.92rem; line-height: 1.5; color: var(--ink); }
-.dpid small { display: block; font: 600 .8rem var(--font-en); letter-spacing: 0.14em; color: var(--accent-text); margin-bottom: 2px; }
+.dpid small { display: block; font: 600 0.7rem var(--font-en); letter-spacing: 0.14em; color: var(--accent-text); margin-bottom: 2px; }
 .dtabs { display: flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--rule); flex: none; }
 .dtab { flex: 1; border: 0; border-radius: 9px; padding: 9px 6px; font: 700 0.9rem var(--font-en); background: transparent; color: var(--muted); cursor: pointer; }
 .dtab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: inset 0 -3px 0 var(--accent); }
@@ -186,7 +186,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .dp .dpos b { font: 600 0.85rem var(--font-mono); background: var(--rule); color: var(--ink); border-radius: 999px; padding: 3px 10px; }
 .dp .dpos span { font-size: 0.82rem; color: var(--muted); }
 .dsn { display: flex; gap: 10px; align-items: flex-start; }
-.kn { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--rule); color: var(--muted); font: 600 .8rem var(--font-en); display: grid; place-items: center; margin-top: 3px; }
+.kn { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--rule); color: var(--muted); font: 600 0.75rem var(--font-en); display: grid; place-items: center; margin-top: 3px; }
 .dsb { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 6px; }
 .dtx { font-size: 1rem; line-height: 1.5; }
 .den { font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
@@ -202,14 +202,14 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 :root[data-theme="dark"] { --ok: #4CC38A; --bad: #FF6B60; --warn: #E3A441; }
 
 .chips { flex-wrap: wrap; }
-.chip { min-height: 32px; padding: 0 11px; font-size: .8rem; }
+.chip { min-height: 32px; padding: 0 11px; font-size: 0.78rem; }
 .chip:disabled { opacity: 0.4; cursor: not-allowed; }
 .ttlwrap { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 240px; }
 .ttlwrap > div { min-width: 0; flex: 1; }
 .hback { display: grid; flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--surface); border: 1px solid var(--rule); color: var(--ink); place-items: center; text-decoration: none; }
 .hback svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .seg { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--rule); border-radius: 999px; }
-.seg button { min-height: 26px; padding: 0 11px; border-radius: 999px; font-size: .8rem; font-weight: 600; color: var(--muted); }
+.seg button { min-height: 26px; padding: 0 11px; border-radius: 999px; font-size: 0.78rem; font-weight: 600; color: var(--muted); }
 .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
 
 /* grup Practice: satu tombol, tiga pilihan */
@@ -313,7 +313,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .vpop #bTr{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-en);font-weight:600;font-size:0.85rem}
 .vpop #bTr .g{font-family:var(--font-ipa);font-size:1.2rem}
 /* skor shadowing: badge persen per baris, kata yang kurang jelas berwarna merah */
-.sc{flex:none;align-self:flex-start;min-width:46px;margin-top:2px;padding:1px 8px;text-align:center;border:2px solid var(--line);border-radius:999px;background:var(--surface);font:600 .8rem var(--font-mono);font-variant-numeric:tabular-nums}
+.sc{flex:none;align-self:flex-start;min-width:46px;margin-top:2px;padding:1px 8px;text-align:center;border:2px solid var(--line);border-radius:999px;background:var(--surface);font:600 0.78rem var(--font-mono);font-variant-numeric:tabular-nums}
 .sc.good{color:var(--ok)}.sc.mid{color:var(--warn)}.sc.low{color:var(--bad)}
 .w.bad b,.w.bad i{color:var(--bad)}
 .w.good b,.w.good i{color:var(--ok)}
@@ -334,7 +334,7 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 #boot .pick input { display: none; }
 #boot a.bk { color: var(--ink); font: 600 1rem var(--font-display, var(--font-en)); text-decoration: none; padding: 10px 22px; border: 2.5px solid var(--line); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow); }
 </style>
-<div id="boot" role="status"><div class="bx"><h2 id="bootT">Memuat halaman…</h2><p id="bootP"></p><div id="bootA" hidden><label class="pick">Pilih file JSON<input type="file" id="bootFile" accept=".json,application/json"></label></div><a class="bk" href="./">Kembali</a></div></div>
+<div id="boot" role="status"><div class="bx"><h2 id="bootT">Memuat halaman…</h2><p id="bootP"></p><div id="bootA" hidden><label class="pick">Pilih file JSON<input type="file" id="bootFile" accept=".json,application/json"></label></div><a class="bk" href="/index.html">Kembali</a></div></div>
 <script>
 /* KERANGKA KOSONG: data pelajaran dimuat dari file JSON.
    Alamat: player-video.html?q=nama-pelajaran  ->  data/nama-pelajaran.json */
@@ -400,17 +400,17 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
 
 <div class="app" id="app">
   <header class="top">
-    <div class="ttlwrap"><a class="hback" id="hback" href="./" target="_top" aria-label="Kembali"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a><div>
+    <div class="ttlwrap"><a class="hback" id="hback" href="/index.html" target="_top" aria-label="Kembali"><svg viewBox="0 0 24 24"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></a><div>
       <h1 id="ttl">Shadowing</h1>
       <p class="sub"><span id="count">204</span> baris · transkrip + fonetik · <span class="mode" id="modeLbl">mode timer</span></p>
     </div></div>
     <div class="chips">
       <div class="seg" id="seg" role="group" aria-label="Tampilan" hidden><button id="mVideo" aria-pressed="true">Video</button><button id="mAudio" aria-pressed="false">Audio</button></div>
       <div class="pwrap" id="pwrap">
-        <button class="chip" id="bPractice" aria-haspopup="true" aria-expanded="false" aria-controls="pmenu">Berlatih <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="pmenu" id="pmenu" role="group" aria-label="Berlatih" hidden>
+        <button class="chip" id="bPractice" aria-haspopup="true" aria-expanded="false" aria-controls="pmenu">Practice <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="pmenu" id="pmenu" role="group" aria-label="Practice" hidden>
           <button class="pitem" id="bShadow" aria-pressed="false" disabled>Shadowing</button>
-          <button class="pitem" id="bDict" aria-pressed="false">Dikte</button>
+          <button class="pitem" id="bDict" aria-pressed="false">Dictation</button>
           <button class="pitem" id="bOnlyPins" aria-pressed="false">Tersimpan <span id="pinCount">0</span></button>
         </div>
       </div>
@@ -450,13 +450,13 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
       <button class="tool" id="bView" aria-haspopup="true" aria-expanded="false" aria-pressed="false"><span class="aa">Aa</span><span>Teks</span></button>
       <button class="tool" id="bLoop" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M17 2l3 3-3 3M4 11V9a4 4 0 014-4h12M7 22l-3-3 3-3M20 13v2a4 4 0 01-4 4H4"/></svg><span id="loopLbl">Ulang</span></button>
       <button class="tool" id="bSpeed" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M4.5 18a9 9 0 1115 0M12 14l4-5"/></svg><span id="speedLbl">Speed 1×</span></button>
-      <button class="play" id="bPlay" aria-label="Putar"></button>
+      <button class="play" id="bPlay" aria-label="Play"></button>
     </div>
   </footer>
   </div>
 
   <main class="list" id="list" aria-label="Transkrip"></main>
-  <section class="dict" id="dict" hidden aria-label="Dikte"><div class="dcard">
+  <section class="dict" id="dict" hidden aria-label="Dictation"><div class="dcard">
     <div class="dnav" id="dNav" role="tablist" aria-label="Kalimat"></div>
     <div class="dwords" id="dWords"></div>
     <p class="dmsg" id="dMsg" role="status" aria-live="polite"></p>
@@ -587,6 +587,69 @@ const emptyEl = document.createElement('div');
 emptyEl.className = 'empty'; emptyEl.hidden = true;
 emptyEl.textContent = 'Belum ada baris tersimpan. Tekan ikon pin di sebuah baris untuk menyimpannya.';
 list.appendChild(emptyEl);
+
+/* ---------- akhir transkrip: Selesai (dari path.html) / Lanjut berikutnya + Review kosakata ---------- */
+const _qs = new URLSearchParams(location.search);
+const endCheck = lessonEnd((_qs.get('q') || _qs.get('v') || '').replace(/\.json$/i, ''), (bar) => list.appendChild(bar));
+const LAST = DATA[DATA.length - 1];
+/* Akhir transkrip.
+   - Dibuka dari path.html  -> tombol "Selesai ✓" (tandai selesai, kembali ke path.html)
+   - Dibuka dari tempat lain -> tombol "Lanjut berikutnya" (urutan index.json) + "Review kosakata" (kosakata.html)
+   Panel baru muncul saat waktu putar mencapai akhir transkrip. mount(bar) menaruh panel di halaman.
+   Mengembalikan fungsi check(t, awalBarisTerakhir, akhirTranskrip, sudahSelesai). */
+function lessonEnd(slug,mount){
+  if(!slug)return function(){};
+  var SK='lf:from:'+slug,from=null;
+  try{
+    var r=document.referrer?new URL(document.referrer):null;
+    if(r&&r.origin===location.origin&&/\/path(\.html)?$/.test(r.pathname))sessionStorage.setItem(SK,r.pathname+r.search); // ingat saat reload
+    else if(document.referrer)sessionStorage.removeItem(SK); // dibuka dari halaman lain: bukan alur path
+    from=sessionStorage.getItem(SK);
+  }catch(e){}
+  var css=document.createElement('style');
+  css.textContent='#endBar{display:flex;flex-direction:column;gap:12px;width:calc(100% - 32px);max-width:var(--col,34rem);margin:24px auto 0;flex:none}#endBar[hidden],#endBar .eb[hidden]{display:none}#endBar .eb{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:2.5px solid var(--ink,#14162B);border-radius:999px;background:var(--surface,var(--bar,#fff));color:var(--ink,var(--fg,#14162B));font:600 1.05rem var(--font-display,var(--font-ui,system-ui));box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer;text-decoration:none;text-align:center}#endBar .eb.pri{background:var(--accent,#FFD23F);color:var(--on,var(--accent-ink,#14162B))}#endBar .eb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}';
+  document.head.appendChild(css);
+  var bar=document.createElement('div');bar.id='endBar';bar.hidden=true;
+  if(from){
+    var d=document.createElement('button');d.type='button';d.className='eb pri';d.textContent='Selesai ✓';
+    d.addEventListener('click',function(){
+      try{
+        var p=JSON.parse(localStorage.getItem('lf:path'))||{};
+        if(!p.done||typeof p.done!=='object')p.done={};
+        p.done[slug]={at:Date.now()};
+        localStorage.setItem('lf:path',JSON.stringify(p));
+        localStorage.setItem('lf:path:pending','null'); // jangan tanya lagi di path
+      }catch(e){}
+      location.href=from;
+    });
+    bar.appendChild(d);
+  }else{
+    var nx=document.createElement('a');nx.className='eb pri';nx.hidden=true;nx.textContent='Lanjut berikutnya →';
+    var rv=document.createElement('a');rv.className='eb';rv.href='kosakata.html';rv.textContent='Review kosakata';
+    bar.appendChild(nx);bar.appendChild(rv);
+    var U=['data/index.json','index.json'];
+    (function go(k){
+      if(k>=U.length)return;
+      fetch(U[k],{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+        var L=Array.isArray(j)?j:(j&&j.lessons)||[],i=-1;
+        for(var a=0;a<L.length;a++)if(L[a].slug===slug){i=a;break}
+        var n=i>=0?L[i+1]:null;if(!n)return; // pelajaran terakhir: hanya Review kosakata
+        nx.href=(n.videoId?'player-video.html':'player-audio.html')+'?q='+encodeURIComponent(n.slug);
+        nx.hidden=false;
+      }).catch(function(){go(k+1)});
+    })(0);
+  }
+  mount(bar);
+  var latched=false;
+  return function(t,lastStart,endT,ended){
+    var was=latched;
+    if(ended||t>=endT-0.05)latched=true;
+    else if(t<lastStart-0.1)latched=false; // diputar ulang dari tengah: sembunyikan lagi
+    bar.hidden=!latched;
+    if(latched&&!was)setTimeout(function(){try{bar.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},400);
+  };
+}
+
 $('#count').textContent = DATA.length;
 if (DATA.some((d) => d.tr)) $('#bTr').hidden = false;
 try { if (localStorage.getItem('uk-tr') === '0') { app.classList.add('notr'); $('#bTr').setAttribute('aria-pressed', 'false'); } } catch (e) {}
@@ -630,7 +693,7 @@ function pause() { if (ytMode()) yt.pauseVideo(); else clock.playing = false; }
 function setRate(r) {
   rate = r;
   if (ytMode()) yt.setPlaybackRate(r);
-  $('#speedLbl').textContent = 'Kecepatan ' + r + '×';
+  $('#speedLbl').textContent = 'Speed ' + r + '×';
   [...pop.children].forEach((b) => b.setAttribute('aria-pressed', String(parseFloat(b.dataset.r) === r)));
 }
 
@@ -717,7 +780,7 @@ function updatePlayBtn() {
   if (key === shownKey) return;
   shownKey = key;
   $('#bPlay').innerHTML = sh.on ? stopSvg : (p ? pauseSvg : playSvg);
-  $('#bPlay').setAttribute('aria-label', sh.on ? (sh.state === 'rec' ? 'Stop rekam' : 'Hentikan shadowing') : (p ? 'Jeda' : 'Putar'));
+  $('#bPlay').setAttribute('aria-label', sh.on ? (sh.state === 'rec' ? 'Stop rekam' : 'Hentikan shadowing') : (p ? 'Jeda' : 'Play'));
 }
 function tick() {
   const nowMs = performance.now();
@@ -732,6 +795,7 @@ function tick() {
   const plNow = isPlaying();
   if (plNow && !prevPl && dSt) closeTip();
   prevPl = plNow;
+  endCheck(t, LAST.s, Math.min(LAST.le, dur() - 0.3), !plNow && t >= dur() - 0.3);
   shTick(nowMs, t);
   if (playlistOn() && isPlaying() && nowMs > holdUntil && nowMs - lastLoopSeek > 500) {
     const i = findIdx(t);
@@ -1496,7 +1560,7 @@ function dButton() {
   const last = dpos >= ditems.length - 1;
   let label = 'Check', ico = CK_SVG;
   if (dFin) { label = 'Ulangi'; ico = NX_SVG; }
-  else if (st && st.done) { label = last ? 'Selesai' : 'Lanjut'; ico = NX_SVG; }
+  else if (st && st.done) { label = last ? 'Selesai' : 'Next'; ico = NX_SVG; }
   $('#dGo').innerHTML = ico + '<span>' + label + '</span>';
 }
 function dUpdateNav() {
@@ -1668,74 +1732,11 @@ pmenu.addEventListener('click', (e) => { if (e.target.closest('.pitem')) closePm
 document.addEventListener('click', (e) => { if (!pmenu.hidden && !e.target.closest('#pwrap')) closePmenu(); });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePmenu(); });
 
-/* ---------- Path: tombol "Selesai" (muncul hanya jika dibuka dari path.html) ---------- */
-(function pathDone() {
-  try {
-    const sp = new URLSearchParams(location.search), slug = sp.get('q') || sp.get('v');
-    const SK = 'lf:from:' + slug; let back = 'path.html';
-    const r = document.referrer ? new URL(document.referrer) : null;
-    if (r && r.origin === location.origin && /\/path(\.html)?$/.test(r.pathname)) sessionStorage.setItem(SK, r.pathname + r.search);
-    const from = sessionStorage.getItem(SK);
-    if (!from || !slug) return; back = from;
-    const finish = () => {
-      try {
-        const p = JSON.parse(localStorage.getItem('lf:path')) || {};
-        if (!p.done || typeof p.done !== 'object') p.done = {};
-        p.done[slug] = { at: Date.now() };
-        localStorage.setItem('lf:path', JSON.stringify(p));
-        localStorage.setItem('lf:path:pending', 'null');
-      } catch (e) {}
-      location.href = back;
-    };
-    const mk = (cls) => { const b = document.createElement('button'); b.type = 'button'; b.className = cls; b.textContent = 'Selesai ✓'; b.addEventListener('click', finish); return b; };
-    const css = document.createElement('style');
-    css.textContent = '.doneChip{min-height:44px;padding:0 14px;border-radius:999px;border:2.5px solid var(--line,#14162B);background:var(--accent,#FFD84D);color:var(--on,#14162B);font:700 .9rem var(--font-display,system-ui);cursor:pointer}#doneEnd{display:flex;align-items:center;justify-content:center;width:calc(100% - 32px);min-height:48px;margin:20px auto 8px;border-radius:999px;border:2.5px solid var(--line,#14162B);background:var(--accent,#FFD84D);color:var(--on,#14162B);font:700 1.05rem var(--font-display,system-ui);box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer}';
-    document.head.appendChild(css);
-    const chips = document.querySelector('.chips'); if (chips) chips.appendChild(mk('doneChip'));
-    const list = document.getElementById('list'), end = mk(''); end.id = 'doneEnd';
-    const put = () => { if (list && list.lastElementChild !== end) list.appendChild(end); };
-    if (list) { put(); new MutationObserver(put).observe(list, { childList: true }); }
-  } catch (e) {}
-})();
-
 /* ---------- start ---------- */
 seekEl.max = DUR_DEFAULT; tdur.textContent = fmt(DUR_DEFAULT);
 setRate(1); updatePinUI(); updatePlayBtn();
 loadYouTube();
 </script>
 
-<style>
-@media (pointer:coarse){button,.chip,.tool,.hback,.rtb,.pitem,[role=button]{min-width:44px;min-height:44px}}
-#lfHelp{position:fixed;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:50;width:44px;height:44px;border-radius:50%;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font:700 1.1rem system-ui;cursor:pointer}
-#lfTour{max-width:min(92vw,26rem);border:2.5px solid var(--line,var(--ink,#14162B));border-radius:20px;background:var(--surface,var(--bg,#fff));color:var(--ink,inherit);padding:20px}
-#lfTour h2{margin:0 0 8px;font-size:1.2rem}#lfTour ol{margin:0 0 14px;padding-left:1.2rem;line-height:1.5}
-#lfTour button{min-height:44px;padding:0 18px;border-radius:999px;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font-weight:700;cursor:pointer}
-#lfEnd{max-width:34rem;margin:20px auto 8px;padding:16px;text-align:center;border:2.5px solid var(--line,var(--ink,#14162B));border-radius:20px}#lfEnd h2{margin:0 0 4px;font-size:1.15rem}#lfEnd p{margin:0 0 12px;font-size:.9rem}.lfb{display:flex;align-items:center;justify-content:center;min-height:48px;margin:8px 0 0;border-radius:999px;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font-weight:700;text-decoration:none}.lfb.alt{background:transparent;color:inherit}.lfb[hidden]{display:none}
-</style>
-<script>
-(function(){
-  const d=document.createElement('dialog');d.id='lfTour';d.setAttribute('aria-label','Panduan singkat');
-  d.innerHTML='<h2>Cara pakai latihan ini</h2><ol><li><b>Dengar &amp; tirukan:</b> putar, lalu ucapkan baris yang sedang tampil.</li><li><b>Berlatih:</b> pilih Shadowing atau Dikte untuk melatih diri. Tombol bintang/pin menyimpan kata atau baris.</li><li><b>Tampilan &amp; ulang:</b> atur fonetik, ukuran teks, kecepatan, dan ulang baris. Setelah selesai, review kata di Kosa Kata.</li></ol><button type="button">Mengerti</button>';
-  const b=document.createElement('button');b.id='lfHelp';b.type='button';b.textContent='?';b.setAttribute('aria-label','Panduan pemakaian');
-  const open=()=>{try{d.showModal()}catch(e){}};
-  b.onclick=open;d.querySelector('button').onclick=()=>{d.close();try{localStorage.setItem('lf:tour','1')}catch(e){}};
-  document.body.append(b,d);
-  try{if(!localStorage.getItem('lf:tour'))setTimeout(open,1200)}catch(e){}
-  const mk=()=>{const w=document.createElement('div');w.id='lfEnd';
-    w.innerHTML='<h2>Latihan selesai 🎉</h2><p>Simpan kata yang tadi kamu bintangi, lalu lanjut.</p><a class="lfb" id="lfNextLesson" href="./" hidden></a><a class="lfb alt" href="kosakata.html">Review kata di Kosa Kata</a>';return w};
-  let nxt=null;
-  try{const q=new URLSearchParams(location.search),s=(q.get('q')||q.get('v')||'').replace(/\.json$/i,'');
-    fetch('data/index.json').then(r=>r.json()).then(j=>{const L=j.lessons||[],i=L.findIndex(l=>l.slug===s);nxt=i>=0?L[i+1]||false:null;fix()}).catch(()=>{})}catch(e){}
-  function fix(){let w=document.getElementById('lfEnd');
-    const de=document.getElementById('doneEnd'),db=document.getElementById('doneBtn'),list=document.getElementById('list'),rd=document.querySelector('.rd .rtxt');
-    if(!w){if(!(de||db||list||rd))return;w=mk()}
-    if(de){if(w.nextElementSibling!==de)de.before(w)}else if(db){if(db.nextElementSibling!==w)db.after(w)}
-    else if(list){if(w.parentNode!==list)list.appendChild(w)}else if(rd){if(rd.nextElementSibling!==w)rd.after(w)}
-    const a=w.querySelector('#lfNextLesson');
-    if(nxt){a.hidden=false;a.textContent='Latihan berikutnya →';a.href=(nxt.audio?'player-audio.html':'player-video.html')+'?q='+encodeURIComponent(nxt.slug)}
-    else if(nxt===false){a.hidden=false;a.textContent='Kembali ke daftar latihan';a.href='./'}}
-  new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});fix();
-})();
-</script>
 </body>
 </html>
