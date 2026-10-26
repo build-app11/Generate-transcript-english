@@ -1068,7 +1068,7 @@ async function srsNext(){
     const i=my.cards.indexOf(cd);if(i>=0)my.cards.splice(i,1);my.newq=my.newq.filter(x=>x!==cd);my.revq=my.revq.filter(x=>x!==cd);srsNext()}}
 
 function srsDone(){
-  const z=Z;clrT(z);stopAud();z.phase='sdone';zOk('Tutup',true);['#tbu','#tbf','#tbm'].forEach(q=>{$(q).disabled=true});$('#tbf').style.color='';$('#tbf').innerHTML=ico(IC.flagO);
+  const z=Z;clrT(z);stopAud();z.phase='sdone';zOk(RET?'Kembali ke pelajaran':'Tutup',true);['#tbu','#tbf','#tbm'].forEach(q=>{$(q).disabled=true});$('#tbf').style.color='';$('#tbf').innerHTML=ico(IC.flagO);
   const b=zBody(),r=mk('div','res');b.appendChild(r);
   const hd=mk('div');hd.style.cssText='display:flex;justify-content:flex-end';
   const ob=mk('button','tbi');ob.type='button';ob.innerHTML=ico(IC.tune);ob.title='Opsi deck (preset SRS)';ob.setAttribute('aria-label','Opsi deck (preset SRS)');
@@ -1563,6 +1563,15 @@ function showTrans(){
       zOk(my.i+1>=tot?'Lihat hasil':'Lanjut',true)});
     box.appendChild(x)})}
 
+/* ---------- kembali ke pelajaran asal: dibuka dari pemutar lewat kosakata.html?from=<halaman pelajaran> ---------- */
+const RET=(()=>{try{const f=new URLSearchParams(location.search).get('from');if(!f)return'';const u=new URL(f,location.href);
+  if(u.origin!==location.origin||!/\.html$/i.test(u.pathname))return''; // hanya halaman di situs yang sama
+  u.searchParams.set('rv','1'); // tanda "kosakata sudah direview" untuk pemutar
+  return u.href}catch(e){return''}})();
+if(RET){
+  const bk=document.querySelector('.lf-back');if(bk){bk.href=RET;bk.setAttribute('aria-label','Kembali ke pelajaran')}
+  const ret=mk('a','chip','← Kembali ke pelajaran');ret.href=RET;ret.style.cssText='display:inline-block;margin:0 0 12px;text-decoration:none';
+  const su=document.getElementById('setup');if(su)su.insertBefore(ret,su.firstChild)}
 function result(){
   Z.phase='result';zProg(1,'');
   const log=Z.log,good=log.filter(x=>x.ok),bad=log.filter(x=>!x.ok),r=mk('div','res');
@@ -1576,13 +1585,14 @@ function result(){
     const ul=mk('ul');good.forEach(x=>ul.appendChild(mk('li',null,x.ask+' = '+x.right)));r.appendChild(ul)}
   else r.appendChild(mk('p','lead','Belum ada yang benar kali ini. Coba lagi.'));
   if(!bad.length)r.appendChild(mk('p','lead','Semua benar. Mantap!'));
+  if(RET){const a=mk('a','go','← Kembali ke pelajaran');a.href=RET;a.style.cssText='display:flex;align-items:center;justify-content:center;margin-top:16px;text-decoration:none';r.appendChild(a)}
   zOk('Soal baru',true)}
 
 $('#ok').addEventListener('click',()=>{
   if(!Z)return;
   if(Z.phase==='check'){Z.check();return}
   if(Z.phase==='sask'){Z.reveal();return}
-  if(Z.phase==='sdone'){exit();return}
+  if(Z.phase==='sdone'){if(RET)location.href=RET;else exit();return}
   if(Z.phase==='result'||Z.phase==='retry'){again();return}
   if(Z.phase==='next'){if(Z.mode==='match'){result();return}Z.i++;Z.i>=Z.total?result():showItem()}});
 function exit(){tok++;Z=null;$('#quiz').hidden=true;$('#setup').hidden=false;document.body.classList.remove('quizing');srsChrome(false);window.scrollTo(0,0);syncGo()}
