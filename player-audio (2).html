@@ -11,7 +11,7 @@
 .rd *{box-sizing:border-box}
 .rtop{position:sticky;top:env(safe-area-inset-top,0px);z-index:6;background:var(--bg);margin:0 auto;max-width:var(--col);padding-block:14px 10px}
 .rhead{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.rinfo{font:600 .8rem/1.35 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
+.rinfo{font:600 .72rem/1.35 var(--font-ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);min-width:0}
 .racts{display:flex;gap:8px;flex:none}
 .rtb{display:inline-flex;align-items:center;gap:6px;font:700 .8rem var(--font-ui);color:var(--accent);background:var(--accent-soft);border:1.5px solid transparent;border-radius:9px;padding:8px 11px;cursor:pointer;white-space:nowrap}
 .rtb svg{width:17px;height:17px}
@@ -74,7 +74,7 @@
 .g{display:flex;flex-direction:column;gap:8px;min-width:0}
 .gh{display:flex;justify-content:space-between;gap:8px;font:700 .88rem var(--font-ui);color:var(--head)}
 .gh span{color:var(--accent);font-variant-numeric:tabular-nums}
-.gl{font:500 .8rem var(--font-ui);color:var(--muted);margin-top:2px}
+.gl{font:500 .78rem var(--font-ui);color:var(--muted);margin-top:2px}
 .rr{display:flex;align-items:center;gap:10px}
 .rr input{flex:1;min-width:0}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -98,14 +98,14 @@
 .dmi{text-align:left;min-height:42px;border:2px solid var(--line);border-radius:10px;background:var(--bar);color:var(--fg);padding:9px 10px;font:600 .9rem var(--font-ui);cursor:pointer}
 .dmi.on{background:var(--accent);color:var(--on)}
 .dmi:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
-.dmn{font-size:.8rem;color:var(--muted);padding:2px 6px;line-height:1.4}
+.dmn{font-size:.78rem;color:var(--muted);padding:2px 6px;line-height:1.4}
 .dtoast{position:absolute;left:50%;bottom:38px;transform:translateX(-50%);z-index:6;max-width:calc(100% - 24px);padding:8px 14px;border-radius:999px;background:var(--head);color:var(--bar);font:600 .85rem var(--font-ui);text-align:center;overflow-wrap:anywhere;pointer-events:none}
 .dtoast[hidden]{display:none}
 @media(prefers-reduced-motion:no-preference){.dpb.star{transition:transform .12s}.dpb.star:active{transform:scale(.92)}}
 .dpb:focus-visible,.dtab:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 .dpbody{flex:1;min-height:0;overflow:auto;padding:4px 14px 12px;display:flex;flex-direction:column;gap:12px}
 .dpid{background:var(--accent-soft);border-radius:12px;padding:10px 14px;font-size:.92rem;line-height:1.5;color:var(--fg)}
-.dpid small{display:block;font:600 .8rem var(--font-ui);letter-spacing:.14em;color:var(--accent-text);margin-bottom:2px}
+.dpid small{display:block;font:600 .7rem var(--font-ui);letter-spacing:.14em;color:var(--accent-text);margin-bottom:2px}
 .dtabs{display:flex;gap:4px;padding:4px;border-radius:12px;background:var(--line);flex:none}
 .dtab{flex:1;border:0;border-radius:9px;padding:9px 6px;font:700 .9rem var(--font-ui);background:transparent;color:var(--muted);cursor:pointer}
 .dtab[aria-selected=true]{background:var(--bar);color:var(--head);box-shadow:inset 0 -3px 0 var(--accent)}
@@ -114,7 +114,7 @@
 .dpos b{font:600 .85rem ui-monospace,Menlo,monospace;background:var(--line);color:var(--head);border-radius:999px;padding:3px 10px}
 .dpos span{font-size:.82rem;color:var(--muted)}
 .dsn{display:flex;gap:10px;align-items:flex-start}
-.dn{flex:none;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--muted);font:600 .8rem var(--font-ui);display:grid;place-items:center;margin-top:3px}
+.dn{flex:none;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--muted);font:600 .75rem var(--font-ui);display:grid;place-items:center;margin-top:3px}
 .dsb{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
 .dtx{font-size:1rem;line-height:1.5}
 .den{font-size:.82rem;color:var(--muted);line-height:1.4}
@@ -157,7 +157,7 @@
 .pbb{display:flex;flex-wrap:wrap;gap:6px}
 .pbb .chip{padding:6px 11px}
 .chip.pmain{background:var(--ui);border-color:var(--ink);color:var(--ui-on)}
-.pleg{display:flex;flex-wrap:wrap;gap:6px 12px;font:600 .8rem var(--font-ui)}
+.pleg{display:flex;flex-wrap:wrap;gap:6px 12px;font:600 .75rem var(--font-ui)}
 .pleg[hidden]{display:none}
 .lg.ok{color:var(--ok)}.lg.bad,.lg.miss{color:var(--bad)}
 .rd.prac .w{cursor:default}
@@ -207,7 +207,7 @@
 .rd .prow input[type=range]{flex:1;min-width:0;margin:0}
 .rd .nin{width:4.4rem;flex:none;font:700 .9rem var(--font-ui);text-align:center;color:var(--fg);background:var(--field);border:2px solid var(--ink);border-radius:10px;padding:6px 4px}
 .rd .nin:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
-.rd .nun{font:600 .8rem var(--font-ui);font-style:normal;color:var(--muted);min-width:0}
+.rd .nun{font:600 .78rem var(--font-ui);font-style:normal;color:var(--muted);min-width:0}
 .rd .prow select{flex:1;min-width:0;font:600 .9rem var(--font-ui);padding:8px 10px;border:2px solid var(--ink);border-radius:10px;background:var(--bar);color:var(--head)}
 .rd .prow input[type=checkbox]{flex:none;width:22px;height:22px;margin:0;accent-color:var(--ui)}
 
@@ -272,7 +272,7 @@
 </style>
 </head>
 <body>
-<div id="app"><div class="ld"><p>Memuat halaman…</p><a href="./">Kembali</a></div></div>
+<div id="app"><div class="ld"><p>Memuat halaman…</p><a href="/index.html">Kembali</a></div></div>
 <script>function createReader(root,cfg){
   const WORDS=cfg.words,TERM=/[.!?。！？]["')\]”’）」』]*$/;
   const LS='syncreader:'+(cfg.key||'page');
@@ -291,7 +291,7 @@
   root.innerHTML=`<div class="rd">
   <div class="rtop"><div class="rhead">
     ${cfg.onBack?`<button type="button" class="rtb rback rback-btn" aria-label="Kembali ke form"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></button>`:''}
-    ${cfg.back===null?'':`<a class="rtb rback" href="${cfg.back||'./'}" aria-label="Kembali ke beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></a>`}
+    ${cfg.back===null?'':`<a class="rtb rback" href="${cfg.back||'/index.html'}" aria-label="Kembali ke beranda"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></svg><span>Kembali</span></a>`}
     <div class="rtitle" role="button" tabindex="0" aria-expanded="false" hidden></div>
     <div class="racts"><button class="rtb" data-a="pmenu" aria-expanded="false" aria-label="Menu: Play, Latihan${cfg.exportEl?', Ekspor':''}" title="Play, Latihan${cfg.exportEl?', Ekspor':''}">${ICON_SET}</button></div>
   </div>
@@ -308,7 +308,7 @@
     <div class="pleg" hidden></div>
   </div>
   <div class="rpanel" data-p="pmenu" hidden>
-  <div class="ptabs" role="tablist"><button class="ptab" role="tab" data-a="ptab" data-v="pset" aria-selected="true">Putar</button><button class="ptab" role="tab" data-a="ptab" data-v="pprac" aria-selected="false">Latihan</button>${cfg.exportEl?'<button class="ptab" role="tab" data-a="ptab" data-v="pexp" aria-selected="false">Ekspor</button>':''}</div>
+  <div class="ptabs" role="tablist"><button class="ptab" role="tab" data-a="ptab" data-v="pset" aria-selected="true">Play</button><button class="ptab" role="tab" data-a="ptab" data-v="pprac" aria-selected="false">Latihan</button>${cfg.exportEl?'<button class="ptab" role="tab" data-a="ptab" data-v="pexp" aria-selected="false">Ekspor</button>':''}</div>
   <div class="pane" data-pane="pset">
       <label class="prow"><span>Ukuran huruf</span><input type="range" data-r="fs" min="14" max="44" step="1" aria-label="Ukuran huruf"><input type="number" class="nin" data-r="fs" min="14" max="44" step="1" inputmode="numeric" aria-label="Ukuran huruf (px)"><i class="nun">px</i></label>
       <label class="prow"><span>Kecepatan</span><input type="range" data-r="speed" min="0.5" max="2" step="0.05" aria-label="Kecepatan audio"><input type="number" class="nin" data-r="speed" min="0.5" max="2" step="0.05" inputmode="decimal" aria-label="Kecepatan audio (kali)"><i class="nun">×</i></label>
@@ -406,7 +406,8 @@
   const dur=()=>au.duration||WORDS[WORDS.length-1].e||1;
   function ui(){const t=au.currentTime,d=dur();
     $q('.rcur').textContent=fmt(t);$q('.rdur').textContent=fmt(d);
-    seek.value=Math.round(t/d*1000);seek.style.setProperty('--p',(t/d*100)+'%');mark(find(t))}
+    seek.value=Math.round(t/d*1000);seek.style.setProperty('--p',(t/d*100)+'%');mark(find(t));
+    if(cfg.onTime)cfg.onTime(t,SEG[SEG.length-1].s,WORDS[WORDS.length-1].e,au.ended)}
   function segAt(t){const w=find(t);return segOf[w<0?0:w]}
   function syncLoop(){loopK=segAt(au.currentTime);reps=0}
   function replay(ts){
@@ -429,6 +430,7 @@
     const k=segAt(au.currentTime);if(k!==loopK){loopK=k;reps=0}cancelAnimationFrame(raf);tick()});
   au.addEventListener('pause',()=>{$q('.rpi').setAttribute('d',PLAY);$q('[data-a=play]').setAttribute('aria-label','Putar')});
   au.addEventListener('loadedmetadata',()=>{au.playbackRate=pref.speed;ui()});
+  au.addEventListener('ended',ui);
   au.addEventListener('seeked',()=>{if(!gapTimer){paintAll(find(au.currentTime));ui()}});
   au.addEventListener('error',()=>{infoEl.hidden=false;infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
   seek.addEventListener('input',()=>jump(seek.value/1000*dur()));
@@ -1236,39 +1238,67 @@
 }
 
 
-/* Tombol "Selesai": hanya muncul jika halaman dibuka dari path.html */
-function pathDone(app,slug){
-  const SK='lf:from:'+slug;let back='path.html';
+/* Akhir transkrip.
+   - Dibuka dari path.html  -> tombol "Selesai ✓" (tandai selesai, kembali ke path.html)
+   - Dibuka dari tempat lain -> tombol "Lanjut berikutnya" (urutan index.json) + "Review kosakata" (kosakata.html)
+   Panel baru muncul saat waktu putar mencapai akhir transkrip. mount(bar) menaruh panel di halaman.
+   Mengembalikan fungsi check(t, awalBarisTerakhir, akhirTranskrip, sudahSelesai). */
+function lessonEnd(slug,mount){
+  if(!slug)return function(){};
+  var SK='lf:from:'+slug,from=null;
   try{
-    const r=document.referrer?new URL(document.referrer):null;
+    var r=document.referrer?new URL(document.referrer):null;
     if(r&&r.origin===location.origin&&/\/path(\.html)?$/.test(r.pathname))sessionStorage.setItem(SK,r.pathname+r.search); // ingat saat reload
-    const from=sessionStorage.getItem(SK);
-    if(!from||!slug)return;back=from;
-  }catch(e){return}
-  const css=document.createElement("style");
-  css.textContent="#doneBtn{display:flex;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:var(--col,34rem);margin:24px auto 0;padding:12px 22px;border:2.5px solid var(--ink,#14162B);border-radius:999px;background:var(--accent);color:var(--on,#14162B);font:600 1.1rem var(--font-display,var(--font-ui,system-ui));box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer}#doneBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}";
+    else if(document.referrer)sessionStorage.removeItem(SK); // dibuka dari halaman lain: bukan alur path
+    from=sessionStorage.getItem(SK);
+  }catch(e){}
+  var css=document.createElement('style');
+  css.textContent='#endBar{display:flex;flex-direction:column;gap:12px;width:calc(100% - 32px);max-width:var(--col,34rem);margin:24px auto 0;flex:none}#endBar[hidden],#endBar .eb[hidden]{display:none}#endBar .eb{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:2.5px solid var(--ink,#14162B);border-radius:999px;background:var(--surface,var(--bar,#fff));color:var(--ink,var(--fg,#14162B));font:600 1.05rem var(--font-display,var(--font-ui,system-ui));box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer;text-decoration:none;text-align:center}#endBar .eb.pri{background:var(--accent,#FFD23F);color:var(--on,var(--accent-ink,#14162B))}#endBar .eb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}';
   document.head.appendChild(css);
-  const btn=document.createElement("button");
-  btn.id="doneBtn";btn.type="button";btn.textContent="Selesai ✓";
-  btn.addEventListener("click",()=>{
-    try{
-      const p=JSON.parse(localStorage.getItem("lf:path"))||{};
-      if(!p.done||typeof p.done!=="object")p.done={};
-      p.done[slug]={at:Date.now()};
-      localStorage.setItem("lf:path",JSON.stringify(p));
-      localStorage.setItem("lf:path:pending","null"); // jangan tanya lagi di path
-    }catch(e){}
-    location.href=back;
-  });
-  const rd=app.querySelector(".rd");if(!rd)return;
-  const put=()=>{const a=rd.querySelector(".rtxt");if(a&&a.nextElementSibling!==btn)a.after(btn)};
-  put();
-  new MutationObserver(put).observe(rd,{childList:true}); // dipasang lagi jika reader dirender ulang
+  var bar=document.createElement('div');bar.id='endBar';bar.hidden=true;
+  if(from){
+    var d=document.createElement('button');d.type='button';d.className='eb pri';d.textContent='Selesai ✓';
+    d.addEventListener('click',function(){
+      try{
+        var p=JSON.parse(localStorage.getItem('lf:path'))||{};
+        if(!p.done||typeof p.done!=='object')p.done={};
+        p.done[slug]={at:Date.now()};
+        localStorage.setItem('lf:path',JSON.stringify(p));
+        localStorage.setItem('lf:path:pending','null'); // jangan tanya lagi di path
+      }catch(e){}
+      location.href=from;
+    });
+    bar.appendChild(d);
+  }else{
+    var nx=document.createElement('a');nx.className='eb pri';nx.hidden=true;nx.textContent='Lanjut berikutnya →';
+    var rv=document.createElement('a');rv.className='eb';rv.href='kosakata.html';rv.textContent='Review kosakata';
+    bar.appendChild(nx);bar.appendChild(rv);
+    var U=['data/index.json','index.json'];
+    (function go(k){
+      if(k>=U.length)return;
+      fetch(U[k],{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+        var L=Array.isArray(j)?j:(j&&j.lessons)||[],i=-1;
+        for(var a=0;a<L.length;a++)if(L[a].slug===slug){i=a;break}
+        var n=i>=0?L[i+1]:null;if(!n)return; // pelajaran terakhir: hanya Review kosakata
+        nx.href=(n.videoId?'player-video.html':'player-audio.html')+'?q='+encodeURIComponent(n.slug);
+        nx.hidden=false;
+      }).catch(function(){go(k+1)});
+    })(0);
+  }
+  mount(bar);
+  var latched=false;
+  return function(t,lastStart,endT,ended){
+    var was=latched;
+    if(ended||t>=endT-0.05)latched=true;
+    else if(t<lastStart-0.1)latched=false; // diputar ulang dari tengah: sembunyikan lagi
+    bar.hidden=!latched;
+    if(latched&&!was)setTimeout(function(){try{bar.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},400);
+  };
 }
 
 (async()=>{
   const app=document.getElementById("app"),q=new URLSearchParams(location.search);
-  const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="./">Kembali</a></div>';app.querySelector("p").textContent=m};
+  const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="/index.html">Kembali</a></div>';app.querySelector("p").textContent=m};
   let f=q.get("q")||q.get("f")||location.hash.slice(1);
   f=(f||"").replace(/\.json$/i,"").replace(/[^\w.-]+/g,"-");
   if(!f)return fail("Alamat tidak lengkap. Tambahkan ?q=namafile");
@@ -1278,42 +1308,18 @@ function pathDone(app,slug){
     document.title=j.title||document.title;
     const T=(j.transcript||j.words||[]).map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5],tr:a[6]||''}));
     if(!T.length||!j.audio)throw new Error("kosong");
-    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr)});
-    try{pathDone(app,q.get("q")||f)}catch(e){}
+    let endCheck=null;
+    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr),
+      onTime:(t,ls,le,en)=>{if(endCheck)endCheck(t,ls,le,en)}});
+    try{
+      endCheck=lessonEnd(q.get("q")||f,bar=>{
+        const rd=app.querySelector(".rd");if(!rd)return;
+        const put=()=>{const a=rd.querySelector(".rtxt");if(a&&a.nextElementSibling!==bar)a.after(bar)};
+        put();
+        new MutationObserver(put).observe(rd,{childList:true}); // dipasang lagi jika reader dirender ulang
+      });
+    }catch(e){}
   }catch(e){fail('Data "'+f+'" tidak bisa dimuat.')}
 })();</script>
-<style>
-@media (pointer:coarse){button,.chip,.tool,.hback,.rtb,.pitem,[role=button]{min-width:44px;min-height:44px}}
-#lfHelp{position:fixed;right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px));z-index:50;width:44px;height:44px;border-radius:50%;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font:700 1.1rem system-ui;cursor:pointer}
-#lfTour{max-width:min(92vw,26rem);border:2.5px solid var(--line,var(--ink,#14162B));border-radius:20px;background:var(--surface,var(--bg,#fff));color:var(--ink,inherit);padding:20px}
-#lfTour h2{margin:0 0 8px;font-size:1.2rem}#lfTour ol{margin:0 0 14px;padding-left:1.2rem;line-height:1.5}
-#lfTour button{min-height:44px;padding:0 18px;border-radius:999px;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font-weight:700;cursor:pointer}
-#lfEnd{max-width:34rem;margin:20px auto 8px;padding:16px;text-align:center;border:2.5px solid var(--line,var(--ink,#14162B));border-radius:20px}#lfEnd h2{margin:0 0 4px;font-size:1.15rem}#lfEnd p{margin:0 0 12px;font-size:.9rem}.lfb{display:flex;align-items:center;justify-content:center;min-height:48px;margin:8px 0 0;border-radius:999px;border:2.5px solid var(--line,var(--ink,#14162B));background:var(--accent,#FFD84D);color:var(--on,#14162B);font-weight:700;text-decoration:none}.lfb.alt{background:transparent;color:inherit}.lfb[hidden]{display:none}
-</style>
-<script>
-(function(){
-  const d=document.createElement('dialog');d.id='lfTour';d.setAttribute('aria-label','Panduan singkat');
-  d.innerHTML='<h2>Cara pakai latihan ini</h2><ol><li><b>Dengar &amp; tirukan:</b> putar, lalu ucapkan baris yang sedang tampil.</li><li><b>Berlatih:</b> pilih Shadowing atau Dikte untuk melatih diri. Tombol bintang/pin menyimpan kata atau baris.</li><li><b>Tampilan &amp; ulang:</b> atur fonetik, ukuran teks, kecepatan, dan ulang baris. Setelah selesai, review kata di Kosa Kata.</li></ol><button type="button">Mengerti</button>';
-  const b=document.createElement('button');b.id='lfHelp';b.type='button';b.textContent='?';b.setAttribute('aria-label','Panduan pemakaian');
-  const open=()=>{try{d.showModal()}catch(e){}};
-  b.onclick=open;d.querySelector('button').onclick=()=>{d.close();try{localStorage.setItem('lf:tour','1')}catch(e){}};
-  document.body.append(b,d);
-  try{if(!localStorage.getItem('lf:tour'))setTimeout(open,1200)}catch(e){}
-  const mk=()=>{const w=document.createElement('div');w.id='lfEnd';
-    w.innerHTML='<h2>Latihan selesai 🎉</h2><p>Simpan kata yang tadi kamu bintangi, lalu lanjut.</p><a class="lfb" id="lfNextLesson" href="./" hidden></a><a class="lfb alt" href="kosakata.html">Review kata di Kosa Kata</a>';return w};
-  let nxt=null;
-  try{const q=new URLSearchParams(location.search),s=(q.get('q')||q.get('v')||'').replace(/\.json$/i,'');
-    fetch('data/index.json').then(r=>r.json()).then(j=>{const L=j.lessons||[],i=L.findIndex(l=>l.slug===s);nxt=i>=0?L[i+1]||false:null;fix()}).catch(()=>{})}catch(e){}
-  function fix(){let w=document.getElementById('lfEnd');
-    const de=document.getElementById('doneEnd'),db=document.getElementById('doneBtn'),list=document.getElementById('list'),rd=document.querySelector('.rd .rtxt');
-    if(!w){if(!(de||db||list||rd))return;w=mk()}
-    if(de){if(w.nextElementSibling!==de)de.before(w)}else if(db){if(db.nextElementSibling!==w)db.after(w)}
-    else if(list){if(w.parentNode!==list)list.appendChild(w)}else if(rd){if(rd.nextElementSibling!==w)rd.after(w)}
-    const a=w.querySelector('#lfNextLesson');
-    if(nxt){a.hidden=false;a.textContent='Latihan berikutnya →';a.href=(nxt.audio?'player-audio.html':'player-video.html')+'?q='+encodeURIComponent(nxt.slug)}
-    else if(nxt===false){a.hidden=false;a.textContent='Kembali ke daftar latihan';a.href='./'}}
-  new MutationObserver(fix).observe(document.body,{childList:true,subtree:true});fix();
-})();
-</script>
 </body>
 </html>
