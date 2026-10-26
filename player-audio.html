@@ -406,7 +406,8 @@
   const dur=()=>au.duration||WORDS[WORDS.length-1].e||1;
   function ui(){const t=au.currentTime,d=dur();
     $q('.rcur').textContent=fmt(t);$q('.rdur').textContent=fmt(d);
-    seek.value=Math.round(t/d*1000);seek.style.setProperty('--p',(t/d*100)+'%');mark(find(t))}
+    seek.value=Math.round(t/d*1000);seek.style.setProperty('--p',(t/d*100)+'%');mark(find(t));
+    if(cfg.onTime)cfg.onTime(t,SEG[SEG.length-1].s,WORDS[WORDS.length-1].e,au.ended)}
   function segAt(t){const w=find(t);return segOf[w<0?0:w]}
   function syncLoop(){loopK=segAt(au.currentTime);reps=0}
   function replay(ts){
@@ -429,6 +430,7 @@
     const k=segAt(au.currentTime);if(k!==loopK){loopK=k;reps=0}cancelAnimationFrame(raf);tick()});
   au.addEventListener('pause',()=>{$q('.rpi').setAttribute('d',PLAY);$q('[data-a=play]').setAttribute('aria-label','Putar')});
   au.addEventListener('loadedmetadata',()=>{au.playbackRate=pref.speed;ui()});
+  au.addEventListener('ended',ui);
   au.addEventListener('seeked',()=>{if(!gapTimer){paintAll(find(au.currentTime));ui()}});
   au.addEventListener('error',()=>{infoEl.hidden=false;infoEl.textContent='Audio tidak bisa dimuat. Pastikan file audio ada di folder yang sama dan namanya benar.'});
   seek.addEventListener('input',()=>jump(seek.value/1000*dur()));
@@ -1236,34 +1238,80 @@
 }
 
 
-/* Tombol "Selesai": hanya muncul jika halaman dibuka dari path.html */
-function pathDone(app,slug){
-  const SK='lf:from:'+slug;let back='path.html';
+/* Akhir transkrip.
+   - Dibuka dari path.html  -> tombol "Selesai ✓" (tandai selesai, kembali ke path.html)
+   - Dibuka dari tempat lain -> tombol "Lanjut berikutnya" (urutan index.json) + "Review kosakata" (kosakata.html)
+   Panel baru muncul saat waktu putar mencapai akhir transkrip. mount(bar) menaruh panel di halaman.
+   Mengembalikan fungsi check(t, awalBarisTerakhir, akhirTranskrip, sudahSelesai). */
+function lessonEnd(slug,mount,self){
+  if(!slug)return function(){};
+  var from=null,rvDone=false;
   try{
-    const r=document.referrer?new URL(document.referrer):null;
-    if(r&&r.origin===location.origin&&/\/path(\.html)?$/.test(r.pathname))sessionStorage.setItem(SK,r.pathname+r.search); // ingat saat reload
-    const from=sessionStorage.getItem(SK);
-    if(!from||!slug)return;back=from;
-  }catch(e){return}
-  const css=document.createElement("style");
-  css.textContent="#doneBtn{display:flex;align-items:center;justify-content:center;width:calc(100% - 32px);max-width:var(--col,34rem);margin:24px auto 0;padding:12px 22px;border:2.5px solid var(--ink,#14162B);border-radius:999px;background:var(--accent);color:var(--on,#14162B);font:600 1.1rem var(--font-display,var(--font-ui,system-ui));box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer}#doneBtn:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}";
+    if(new URLSearchParams(location.search).get('from')==='path')from='path.html'; // ?from=path dari path.html
+    else{ // cadangan untuk tautan lama tanpa from: deteksi lewat referrer
+      var r=document.referrer?new URL(document.referrer):null;
+      if(r&&r.origin===location.origin&&/\/path(\.html)?$/.test(r.pathname))from=r.pathname+r.search;
+    }
+  }catch(e){}
+  var css=document.createElement('style');
+  css.textContent='#endBar{display:flex;flex-direction:column;gap:12px;width:calc(100% - 32px);max-width:var(--col,34rem);margin:24px auto 0;flex:none}#endBar[hidden],#endBar .eb[hidden]{display:none}#endBar .eb{display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 22px;border:2.5px solid var(--ink,#14162B);border-radius:999px;background:var(--surface,var(--bar,#fff));color:var(--ink,var(--fg,#14162B));font:600 1.05rem var(--font-display,var(--font-ui,system-ui));box-shadow:3px 3px 0 var(--shadow,#14162B);cursor:pointer;text-decoration:none;text-align:center}#endBar .eb.pri{background:var(--accent,#FFD23F);color:var(--on,var(--accent-ink,#14162B))}#endBar .eb:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow,#14162B)}';
   document.head.appendChild(css);
-  const btn=document.createElement("button");
-  btn.id="doneBtn";btn.type="button";btn.textContent="Selesai ✓";
-  btn.addEventListener("click",()=>{
-    try{
-      const p=JSON.parse(localStorage.getItem("lf:path"))||{};
-      if(!p.done||typeof p.done!=="object")p.done={};
-      p.done[slug]={at:Date.now()};
-      localStorage.setItem("lf:path",JSON.stringify(p));
-      localStorage.setItem("lf:path:pending","null"); // jangan tanya lagi di path
-    }catch(e){}
-    location.href=back;
-  });
-  const rd=app.querySelector(".rd");if(!rd)return;
-  const put=()=>{const a=rd.querySelector(".rtxt");if(a&&a.nextElementSibling!==btn)a.after(btn)};
-  put();
-  new MutationObserver(put).observe(rd,{childList:true}); // dipasang lagi jika reader dirender ulang
+  var bar=document.createElement('div');bar.id='endBar';bar.hidden=true;
+  if(from){
+    var d=document.createElement('button');d.type='button';d.className='eb pri';d.textContent='Selesai ✓';
+    d.addEventListener('click',function(){
+      try{
+        var p=JSON.parse(localStorage.getItem('lf:path'))||{};
+        if(!p.done||typeof p.done!=='object')p.done={};
+        p.done[slug]={at:Date.now()};
+        localStorage.setItem('lf:path',JSON.stringify(p));
+        localStorage.setItem('lf:path:pending','null'); // jangan tanya lagi di path
+      }catch(e){}
+      location.href=from;
+    });
+    bar.appendChild(d);
+  }else{
+    // setelah review kosakata, kosakata.html mengembalikan ke sini dengan &rv=1: tombol Lanjut jadi utama
+    rvDone=/[?&]rv=1(&|$)/.test(location.search);
+    var here=(location.pathname.split('/').pop()||'')+location.search.replace(/([?&])rv=1(&|$)/,'$1').replace(/[?&]$/,'');
+    var nx=document.createElement('a');nx.className='eb'+(rvDone?' pri':'');nx.hidden=true;nx.textContent='Lanjut berikutnya →';
+    var rv=document.createElement('a');rv.className='eb'+(rvDone?'':' pri');rv.href='kosakata.html?from='+encodeURIComponent(here);rv.textContent=rvDone?'Review kosakata lagi':'Review kosakata';
+    if(rvDone){bar.appendChild(nx);bar.appendChild(rv)}else{bar.appendChild(rv);bar.appendChild(nx)}
+    var note=document.createElement('p');note.hidden=true;note.style.cssText='margin:0;text-align:center;font:500 .9rem var(--font-ui,system-ui);color:var(--muted,#4F5575)';
+    bar.insertBefore(note,bar.firstChild);
+    var U=['index.json','data/index.json','/index.json','/data/index.json','../index.json','../data/index.json'],norm=function(s){return String(s||'').replace(/\.json$/i,'').toLowerCase()};
+    (function go(k){
+      if(k>=U.length){note.textContent='Daftar pelajaran (index.json) tidak ditemukan.';note.hidden=false;return}
+      fetch(U[k],{cache:'no-cache'}).then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(j){
+        var L=Array.isArray(j)?j:(j&&j.lessons);if(!Array.isArray(L))throw 0;
+        var i=-1,s=norm(slug);
+        for(var a=0;a<L.length;a++)if(norm(L[a].slug)===s){i=a;break}
+        if(i<0){note.textContent='Pelajaran ini belum terdaftar di index.json, jadi pelajaran berikutnya tidak diketahui.';note.hidden=false;return}
+        var n=L[i+1],prev=false;
+        if(!n){ // pelajaran terakhir: tombol diganti jadi kembali ke pelajaran sebelumnya
+          n=i>0?L[i-1]:null;prev=true;
+          if(!n){note.textContent='Ini satu-satunya pelajaran di daftar.';note.hidden=false;return}
+        }
+        var want=n.videoId?'video':'audio',file=decodeURIComponent(location.pathname.split('/').pop()||''),pg;
+        if(want===self&&file)pg=file; // pakai nama file halaman ini apa adanya, mis. "player-video (4).html"
+        else if(file&&new RegExp(self,'i').test(file))pg=file.replace(new RegExp(self,'i'),want);
+        else pg='player-'+want+'.html';
+        nx.href=encodeURI(pg)+'?q='+encodeURIComponent(n.slug);
+        nx.textContent=prev?'← Pelajaran sebelumnya':'Lanjut berikutnya →';
+        nx.hidden=false;
+      }).catch(function(){go(k+1)});
+    })(0);
+  }
+  mount(bar);
+  var latched=false;
+  if(rvDone){bar.hidden=false;setTimeout(function(){try{bar.scrollIntoView({block:'nearest'})}catch(e){}},500);return function(){}} // baru kembali dari review: panel langsung tampil
+  return function(t,lastStart,endT,ended){
+    var was=latched;
+    if(ended||t>=endT-0.05)latched=true;
+    else if(t<lastStart-0.1)latched=false; // diputar ulang dari tengah: sembunyikan lagi
+    bar.hidden=!latched;
+    if(latched&&!was)setTimeout(function(){try{bar.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}},400);
+  };
 }
 
 (async()=>{
@@ -1278,8 +1326,17 @@ function pathDone(app,slug){
     document.title=j.title||document.title;
     const T=(j.transcript||j.words||[]).map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5],tr:a[6]||''}));
     if(!T.length||!j.audio)throw new Error("kosong");
-    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr)});
-    try{pathDone(app,q.get("q")||f)}catch(e){}
+    let endCheck=null;
+    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr),
+      onTime:(t,ls,le,en)=>{if(endCheck)endCheck(t,ls,le,en)}});
+    try{
+      endCheck=lessonEnd(q.get("q")||f,bar=>{
+        const rd=app.querySelector(".rd");if(!rd)return;
+        const put=()=>{const a=rd.querySelector(".rtxt");if(a&&a.nextElementSibling!==bar)a.after(bar)};
+        put();
+        new MutationObserver(put).observe(rd,{childList:true}); // dipasang lagi jika reader dirender ulang
+      },'audio');
+    }catch(e){}
   }catch(e){fail('Data "'+f+'" tidak bisa dimuat.')}
 })();</script>
 </body>
