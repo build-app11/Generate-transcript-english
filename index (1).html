@@ -303,8 +303,7 @@ h1, h2, h3, p { margin: 0; }
       <h1>Bicara English jadi seru, kata demi kata.</h1>
       <p class="lede">Tonton video asli, tirukan ucapannya, dan lihat cara baca setiap kata lewat IPA.</p>
       <div class="cta">
-        <a class="btn btn-primary" href="#halaman">Mulai latihan</a>
-        <a class="btn" href="#cara">Apa itu shadowing?</a>
+        <a class="btn btn-primary" href="#halaman">Pilih latihanmu sendiri</a>
       </div>
     </div>
 
@@ -994,7 +993,9 @@ h1, h2, h3, p { margin: 0; }
     { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
       icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
     { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
-      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' },
+    { id: 'akun',     label: 'Akun',      href: 'akun.html',     match: ['akun'],
+      icon: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>' }
   ];
   const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const css = document.createElement('style');
@@ -1017,28 +1018,42 @@ h1, h2, h3, p { margin: 0; }
 })();
 </script>
 <script>
-/* Tombol "Lanjutkan belajar" di beranda.
-   Hanya muncul untuk pengguna yang sudah pernah menyelesaikan latihan (lf:path) dan masih punya latihan berikutnya.
-   Pengguna baru tidak melihat perubahan apa pun. Gagal diam-diam jika data tidak ada. */
+/* Tombol utama di hero beranda menyesuaikan pengunjung:
+   - belum pernah menyelesaikan latihan  -> "Baru mulai? Ikuti path belajar!" (path.html)
+   - sudah pernah menyelesaikan latihan  -> "Lanjutkan latihan" (langsung ke latihan berikutnya)
+   Tombol "Pilih latihanmu sendiri" (scroll ke daftar latihan) tetap ada sebagai tombol biasa. Jika data gagal dimuat, hero tetap seperti semula. */
 (() => {
   try {
-    const p = JSON.parse(localStorage.getItem('lf:path'));
-    const done = p && typeof p.done === 'object' && p.done;
-    if (!done || !Object.keys(done).length) return;
     const cta = document.querySelector('.hero .cta');
     if (!cta) return;
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem('lf:path')); } catch (e) {}
+    const done = p && typeof p.done === 'object' && p.done ? p.done : {};
+    const returning = Object.keys(done).length > 0;
+
+    const mk = (text, href) => {
+      const a = document.createElement('a');
+      a.className = 'btn btn-primary'; a.href = href; a.textContent = text;
+      cta.prepend(a);
+      cta.querySelectorAll('a.btn-primary[href="#halaman"]').forEach(x => x.classList.remove('btn-primary'));
+      return a;
+    };
+
+    if (!returning) { mk('Baru mulai? Ikuti path belajar!', 'path.html'); return; }
+
+    const a = mk('Lanjutkan latihan', 'path.html');       // sementara ke path, lalu diarahkan ke latihan berikutnya
     fetch('data/index.json').then(r => r.ok ? r.json() : Promise.reject()).then(j => {
       const L = (Array.isArray(j) ? j : j.lessons || []).filter(l => l && l.slug);
       const i = L.findIndex(l => !done[l.slug]);
-      if (i < 0) return;                       // semua latihan sudah selesai
+      if (i < 0) {                                         // semua latihan selesai: kembalikan hero seperti semula
+        a.remove();
+        const old = cta.querySelector('a[href="#halaman"]'); if (old) old.classList.add('btn-primary');
+        return;
+      }
       const l = L[i];
-      const a = document.createElement('a');
-      a.className = 'btn btn-primary';
       a.href = (l.audio ? 'player-audio.html' : 'player-video.html') + '?q=' + encodeURIComponent(l.slug) + '&from=path';
-      a.textContent = 'Lanjutkan: Latihan ' + (i + 1);
+      a.textContent = 'Lanjutkan latihan ke-' + (i + 1);
       a.title = l.title || '';
-      cta.prepend(a);
-      cta.querySelectorAll('a.btn-primary[href="#halaman"]').forEach(x => x.classList.remove('btn-primary'));
     }).catch(() => {});
   } catch (e) {}
 })();
