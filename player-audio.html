@@ -1317,27 +1317,45 @@ function lessonEnd(slug,mount,self){
 (async()=>{
   const app=document.getElementById("app"),q=new URLSearchParams(location.search);
   const fail=m=>{app.innerHTML='<div class="ld"><p></p><a href="/index.html">Kembali</a></div>';app.querySelector("p").textContent=m};
+  const pv=q.get("preview"),G=pv?window.parent:null;
   let f=q.get("q")||q.get("f")||location.hash.slice(1);
   f=(f||"").replace(/\.json$/i,"").replace(/[^\w.-]+/g,"-");
-  if(!f)return fail("Alamat tidak lengkap. Tambahkan ?q=namafile");
+  if(!f&&!pv)return fail("Alamat tidak lengkap. Tambahkan ?q=namafile");
   try{
-    const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
-    const j=await r.json();
+    let j;
+    if(pv){ // preview dari generator: JSON disimpan sementara di sessionStorage
+      const pj=sessionStorage.getItem("lf:preview-audio");if(!pj)throw new Error("preview kosong");
+      j=JSON.parse(pj);f=j.slug||"preview";
+    }else{
+      const r=await fetch("data/"+f+".json");if(!r.ok)throw new Error(r.status);
+      j=await r.json();
+    }
     document.title=j.title||document.title;
     const T=(j.transcript||j.words||[]).map(a=>({w:a[0],s:a[1],e:a[2],b:a[3],h:a[4],p:a[5],tr:a[6]||''}));
     if(!T.length||!j.audio)throw new Error("kosong");
     let endCheck=null;
-    createReader(app,{words:T,audio:j.audio,key:j.slug||f,title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr),
-      onTime:(t,ls,le,en)=>{if(endCheck)endCheck(t,ls,le,en)}});
+    const cfg={words:T,audio:j.audio,key:pv?"preview":(j.slug||f),title:j.title||"",hasPh:T.some(x=>x.p),hasTr:T.some(x=>x.tr),
+      onTime:(t,ls,le,en)=>{if(endCheck)endCheck(t,ls,le,en)}};
+    let exEl=null;
+    if(pv){
+      // mode preview: tombol Kembali ke form + menu Ekspor milik generator
+      exEl=G.document.getElementById("exp");
+      cfg.back=null;cfg.onBack=true;cfg.info=j.info||"";cfg.phNote=j.phNote||"";
+      if(exEl){cfg.exportEl=exEl;
+        let css="";[].forEach.call(G.document.styleSheets,function(sh){try{[].forEach.call(sh.cssRules,function(r){if(r.selectorText&&r.selectorText.indexOf("#exp")===0)css+=r.cssText+"\n"})}catch(e){}});
+        const st=document.createElement("style");st.textContent=css;document.head.appendChild(st);}
+    }
+    createReader(app,cfg);
+    if(pv){const bb=app.querySelector(".rback-btn");if(bb)bb.onclick=function(){G.closePreview()}}
     try{
-      endCheck=lessonEnd(q.get("q")||f,bar=>{
+      if(!pv)endCheck=lessonEnd(q.get("q")||f,bar=>{
         const rd=app.querySelector(".rd");if(!rd)return;
         const put=()=>{const a=rd.querySelector(".rtxt");if(a&&a.nextElementSibling!==bar)a.after(bar)};
         put();
         new MutationObserver(put).observe(rd,{childList:true}); // dipasang lagi jika reader dirender ulang
       },'audio');
     }catch(e){}
-  }catch(e){fail('Data "'+f+'" tidak bisa dimuat.')}
+  }catch(e){fail(pv?'Data preview tidak ditemukan. Kembali ke generator lalu buat sinkronisasi lagi.':'Data "'+f+'" tidak bisa dimuat.')}
 })();</script>
 </body>
 </html>
