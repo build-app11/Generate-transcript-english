@@ -303,8 +303,7 @@ h1, h2, h3, p { margin: 0; }
       <h1>Bicara English jadi seru, kata demi kata.</h1>
       <p class="lede">Tonton video asli, tirukan ucapannya, dan lihat cara baca setiap kata lewat IPA.</p>
       <div class="cta">
-        <a class="btn btn-primary" href="#halaman">Mulai latihan</a>
-        <a class="btn" href="#cara">Apa itu shadowing?</a>
+        <a class="btn btn-primary" href="#halaman">Pilih latihanmu sendiri</a>
       </div>
     </div>
 
@@ -994,7 +993,9 @@ h1, h2, h3, p { margin: 0; }
     { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
       icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
     { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
-      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' },
+    { id: 'akun',     label: 'Akun',      href: 'akun.html',     match: ['akun'],
+      icon: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>' }
   ];
   const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const css = document.createElement('style');
@@ -1014,6 +1015,80 @@ h1, h2, h3, p { margin: 0; }
     document.body.style.paddingBottom = 'calc(84px + env(safe-area-inset-bottom,0px))';   // supaya isi tidak tertutup bilah
   };
   document.body ? mount() : addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+<script>
+/* Tombol utama di hero beranda menyesuaikan pengunjung:
+   - belum pernah menyelesaikan latihan  -> "Baru mulai? Ikuti path belajar!" (path.html)
+   - sudah pernah menyelesaikan latihan  -> "Lanjutkan latihan" (langsung ke latihan berikutnya)
+   Tombol "Pilih latihanmu sendiri" (scroll ke daftar latihan) tetap ada sebagai tombol biasa. Jika data gagal dimuat, hero tetap seperti semula. */
+(() => {
+  try {
+    const cta = document.querySelector('.hero .cta');
+    if (!cta) return;
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem('lf:path')); } catch (e) {}
+    const done = p && typeof p.done === 'object' && p.done ? p.done : {};
+    const returning = Object.keys(done).length > 0;
+
+    const mk = (text, href) => {
+      const a = document.createElement('a');
+      a.className = 'btn btn-primary'; a.href = href; a.textContent = text;
+      cta.prepend(a);
+      cta.querySelectorAll('a.btn-primary[href="#halaman"]').forEach(x => x.classList.remove('btn-primary'));
+      return a;
+    };
+
+    if (!returning) { mk('Baru mulai? Ikuti path belajar!', 'path.html'); return; }
+
+    const a = mk('Lanjutkan latihan', 'path.html');       // sementara ke path, lalu diarahkan ke latihan berikutnya
+    fetch('data/index.json').then(r => r.ok ? r.json() : Promise.reject()).then(j => {
+      const L = (Array.isArray(j) ? j : j.lessons || []).filter(l => l && l.slug);
+      const i = L.findIndex(l => !done[l.slug]);
+      if (i < 0) {                                         // semua latihan selesai: kembalikan hero seperti semula
+        a.remove();
+        const old = cta.querySelector('a[href="#halaman"]'); if (old) old.classList.add('btn-primary');
+        return;
+      }
+      const l = L[i];
+      a.href = (l.audio ? 'player-audio.html' : 'player-video.html') + '?q=' + encodeURIComponent(l.slug) + '&from=path';
+      a.textContent = 'Lanjutkan latihan ke-' + (i + 1);
+      a.title = l.title || '';
+    }).catch(() => {});
+  } catch (e) {}
+})();
+</script>
+<script>
+/* Pengingat cadangan (dapat ditutup). Muncul hanya jika:
+   - sudah ada latihan selesai, dan
+   - belum pernah dicadangkan (min. 3 latihan selesai), atau cadangan terakhir >= 7 hari lalu dan ada latihan baru sejak itu.
+   Setelah ditutup, tidak muncul lagi selama 3 hari. Tidak memengaruhi tampilan lain. */
+(() => {
+  try {
+    const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+    const p = g('lf:path'), done = p && p.done && typeof p.done === 'object' ? Object.keys(p.done).length : 0;
+    if (done < 1) return;
+    const D = 864e5, now = Date.now(), b = g('lf:backup'), r = +localStorage.getItem('lf:remind') || 0;
+    if (now - r < 3 * D) return;
+    let msg;
+    if (!b || !b.at) { if (done < 3) return; msg = 'Progresmu belum pernah dicadangkan.'; }
+    else {
+      const d = Math.floor((now - b.at) / D);
+      if (d < 7 || done <= (b.done || 0)) return;
+      msg = 'Terakhir dicadangkan ' + d + ' hari lalu.';
+    }
+    const m = document.querySelector('main'); if (!m || document.getElementById('lfRemind')) return;
+    const st = document.createElement('style');
+    st.textContent = '#lfRemind{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:min(100% - 28px,40rem);margin:12px auto 0;padding:10px 14px;background:var(--surface,#fff);color:var(--ink,#14162B);border:2.5px solid var(--line,#14162B);border-radius:18px;box-shadow:3px 3px 0 var(--shadow,#14162B);font-size:.95rem}#lfRemind span{flex:1;min-width:10rem}#lfRemind a{padding:6px 14px;border:2.5px solid var(--line,#14162B);border-radius:999px;background:var(--yellow,#FFD23F);color:var(--on,#14162B);font-weight:700;text-decoration:none}#lfRemind button{width:34px;height:34px;border:2.5px solid var(--line,#14162B);border-radius:50%;background:transparent;color:inherit;font:inherit;cursor:pointer}';
+    document.head.appendChild(st);
+    const el = document.createElement('div'); el.id = 'lfRemind'; el.setAttribute('role', 'status');
+    const t = document.createElement('span'); t.textContent = msg + ' Cadangkan agar tidak hilang saat cache dibersihkan.';
+    const a = document.createElement('a'); a.href = 'akun.html'; a.textContent = 'Cadangkan';
+    const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Tutup pengingat'); x.textContent = '✕';
+    x.onclick = () => { try { localStorage.setItem('lf:remind', String(Date.now())); } catch (e) {} el.remove(); };
+    el.append(t, a, x);
+    m.insertBefore(el, m.firstChild);
+  } catch (e) {}
 })();
 </script>
 </body>
