@@ -72,7 +72,7 @@ progress{width:100%;height:14px;margin-top:12px}
 <main>
   <section class="hero">
     <h1>Akun</h1>
-    <p class="lead">Semua datamu tersimpan di browser ini. Ekspor satu file untuk memindahkan atau mencadangkan: progres path, hafalan, kata berbintang, dan channel yang diikuti.</p>
+    <p class="lead">Semua datamu tersimpan di browser ini. Ekspor satu file .zip untuk memindahkan atau mencadangkan: progres path, hafalan, kata berbintang, dan channel yang diikuti.</p>
     <div class="stats" id="stats" aria-live="polite">
       <div class="stat"><b id="sPath">…</b><span>latihan selesai</span></div>
       <div class="stat"><b id="sSubs">…</b><span>channel diikuti</span></div>
@@ -82,22 +82,24 @@ progress{width:100%;height:14px;margin-top:12px}
   </section>
 
   <section class="card">
-    <h2>Ekspor akun</h2>
-    <p>Satu file .json berisi semua data di atas.</p>
-    <label class="opt"><input type="checkbox" id="inclMedia" checked> Sertakan media deck (gambar dan audio). File jadi lebih besar.</label>
-    <button class="btn pri" id="bExp" type="button">Ekspor akun</button>
-  </section>
-
-  <section class="card">
-    <h2>Impor akun</h2>
-    <p>Pilih file hasil ekspor akun. File ekspor Path yang lama juga bisa dipakai.</p>
-    <div class="seg" role="radiogroup" aria-label="Mode impor">
-      <label><input type="radio" name="mode" value="merge" checked> Gabungkan (aman)</label>
-      <label><input type="radio" name="mode" value="replace"> Timpa semua</label>
+    <h2>Cadangan akun</h2>
+    <p>Satu file .zip berisi semua data. Media deck (gambar dan audio) disimpan sebagai file terpisah di dalamnya.</p>
+    <div class="seg" role="radiogroup" aria-label="Pilih tindakan">
+      <label><input type="radio" name="act" value="export" checked> Ekspor</label>
+      <label><input type="radio" name="act" value="import"> Impor</label>
     </div>
-    <p class="note">Gabungkan: data di perangkat ini tidak hilang. Progres, kata, dan channel digabung. Timpa: data di perangkat ini diganti isi file.</p>
-    <button class="btn" id="bImp" type="button">Pilih file untuk impor</button>
-    <input type="file" id="file" accept="application/json,.json" hidden>
+    <div id="optExp">
+      <label class="opt"><input type="checkbox" id="inclMedia" checked> Sertakan media deck. File jadi lebih besar.</label>
+    </div>
+    <div id="optImp" hidden>
+      <div class="seg" role="radiogroup" aria-label="Mode impor">
+        <label><input type="radio" name="mode" value="merge" checked> Gabungkan (aman)</label>
+        <label><input type="radio" name="mode" value="replace"> Timpa semua</label>
+      </div>
+      <p class="note">Gabungkan: data di perangkat ini tidak hilang, progres dan daftar digabung. Timpa: data diganti isi file. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
+    </div>
+    <button class="btn pri" id="bGo" type="button">Ekspor akun</button>
+    <input type="file" id="file" accept=".zip,application/zip,application/json,.json" hidden>
   </section>
 
   <progress id="prog" max="100" value="0" hidden></progress>
@@ -172,34 +174,105 @@ progress{width:100%;height:14px;margin-top:12px}
     } catch (e) { $('#sDecks').textContent = '–'; $('#sCards').textContent = '–'; }
   }
 
-  /* ---------- ekspor ---------- */
+  /* ZIP:begin  (zip sederhana tanpa kompresi, tanpa pustaka luar; media sudah terkompresi) */
+  const crcT = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+  const crc32 = u8 => { let c = ~0; for (let i = 0; i < u8.length; i++) c = crcT[(c ^ u8[i]) & 255] ^ (c >>> 8); return (~c) >>> 0; };
+  class ZipWriter {
+    constructor() { this.parts = []; this.off = 0; this.ents = []; const d = new Date(); this.t = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1); this.d = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(); }
+    async add(name, blob) {
+      if (blob.size > 0xFFFFFFF0 || this.ents.length >= 65000) throw new Error('Data terlalu besar untuk satu file zip.');
+      const crc = crc32(new Uint8Array(await blob.arrayBuffer())), nm = new TextEncoder().encode(name), h = new DataView(new ArrayBuffer(30));
+      h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true);
+      h.setUint16(10, this.t, true); h.setUint16(12, this.d, true); h.setUint32(14, crc, true);
+      h.setUint32(18, blob.size, true); h.setUint32(22, blob.size, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+      this.parts.push(h.buffer, nm, blob);
+      this.ents.push({ nm, crc, size: blob.size, off: this.off }); this.off += 30 + nm.length + blob.size;
+    }
+    addText(name, text) { return this.add(name, new Blob([text])); }
+    finish() {
+      const cd = []; let cdSize = 0;
+      for (const e of this.ents) {
+        const h = new DataView(new ArrayBuffer(46));
+        h.setUint32(0, 0x02014b50, true); h.setUint16(4, 20, true); h.setUint16(6, 20, true); h.setUint16(8, 0x0800, true); h.setUint16(10, 0, true);
+        h.setUint16(12, this.t, true); h.setUint16(14, this.d, true); h.setUint32(16, e.crc, true); h.setUint32(20, e.size, true); h.setUint32(24, e.size, true);
+        h.setUint16(28, e.nm.length, true); h.setUint32(42, e.off, true);
+        cd.push(h.buffer, e.nm); cdSize += 46 + e.nm.length;
+      }
+      const z = new DataView(new ArrayBuffer(22));
+      z.setUint32(0, 0x06054b50, true); z.setUint16(8, this.ents.length, true); z.setUint16(10, this.ents.length, true); z.setUint32(12, cdSize, true); z.setUint32(16, this.off, true);
+      return new Blob([...this.parts, ...cd, z.buffer], { type: 'application/zip' });
+    }
+  }
+  async function zipOpen(file) {
+    const size = file.size, tl = Math.min(size, 65557), tail = new DataView(await file.slice(size - tl).arrayBuffer());
+    let p = -1; for (let i = tl - 22; i >= 0; i--) if (tail.getUint32(i, true) === 0x06054b50) { p = i; break; }
+    if (p < 0) throw new Error('File zip tidak valid.');
+    const count = tail.getUint16(p + 10, true), cdSize = tail.getUint32(p + 12, true), cdOff = tail.getUint32(p + 16, true);
+    if (count === 0xFFFF || cdOff === 0xFFFFFFFF) throw new Error('Zip64 tidak didukung.');
+    const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer()), td = new TextDecoder(), ents = new Map(); let o = 0;
+    for (let i = 0; i < count; i++) {
+      if (cd.getUint32(o, true) !== 0x02014b50) throw new Error('Daftar isi zip rusak.');
+      const nl = cd.getUint16(o + 28, true), el = cd.getUint16(o + 30, true), cl = cd.getUint16(o + 32, true);
+      ents.set(td.decode(new Uint8Array(cd.buffer, o + 46, nl)), { method: cd.getUint16(o + 10, true), csize: cd.getUint32(o + 20, true), lo: cd.getUint32(o + 42, true) });
+      o += 46 + nl + el + cl;
+    }
+    async function blob(name, type) {
+      const e = ents.get(name); if (!e) return null;
+      const lh = new DataView(await file.slice(e.lo, e.lo + 30).arrayBuffer());
+      if (lh.getUint32(0, true) !== 0x04034b50) throw new Error('Isi zip rusak.');
+      const st = e.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true), raw = file.slice(st, st + e.csize);
+      let out = raw;
+      if (e.method === 8) {
+        if (typeof DecompressionStream === 'undefined') throw new Error('Zip terkompresi tidak didukung browser ini. Pakai file hasil ekspor Learning Fun.');
+        out = await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+      } else if (e.method !== 0) throw new Error('Metode kompresi zip tidak didukung.');
+      return type ? out.slice(0, out.size, type) : out;
+    }
+    return { has: n => ents.has(n), blob, text: async n => { const b = await blob(n); return b ? b.text() : null; } };
+  }
+  /* ZIP:end */
+
+  const hasBin = v => { if (v instanceof Blob || v instanceof ArrayBuffer || ArrayBuffer.isView(v) || v instanceof Date) return true; if (Array.isArray(v)) return v.some(hasBin); if (v && typeof v === 'object') return Object.values(v).some(hasBin); return false; };
+  const encFast = v => hasBin(v) ? enc(v) : v;
+  const extOf = k => { const m = /\.[A-Za-z0-9]{1,5}$/.exec(String(k)); return m ? m[0].toLowerCase() : '.bin'; };
+  const tick = () => new Promise(r => setTimeout(r));
+
+  /* ---------- ekspor: zip = akun.json + media.json + media/ ---------- */
   async function doExport() {
-    const btn = $('#bExp'); btn.disabled = true; prog(0);
+    const btn = $('#bGo'); btn.disabled = true; prog(0);
     try {
       status('Menyiapkan data…');
       const local = {};
       try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) local[k] = localStorage.getItem(k); } } catch (e) {}
-      const withMedia = $('#inclMedia').checked, parts = [];
-      parts.push('{"app":' + JSON.stringify(APP) + ',"version":1,"exportedAt":' + JSON.stringify(new Date().toISOString()) + ',"local":' + JSON.stringify(local) + ',"idb":{');
-      let first = true, nrec = 0;
-      const todo = STORES.filter(s => s !== 'media' || withMedia);
-      for (let si = 0; si < todo.length; si++) {
-        const s = todo[si], rows = await getAll(s);
-        parts.push((first ? '' : ',') + JSON.stringify(s) + ':['); first = false;
-        for (let i = 0; i < rows.length; i++) {
-          parts.push((i ? ',' : '') + JSON.stringify(await enc(rows[i])));
-          if (i % 25 === 0) { prog(Math.round(((si + i / Math.max(1, rows.length)) / todo.length) * 100)); await new Promise(r => setTimeout(r)); }
-        }
-        parts.push(']'); nrec += rows.length;
+      const data = { app: APP, version: 2, exportedAt: new Date().toISOString(), local, idb: {} };
+      let nrec = 0;
+      for (const s of ['packs', 'cards', 'revlog']) {
+        const rows = await getAll(s), out = [];
+        for (let i = 0; i < rows.length; i++) { out.push(await encFast(rows[i])); if (i % 500 === 499) await tick(); }
+        data.idb[s] = out; nrec += rows.length;
       }
-      parts.push('}}');
-      const blob = new Blob(parts, { type: 'application/json' });
+      prog(15);
+      const zip = new ZipWriter();
+      await zip.addText('akun.json', JSON.stringify(data));
+      const files = [];
+      if ($('#inclMedia').checked) {
+        const rows = await getAll('media');
+        for (let i = 0; i < rows.length; i++) {
+          const r = rows[i]; if (!r || !(r.blob instanceof Blob)) continue;
+          const f = 'media/' + String(i + 1).padStart(6, '0') + extOf(r.k);
+          await zip.add(f, r.blob);
+          files.push({ k: r.k, f, type: r.blob.type || '', size: r.blob.size });
+          if (i % 5 === 0) { prog(15 + Math.round(i / rows.length * 80)); await tick(); }
+        }
+      }
+      await zip.addText('media.json', JSON.stringify({ app: APP, version: 2, files }));
+      const blob = zip.finish();
       const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'learningfun-akun-' + day(new Date()) + '.json';
+      a.href = URL.createObjectURL(blob); a.download = 'learningfun-akun-' + day(new Date()) + '.zip';
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 4000);
       prog(100);
-      status('Ekspor selesai: ' + Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan (' + (blob.size / 1048576).toFixed(1) + ' MB).');
+      status('Ekspor selesai: ' + Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan, ' + files.length + ' file media (' + (blob.size / 1048576).toFixed(1) + ' MB).');
     } catch (e) { status('Ekspor gagal: ' + (e && e.message || e), true); }
     finally { btn.disabled = false; setTimeout(() => prog(null), 1200); }
   }
@@ -229,50 +302,78 @@ progress{width:100%;height:14px;margin-top:12px}
     return lsSet(k, JSON.stringify(out));
   }
   const better = (x, y) => ((y.last || 0) > (x.last || 0)) || ((y.last || 0) === (x.last || 0) && (y.reps || 0) > (x.reps || 0));
+  const keysOf = s => run(s, 'readonly', st => st.getAllKeys()).then(a => new Set(a || []));
 
   async function doImport(file) {
     prog(0);
     try {
       status('Membaca file…');
-      const j = JSON.parse(await file.text());
-      const merge = (document.querySelector('input[name=mode]:checked') || {}).value !== 'replace';
-      if (j && j.app === 'learningfun-path' && j.progress && j.progress.done) {   // format ekspor Path yang lama
-        mergeLocal('lf:path', JSON.stringify({ done: j.progress.done }), true);
-        status('Impor progres path berhasil.'); await stats(); return;
+      const magic = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+      let data, media = [];                       // media: [{k, get()}]
+      if (magic[0] === 0x50 && magic[1] === 0x4B) {          // zip (PK)
+        const z = await zipOpen(file), t = await z.text('akun.json');
+        if (!t) throw new Error('akun.json tidak ada di dalam zip.');
+        data = JSON.parse(t);
+        const mi = z.has('media.json') ? JSON.parse(await z.text('media.json')) : null;
+        media = ((mi && mi.files) || []).map(m => ({ k: m.k, get: () => z.blob(m.f, m.type) }));
+      } else {
+        data = JSON.parse(await file.text());
+        if (data && data.app === 'learningfun-path' && data.progress && data.progress.done) {   // ekspor Path lama
+          mergeLocal('lf:path', JSON.stringify({ done: data.progress.done }), true);
+          status('Impor progres path berhasil.'); await stats(); return;
+        }
+        const old = data && data.idb && Array.isArray(data.idb.media) ? data.idb.media : [];     // json akun versi 1 (media base64)
+        media = old.map(raw => ({ k: raw && raw.k, get: async () => { const r = dec(raw); return r.blob instanceof Blob ? r.blob : null; } }));
       }
-      if (!j || j.app !== APP || typeof j.local !== 'object') throw new Error('File bukan ekspor akun Learning Fun.');
+      if (!data || data.app !== APP || typeof data.local !== 'object') throw new Error('File bukan ekspor akun Learning Fun.');
+      const merge = (document.querySelector('input[name=mode]:checked') || {}).value !== 'replace';
       if (!merge && !confirm('Timpa semua data di perangkat ini dengan isi file?')) { status('Dibatalkan.'); prog(null); return; }
 
       if (!merge) { try { const del = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch (e) {} }
       let nLocal = 0;
-      for (const [k, v] of Object.entries(j.local)) if (wanted(k) && typeof v === 'string') { mergeLocal(k, v, merge); nLocal++; }
-      prog(20);
+      for (const [k, v] of Object.entries(data.local)) if (wanted(k) && typeof v === 'string') { mergeLocal(k, v, merge); nLocal++; }
+      prog(10);
 
-      const idbData = j.idb || {}; let nIdb = 0;
-      for (let si = 0; si < STORES.length; si++) {
-        const s = STORES[si], rows = idbData[s];
+      let nIdb = 0;
+      const sets = ['packs', 'cards', 'revlog'];
+      for (let si = 0; si < sets.length; si++) {
+        const s = sets[si], rows = data.idb && data.idb[s];
         if (!Array.isArray(rows)) continue;
-        const keyOf = s === 'packs' ? 'id' : 'k';
+        const kf = s === 'packs' ? 'id' : 'k';
         if (!merge) await run(s, 'readwrite', st => st.clear());
-        const existing = merge ? new Map((await getAll(s)).map(r => [r[keyOf], r])) : new Map();
+        const ex = !merge ? null : s === 'cards' ? new Map((await getAll(s)).map(r => [r.k, r])) : await keysOf(s);
         const put = [];
         for (const raw of rows) {
-          const r = dec(raw), cur = existing.get(r[keyOf]);
-          if (cur && !(s === 'cards' && better(cur, r))) continue;   // gabung: yang sudah ada tetap, kecuali kartu dengan progres lebih baru
+          const r = dec(raw);
+          if (ex) { const cur = s === 'cards' ? ex.get(r[kf]) : ex.has(r[kf]); if (cur && !(s === 'cards' && better(cur, r))) continue; }
           put.push(r);
         }
-        for (let i = 0; i < put.length; i += 200) { const chunk = put.slice(i, i + 200); await run(s, 'readwrite', st => { chunk.forEach(r => st.put(r)); }); prog(20 + Math.round(((si + i / Math.max(1, put.length)) / STORES.length) * 75)); }
-        nIdb += put.length;
+        for (let i = 0; i < put.length; i += 500) { const ch = put.slice(i, i + 500); await run(s, 'readwrite', st => { ch.forEach(r => st.put(r)); }); await tick(); }
+        nIdb += put.length; prog(10 + Math.round((si + 1) / sets.length * 25));
+      }
+
+      let nMedia = 0;
+      if (media.length) {
+        if (!merge) await run('media', 'readwrite', st => st.clear());
+        const ex = merge ? await keysOf('media') : null, todo = media.filter(m => m.k != null && !(ex && ex.has(m.k)));
+        for (let i = 0; i < todo.length; i += 20) {
+          const got = (await Promise.all(todo.slice(i, i + 20).map(async m => ({ k: m.k, blob: await m.get() })))).filter(r => r.blob);
+          await run('media', 'readwrite', st => { got.forEach(r => st.put(r)); });
+          nMedia += got.length; prog(35 + Math.round(Math.min(i + 20, todo.length) / todo.length * 63)); await tick();
+        }
       }
       prog(100);
-      status('Impor selesai: ' + nLocal + ' pengaturan dan ' + nIdb + ' data hafalan ' + (merge ? 'digabung.' : 'dipulihkan.'));
+      status('Impor selesai: ' + nLocal + ' pengaturan, ' + nIdb + ' data hafalan, ' + nMedia + ' file media ' + (merge ? 'digabung.' : 'dipulihkan.') + (media.length ? '' : ' (File ini tidak berisi media.)'));
       await stats();
     } catch (e) { status('Impor gagal: ' + (e && e.message || e), true); }
     finally { setTimeout(() => prog(null), 1200); }
   }
 
-  $('#bExp').addEventListener('click', doExport);
-  $('#bImp').addEventListener('click', () => $('#file').click());
+  /* satu tombol: pilih Ekspor atau Impor */
+  const act = () => (document.querySelector('input[name=act]:checked') || {}).value || 'export';
+  function syncAct() { const e = act() === 'export'; $('#optExp').hidden = !e; $('#optImp').hidden = e; $('#bGo').textContent = e ? 'Ekspor akun' : 'Pilih file dan impor'; status(''); }
+  document.querySelectorAll('input[name=act]').forEach(r => r.addEventListener('change', syncAct));
+  $('#bGo').addEventListener('click', () => act() === 'export' ? doExport() : $('#file').click());
   $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) doImport(f); });
   addEventListener('pageshow', stats);
   stats();
