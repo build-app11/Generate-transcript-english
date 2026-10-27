@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Akun · Learning Fun</title>
+<meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Fredoka:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#EEF2FF;--surface:#FFFFFF;--ink:#14162B;--on:#14162B;--muted:#4F5575;--line:#14162B;--shadow:#14162B;--rule:#D3D9F2;--yellow:#FFD23F;--coral:#FF6B5E;--blue:#4C84FF;--mint:#2ED3A0;--purple:#A07CFA;--font:'Albert Sans',system-ui,-apple-system,'Segoe UI',sans-serif;--font-display:'Fredoka','Albert Sans',system-ui,sans-serif;
+  --gut:clamp(14px,4vw,40px);--mw:36rem;--nw:clamp(68px,22vw,92px);--nh:calc(var(--nw)*.86);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#101226;--surface:#1B1E3A;--ink:#F2F3FF;--muted:#A9AED6;--line:#7A80C4;--shadow:#04050E;--rule:#2A2F55;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--font);font-size:1.0625rem;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-left:max(var(--gut),env(safe-area-inset-left,0px));padding-right:max(var(--gut),env(safe-area-inset-right,0px));padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+/* bulatan dekorasi, sama seperti halaman Kosa Kata */
+body::before,body::after{content:"";position:fixed;z-index:-1;border:2.5px solid var(--line);pointer-events:none}
+body::before{right:-40px;top:60px;width:130px;height:130px;border-radius:50%;background:var(--yellow)}
+body::after{left:-44px;bottom:110px;width:110px;height:110px;border-radius:30px;background:var(--mint);transform:rotate(18deg)}
+button,a{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+
+/* header ringkas: tombol kembali + merek */
+.lf-hd{max-width:var(--mw);margin:0 auto;padding:calc(14px + env(safe-area-inset-top,0px)) 0 0;display:flex;align-items:center;gap:12px}
+.lf-back{flex:none;display:grid;place-items:center;width:42px;height:42px;border:2.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);text-decoration:none;font:700 1.3rem/1 var(--font-display);box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.lf-back:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.lf-brand{display:inline-flex;align-items:center;gap:10px;min-width:0;font:700 clamp(1.05rem,1rem + .4vw,1.25rem)/1 var(--font-display);color:var(--ink);text-decoration:none}
+.lf-logo{flex:none;display:grid;place-items:center;width:40px;height:40px;border:2.5px solid var(--line);border-radius:10px;background:var(--yellow);box-shadow:2px 2px 0 var(--shadow)}
+
+main{max-width:var(--mw);margin:0 auto;padding:clamp(16px,3vw,28px) 0 24px}
+
+/* kartu pembuka */
+.hero{display:flex;flex-direction:column;gap:12px;padding:clamp(18px,5vw,30px);background:var(--surface);border:2.5px solid var(--line);border-radius:26px;box-shadow:7px 7px 0 var(--shadow)}
+.hero h1{margin:0;font:700 clamp(1.7rem,6vw,2.6rem)/1.1 var(--font-display);letter-spacing:-.01em}
+.lead{margin:0;color:var(--muted);line-height:1.6;font-size:clamp(.95rem,.9rem + .3vw,1.05rem);max-width:56ch}
+.hero-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+
+.chip,.btn{border:2.5px solid var(--line);border-radius:999px;background:var(--surface);color:var(--ink);font-family:var(--font-display);font-weight:600;cursor:pointer;text-decoration:none}
+.chip{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:6px 18px;font-size:1rem;box-shadow:3px 3px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.chip.fire{background:var(--yellow);color:var(--on)}
+.btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:50px;margin-top:12px;padding:12px 22px;font-size:1.1rem;box-shadow:4px 4px 0 var(--shadow);transition:transform .12s ease,box-shadow .12s ease}
+.btn:active,.chip:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow)}
+.btn.pri{background:var(--yellow);color:var(--on)}
+
+.card{margin-top:16px;padding:clamp(14px,3.5vw,20px) clamp(16px,4vw,24px);background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:5px 5px 0 var(--shadow)}
+.card h2{margin:0 0 4px;font:700 1.25rem/1.2 var(--font-display)}
+.card p{margin:0;color:var(--muted);font-size:.98rem}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stat{padding:10px 12px;border:2.5px solid var(--line);border-radius:16px;background:var(--bg)}
+.stat b{display:block;font:700 1.5rem/1.1 var(--font-display)}
+.stat span{font-size:.9rem;color:var(--muted)}
+.opt{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:.98rem}
+.opt input{width:22px;height:22px;accent-color:var(--blue)}
+.seg{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.seg label{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 16px;border:2.5px solid var(--line);border-radius:999px;background:var(--surface);cursor:pointer;font-weight:600}
+.seg input{accent-color:var(--blue)}
+progress{width:100%;height:14px;margin-top:12px}
+#status{margin-top:12px;min-height:1.4em;font-weight:600}
+#status.err{color:var(--coral)}
+.note{margin-top:10px;font-size:.88rem;color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="lf-hd"><a class="lf-back" href="./" aria-label="Kembali ke beranda">←</a><a class="lf-brand" href="./"><span class="lf-logo" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 5h16a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1h-8l-5 4v-4H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" fill="#fff" stroke="#14162B" stroke-width="2" stroke-linejoin="round"/></svg></span>Learning Fun</a></header>
+<main>
+  <section class="hero">
+    <h1>Akun</h1>
+    <p class="lead">Semua datamu tersimpan di browser ini. Ekspor satu file untuk memindahkan atau mencadangkan: progres path, hafalan, kata berbintang, dan channel yang diikuti.</p>
+    <div class="stats" id="stats" aria-live="polite">
+      <div class="stat"><b id="sPath">…</b><span>latihan selesai</span></div>
+      <div class="stat"><b id="sSubs">…</b><span>channel diikuti</span></div>
+      <div class="stat"><b id="sDecks">…</b><span>deck hafalan</span></div>
+      <div class="stat"><b id="sCards">…</b><span>kartu dipelajari</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Ekspor akun</h2>
+    <p>Satu file .json berisi semua data di atas.</p>
+    <label class="opt"><input type="checkbox" id="inclMedia" checked> Sertakan media deck (gambar dan audio). File jadi lebih besar.</label>
+    <button class="btn pri" id="bExp" type="button">Ekspor akun</button>
+  </section>
+
+  <section class="card">
+    <h2>Impor akun</h2>
+    <p>Pilih file hasil ekspor akun. File ekspor Path yang lama juga bisa dipakai.</p>
+    <div class="seg" role="radiogroup" aria-label="Mode impor">
+      <label><input type="radio" name="mode" value="merge" checked> Gabungkan (aman)</label>
+      <label><input type="radio" name="mode" value="replace"> Timpa semua</label>
+    </div>
+    <p class="note">Gabungkan: data di perangkat ini tidak hilang. Progres, kata, dan channel digabung. Timpa: data di perangkat ini diganti isi file.</p>
+    <button class="btn" id="bImp" type="button">Pilih file untuk impor</button>
+    <input type="file" id="file" accept="application/json,.json" hidden>
+  </section>
+
+  <progress id="prog" max="100" value="0" hidden></progress>
+  <div id="status" role="status"></div>
+</main>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+  const APP = 'learningfun-account', DBN = 'kosakata-anki', STORES = ['packs', 'cards', 'revlog', 'media'];
+  // localStorage yang ikut: akun + preferensi. Cache (gambar feed, daftar pelajaran) sengaja tidak ikut.
+  const wanted = k => /^(lf:|kosakata\.|uk-|syncreader:)/.test(k) && !/^lf:feedimg:/.test(k);
+  const day = d => d.toLocaleDateString('sv');
+  const status = (t, err) => { const e = $('#status'); e.textContent = t; e.className = err ? 'err' : ''; };
+  const prog = v => { const p = $('#prog'); p.hidden = v == null; if (v != null) p.value = v; };
+  const lsGet = k => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } };
+  const parse = (s, d) => { try { const v = JSON.parse(s); return v == null ? d : v; } catch (e) { return d; } };
+
+  /* ---------- IndexedDB (skema sama dengan kosakata.html) ---------- */
+  let dbp;
+  const idb = () => dbp || (dbp = new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open(DBN, 3);
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        [['packs', 'id'], ['media', 'k'], ['cards', 'k'], ['revlog', 'k']].forEach(([n, k]) => { if (!d.objectStoreNames.contains(n)) d.createObjectStore(n, { keyPath: k }); });
+      };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  }));
+  const run = (store, mode, fn) => idb().then(d => new Promise((res, rej) => {
+    const t = d.transaction(store, mode); let out;
+    try { out = fn(t.objectStore(store)); } catch (e) { rej(e); return; }
+    t.oncomplete = () => res(out && 'result' in out ? out.result : undefined); t.onerror = t.onabort = () => rej(t.error);
+  }));
+  const getAll = s => run(s, 'readonly', st => st.getAll()).then(a => a || []);
+
+  /* ---------- serialisasi: Blob/biner <-> JSON ---------- */
+  const b64 = blob => new Promise((res, rej) => { const f = new FileReader(); f.onload = () => res(String(f.result).split(',')[1] || ''); f.onerror = () => rej(f.error); f.readAsDataURL(blob); });
+  const fromB64 = (s, type) => { const bin = atob(s), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], { type: type || '' }); };
+  async function enc(v) {
+    if (v instanceof Blob) return { __t: 'blob', type: v.type, data: await b64(v) };
+    if (v instanceof ArrayBuffer || ArrayBuffer.isView(v)) { const u = v instanceof ArrayBuffer ? new Uint8Array(v) : new Uint8Array(v.buffer, v.byteOffset, v.byteLength); return { __t: 'u8', data: await b64(new Blob([u])) }; }
+    if (v instanceof Date) return { __t: 'date', v: v.getTime() };
+    if (Array.isArray(v)) { const o = []; for (const x of v) o.push(await enc(x)); return o; }
+    if (v && typeof v === 'object') { const o = {}; for (const k of Object.keys(v)) o[k] = await enc(v[k]); return o; }
+    return v;
+  }
+  function dec(v) {
+    if (Array.isArray(v)) return v.map(dec);
+    if (v && typeof v === 'object') {
+      if (v.__t === 'blob') return fromB64(v.data, v.type);
+      if (v.__t === 'u8') { const b = atob(v.data), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u; }
+      if (v.__t === 'date') return new Date(v.v);
+      const o = {}; for (const k of Object.keys(v)) o[k] = dec(v[k]); return o;
+    }
+    return v;
+  }
+
+  /* ---------- ringkasan di atas halaman ---------- */
+  async function stats() {
+    const path = parse(lsGet('lf:path'), {});
+    $('#sPath').textContent = Object.keys((path && path.done) || {}).length;
+    const subs = parse(lsGet('lf:subs'), []);
+    $('#sSubs').textContent = Array.isArray(subs) ? subs.length : 0;
+    try {
+      const packs = await getAll('packs'), cards = await getAll('cards');
+      const star = parse(lsGet('lf:starred'), []);
+      $('#sDecks').textContent = packs.length + (Array.isArray(star) && star.length ? 1 : 0);
+      $('#sCards').textContent = cards.filter(c => c && c.reps > 0).length;
+    } catch (e) { $('#sDecks').textContent = '–'; $('#sCards').textContent = '–'; }
+  }
+
+  /* ---------- ekspor ---------- */
+  async function doExport() {
+    const btn = $('#bExp'); btn.disabled = true; prog(0);
+    try {
+      status('Menyiapkan data…');
+      const local = {};
+      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) local[k] = localStorage.getItem(k); } } catch (e) {}
+      const withMedia = $('#inclMedia').checked, parts = [];
+      parts.push('{"app":' + JSON.stringify(APP) + ',"version":1,"exportedAt":' + JSON.stringify(new Date().toISOString()) + ',"local":' + JSON.stringify(local) + ',"idb":{');
+      let first = true, nrec = 0;
+      const todo = STORES.filter(s => s !== 'media' || withMedia);
+      for (let si = 0; si < todo.length; si++) {
+        const s = todo[si], rows = await getAll(s);
+        parts.push((first ? '' : ',') + JSON.stringify(s) + ':['); first = false;
+        for (let i = 0; i < rows.length; i++) {
+          parts.push((i ? ',' : '') + JSON.stringify(await enc(rows[i])));
+          if (i % 25 === 0) { prog(Math.round(((si + i / Math.max(1, rows.length)) / todo.length) * 100)); await new Promise(r => setTimeout(r)); }
+        }
+        parts.push(']'); nrec += rows.length;
+      }
+      parts.push('}}');
+      const blob = new Blob(parts, { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'learningfun-akun-' + day(new Date()) + '.json';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+      prog(100);
+      status('Ekspor selesai: ' + Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan (' + (blob.size / 1048576).toFixed(1) + ' MB).');
+    } catch (e) { status('Ekspor gagal: ' + (e && e.message || e), true); }
+    finally { btn.disabled = false; setTimeout(() => prog(null), 1200); }
+  }
+
+  /* ---------- impor ---------- */
+  const uniqBy = (arr, key) => { const seen = new Set(), out = []; for (const x of arr) { const k = key(x); if (k == null || seen.has(k)) continue; seen.add(k); out.push(x); } return out; };
+  function mergeLocal(k, incoming, merge) {
+    const cur = lsGet(k);
+    if (!merge || cur == null) return lsSet(k, incoming);
+    const a = parse(cur, null), b = parse(incoming, null);
+    let out;
+    if (k === 'lf:path') {
+      const done = Object.assign({}, (b && b.done) || {});
+      for (const [s, v] of Object.entries((a && a.done) || {})) done[s] = { at: Math.max((v && v.at) || 0, (done[s] && done[s].at) || 0) };
+      out = Object.assign({}, b || {}, a || {}, { done });
+    } else if (k === 'lf:subs') {
+      out = uniqBy([].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []).filter(x => typeof x === 'string' && x.trim()), x => x.toLowerCase());
+    } else if (k === 'lf:seen') {
+      out = [...new Set([].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []))];
+    } else if (k === 'lf:starred') {
+      out = uniqBy([].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []).filter(x => x && x.w), x => String(x.w).toLowerCase());
+    } else if (k === 'lf:decks') {
+      out = uniqBy([].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []).filter(x => x && x.id), x => x.id);
+    } else if (k === 'lf:types') {
+      out = Object.assign({}, b && typeof b === 'object' ? b : {}, a && typeof a === 'object' ? a : {});
+    } else return true;   // preferensi lain: yang ada di perangkat ini dipertahankan
+    return lsSet(k, JSON.stringify(out));
+  }
+  const better = (x, y) => ((y.last || 0) > (x.last || 0)) || ((y.last || 0) === (x.last || 0) && (y.reps || 0) > (x.reps || 0));
+
+  async function doImport(file) {
+    prog(0);
+    try {
+      status('Membaca file…');
+      const j = JSON.parse(await file.text());
+      const merge = (document.querySelector('input[name=mode]:checked') || {}).value !== 'replace';
+      if (j && j.app === 'learningfun-path' && j.progress && j.progress.done) {   // format ekspor Path yang lama
+        mergeLocal('lf:path', JSON.stringify({ done: j.progress.done }), true);
+        status('Impor progres path berhasil.'); await stats(); return;
+      }
+      if (!j || j.app !== APP || typeof j.local !== 'object') throw new Error('File bukan ekspor akun Learning Fun.');
+      if (!merge && !confirm('Timpa semua data di perangkat ini dengan isi file?')) { status('Dibatalkan.'); prog(null); return; }
+
+      if (!merge) { try { const del = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+      let nLocal = 0;
+      for (const [k, v] of Object.entries(j.local)) if (wanted(k) && typeof v === 'string') { mergeLocal(k, v, merge); nLocal++; }
+      prog(20);
+
+      const idbData = j.idb || {}; let nIdb = 0;
+      for (let si = 0; si < STORES.length; si++) {
+        const s = STORES[si], rows = idbData[s];
+        if (!Array.isArray(rows)) continue;
+        const keyOf = s === 'packs' ? 'id' : 'k';
+        if (!merge) await run(s, 'readwrite', st => st.clear());
+        const existing = merge ? new Map((await getAll(s)).map(r => [r[keyOf], r])) : new Map();
+        const put = [];
+        for (const raw of rows) {
+          const r = dec(raw), cur = existing.get(r[keyOf]);
+          if (cur && !(s === 'cards' && better(cur, r))) continue;   // gabung: yang sudah ada tetap, kecuali kartu dengan progres lebih baru
+          put.push(r);
+        }
+        for (let i = 0; i < put.length; i += 200) { const chunk = put.slice(i, i + 200); await run(s, 'readwrite', st => { chunk.forEach(r => st.put(r)); }); prog(20 + Math.round(((si + i / Math.max(1, put.length)) / STORES.length) * 75)); }
+        nIdb += put.length;
+      }
+      prog(100);
+      status('Impor selesai: ' + nLocal + ' pengaturan dan ' + nIdb + ' data hafalan ' + (merge ? 'digabung.' : 'dipulihkan.'));
+      await stats();
+    } catch (e) { status('Impor gagal: ' + (e && e.message || e), true); }
+    finally { setTimeout(() => prog(null), 1200); }
+  }
+
+  $('#bExp').addEventListener('click', doExport);
+  $('#bImp').addEventListener('click', () => $('#file').click());
+  $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) doImport(f); });
+  addEventListener('pageshow', stats);
+  stats();
+})();
+</script>
+<script>
+/* Bilah tab bawah Learning Fun (jangan dipasang di player video/audio).
+   Ubah TABS untuk menambah/mengganti menu,  */
+(() => {
+  const TABS = [
+    { id: 'beranda',  label: 'Beranda',   href: './',            match: ['', 'index'],
+      icon: '<path d="M3.5 11.2 12 4l8.5 7.2"/><path d="M5.5 9.8V19a1 1 0 0 0 1 1H9.5v-5.5h5V20h3a1 1 0 0 0 1-1V9.8"/>' },
+    { id: 'cari',     label: 'Cari',      href: 'playphrase.html', match: ['playphrase', 'phrase'],
+      icon: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/>' },
+    { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
+      icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
+    { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' },
+    { id: 'akun',     label: 'Akun',      href: 'akun.html',     match: ['akun'],
+      icon: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>' }
+  ];
+  const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
+  const css = document.createElement('style');
+  css.textContent = `
+#lfnav{position:fixed;left:50%;bottom:0;transform:translateX(-50%);z-index:20;width:100%;max-width:560px;display:flex;gap:2px;padding:8px 6px calc(8px + env(safe-area-inset-bottom,0px));background:var(--surface,var(--bar,#fff));border:2.5px solid var(--lfline,var(--line,#14162B));border-bottom:0;border-radius:20px 20px 0 0;font-family:var(--font-display,'Fredoka',system-ui,sans-serif)}
+#lfnav a{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 4px;border:0;border-radius:14px;color:var(--muted,#4F5575);text-decoration:none;font-weight:600;font-size:.8rem;line-height:1.1}
+#lfnav a span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#lfnav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#lfnav a[aria-current=page]{color:#F2B705}
+#lfnav a:focus-visible{outline:3px solid var(--blue,#4C84FF);outline-offset:2px}
+@media(max-width:360px){#lfnav a{font-size:.72rem}#lfnav svg{width:22px;height:22px}}
+@media(orientation:landscape) and (max-height:560px){
+  #lfnav{padding-top:4px;padding-bottom:calc(4px + env(safe-area-inset-bottom,0px))}
+  #lfnav a{flex-direction:row;justify-content:center;gap:6px;padding:4px}
+  #lfnav svg{width:20px;height:20px}
+}`;
+  document.head.appendChild(css);
+  const nav = document.createElement('nav');
+  nav.id = 'lfnav'; nav.setAttribute('aria-label', 'Menu utama');
+  nav.innerHTML = TABS.map(t =>
+    `<a href="${t.href}"${t.match.some(m => m === file || (m && file.includes(m))) ? ' aria-current="page"' : ''}><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg><span>${t.label}</span></a>`).join('');
+  const mount = () => {
+    document.body.appendChild(nav);
+    const fit = () => {
+      const h = nav.offsetHeight;
+      document.documentElement.style.setProperty('--lfh', h + 'px');
+      document.body.style.paddingBottom = (h + 16) + 'px';   // supaya isi tidak tertutup bilah
+    };
+    fit(); addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250));
+  };
+  document.body ? mount() : addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+</body>
+</html>
