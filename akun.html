@@ -6,6 +6,7 @@
 <title>Akun · Learning Fun</title>
 <meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script src="/pwa.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,7 +65,20 @@ main{max-width:var(--mw);margin:0 auto;padding:clamp(16px,3vw,28px) 0 24px}
 progress{width:100%;height:14px;margin-top:12px}
 #status{margin-top:12px;min-height:1.4em;font-weight:600}
 #status.err{color:var(--coral)}
+.seg label.on{background:var(--yellow);color:var(--on);box-shadow:3px 3px 0 var(--shadow)}
+#bGo.imp{background:var(--mint);color:var(--on)}
+#preview{margin-top:14px;padding:12px 14px;border:2.5px dashed var(--line);border-radius:16px}
+#preview h3{margin:0;font:700 1.05rem/1.2 var(--font-display)}
+#preview ul{margin:8px 0 0;padding-left:20px}#preview li{margin:2px 0}
+#pvWarn{margin-top:10px;font-size:.92rem;color:var(--muted)}#pvWarn.warn{color:var(--coral);font-weight:600}
 .note{margin-top:10px;font-size:.88rem;color:var(--muted)}
+.parts{margin:12px 0 0;padding:0;border:0}.parts legend{padding:0;font:700 1rem/1.2 var(--font-display)}.parts .opt{margin-top:8px}
+#remind{margin-top:10px;padding:10px 14px;border:2.5px solid var(--line);border-radius:16px;background:var(--yellow);color:var(--on);font-weight:600}
+.ov{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(10,12,30,.6)}
+.dlg{position:relative;width:100%;max-width:26rem;max-height:90vh;overflow:auto;padding:18px 20px;background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.dx{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:38px;height:38px;border:2.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);font:700 1rem/1 var(--font-display);cursor:pointer}
+.btn.danger{background:var(--coral);color:var(--on)}
+#delConfirm{width:100%;min-height:48px;margin-top:12px;padding:8px 14px;border:2.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit}
 </style>
 </head>
 <body>
@@ -81,6 +95,14 @@ progress{width:100%;height:14px;margin-top:12px}
     </div>
   </section>
 
+  <section class="card" id="health">
+    <h2>Status cadangan</h2>
+    <p id="lastBk">Memeriksa…</p>
+    <p id="remind" role="status" hidden></p>
+    <p id="storeInfo" style="margin-top:6px">Memeriksa penyimpanan…</p>
+    <button class="btn" id="bPersist" type="button" hidden>Lindungi data dari penghapusan otomatis</button>
+  </section>
+
   <section class="card">
     <h2>Cadangan akun</h2>
     <p>Satu file .zip berisi semua data. Media deck (gambar dan audio) disimpan sebagai file terpisah di dalamnya.</p>
@@ -89,29 +111,53 @@ progress{width:100%;height:14px;margin-top:12px}
       <label><input type="radio" name="act" value="import"> Impor</label>
     </div>
     <div id="optExp">
-      <label class="opt"><input type="checkbox" id="inclMedia" checked> Sertakan media deck. File jadi lebih besar.</label>
+      <fieldset class="parts"><legend>Isi cadangan</legend>
+        <label class="opt"><input type="checkbox" name="part" value="path" checked> Progres path</label>
+        <label class="opt"><input type="checkbox" name="part" value="hafalan" checked> Hafalan (deck, kartu, riwayat)</label>
+        <label class="opt"><input type="checkbox" name="part" value="channel" checked> Channel dan kata berbintang</label>
+        <label class="opt"><input type="checkbox" name="part" value="setting" checked> Pengaturan</label>
+        <label class="opt"><input type="checkbox" name="part" value="media" checked> Media deck. File jadi lebih besar.</label>
+      </fieldset>
     </div>
     <div id="optImp" hidden>
-      <div class="seg" role="radiogroup" aria-label="Mode impor">
-        <label><input type="radio" name="mode" value="merge" checked> Gabungkan (aman)</label>
-        <label><input type="radio" name="mode" value="replace"> Timpa semua</label>
-      </div>
-      <p class="note">Gabungkan: data di perangkat ini tidak hilang, progres dan daftar digabung. Timpa: data diganti isi file. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
+      <p class="note">Impor otomatis menggabungkan isi file dengan data di perangkat ini. Data yang lebih baru diperbarui, data yang sudah ada tidak hilang. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
     </div>
     <button class="btn pri" id="bGo" type="button">Ekspor akun</button>
-    <input type="file" id="file" accept=".zip,application/zip,application/json,.json" hidden>
+    <button class="btn" id="bShare" type="button" hidden>Bagikan cadangan</button>
+    <div id="preview" hidden>
+      <h3>Ringkasan file</h3>
+      <ul id="pvList"></ul>
+      <p id="pvWarn"></p>
+      <button class="btn pri" id="bOk" type="button">Lanjut impor</button>
+      <button class="btn" id="bNo" type="button">Batal</button>
+    </div>
+    <input type="file" id="file" accept=".zip,.txt,text/plain,application/zip,application/json,.json" hidden>
+  </section>
+
+  <section class="card">
+    <h2>Hapus data di perangkat ini</h2>
+    <p>Berguna untuk HP bersama atau saat pindah perangkat. Data di browser ini hilang dan tidak bisa dikembalikan, kecuali dari file cadangan.</p>
+    <button class="btn danger" id="bDel" type="button">Hapus data di perangkat ini</button>
   </section>
 
   <progress id="prog" max="100" value="0" hidden></progress>
   <div id="status" role="status"></div>
 </main>
+<div class="ov" id="delOv" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="delTtl">
+    <button class="dx" id="bDelNo" type="button" aria-label="Tutup">✕</button>
+    <h2 id="delTtl" style="margin:0 40px 0 0;font:700 1.3rem/1.2 var(--font-display)">Hapus data di perangkat ini</h2>
+    <input id="delConfirm" type="text" autocomplete="off" autocapitalize="characters" placeholder="Ketik HAPUS untuk melanjutkan" aria-label="Ketik HAPUS untuk melanjutkan">
+    <button class="btn danger" id="bDelGo" type="button" disabled>Hapus sekarang</button>
+  </div>
+</div>
 
 <script>
 (() => {
   const $ = s => document.querySelector(s);
   const APP = 'learningfun-account', DBN = 'kosakata-anki', STORES = ['packs', 'cards', 'revlog', 'media'];
   // localStorage yang ikut: akun + preferensi. Cache (gambar feed, daftar pelajaran) sengaja tidak ikut.
-  const wanted = k => /^(lf:|kosakata\.|uk-|syncreader:)/.test(k) && !/^lf:feedimg:/.test(k);
+  const wanted = k => /^(lf:|kosakata\.|uk-|syncreader:)/.test(k) && !/^lf:(feedimg:|backup$|remind$)/.test(k);
   const day = d => d.toLocaleDateString('sv');
   const status = (t, err) => { const e = $('#status'); e.textContent = t; e.className = err ? 'err' : ''; };
   const prog = v => { const p = $('#prog'); p.hidden = v == null; if (v != null) p.value = v; };
@@ -162,6 +208,7 @@ progress{width:100%;height:14px;margin-top:12px}
 
   /* ---------- ringkasan di atas halaman ---------- */
   async function stats() {
+    paintBackup();
     const path = parse(lsGet('lf:path'), {});
     $('#sPath').textContent = Object.keys((path && path.done) || {}).length;
     const subs = parse(lsGet('lf:subs'), []);
@@ -213,7 +260,7 @@ progress{width:100%;height:14px;margin-top:12px}
     for (let i = 0; i < count; i++) {
       if (cd.getUint32(o, true) !== 0x02014b50) throw new Error('Daftar isi zip rusak.');
       const nl = cd.getUint16(o + 28, true), el = cd.getUint16(o + 30, true), cl = cd.getUint16(o + 32, true);
-      ents.set(td.decode(new Uint8Array(cd.buffer, o + 46, nl)), { method: cd.getUint16(o + 10, true), csize: cd.getUint32(o + 20, true), lo: cd.getUint32(o + 42, true) });
+      ents.set(td.decode(new Uint8Array(cd.buffer, o + 46, nl)), { method: cd.getUint16(o + 10, true), csize: cd.getUint32(o + 20, true), crc: cd.getUint32(o + 16, true), lo: cd.getUint32(o + 42, true) });
       o += 46 + nl + el + cl;
     }
     async function blob(name, type) {
@@ -228,7 +275,16 @@ progress{width:100%;height:14px;margin-top:12px}
       } else if (e.method !== 0) throw new Error('Metode kompresi zip tidak didukung.');
       return type ? out.slice(0, out.size, type) : out;
     }
-    return { has: n => ents.has(n), blob, text: async n => { const b = await blob(n); return b ? b.text() : null; } };
+    /* periksa CRC semua isi zip, supaya file terpotong atau rusak ketahuan sebelum data ditimpa */
+    async function verify(cb) {
+      let i = 0;
+      for (const [n, e] of ents) {
+        const b = await blob(n);
+        if (crc32(new Uint8Array(await b.arrayBuffer())) !== e.crc) throw new Error('File "' + n + '" di dalam zip rusak (CRC tidak cocok). Cadangan mungkin terpotong; unduh ulang atau ekspor lagi.');
+        i++; if (cb) cb(i / ents.size); await new Promise(r => setTimeout(r));
+      }
+    }
+    return { has: n => ents.has(n), blob, verify, text: async n => { const b = await blob(n); return b ? b.text() : null; } };
   }
   /* ZIP:end */
 
@@ -238,43 +294,120 @@ progress{width:100%;height:14px;margin-top:12px}
   const tick = () => new Promise(r => setTimeout(r));
 
   /* ---------- ekspor: zip = akun.json + media.json + media/ ---------- */
-  async function doExport() {
-    const btn = $('#bGo'); btn.disabled = true; prog(0);
+  const GROUPS = { path: 'Progres path', hafalan: 'Hafalan', channel: 'Channel dan kata berbintang', setting: 'Pengaturan', media: 'Media' };
+  // pengelompokan kunci localStorage; kunci yang tidak dikenal masuk "Pengaturan"
+  const catOf = k => k === 'lf:path' ? 'path' : (k === 'lf:subs' || k === 'lf:starred') ? 'channel' : /^(kosakata\.|lf:decks$|lf:types$)/.test(k) ? 'hafalan' : 'setting';
+  const picked = () => [...document.querySelectorAll('input[name=part]:checked')].map(i => i.value);
+  const canShare = (() => { try { return !!(navigator.share && navigator.canShare && navigator.canShare({ files: [new File(['x'], 'a.zip', { type: 'application/zip' })] })); } catch (e) { return false; } })();
+  const dl = (blob, name) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); };
+  const markBackup = P => { if (P.includes('path') || P.includes('hafalan')) { lsSet('lf:backup', JSON.stringify({ at: Date.now(), done: countDone(), parts: P })); paintBackup(); return ''; } return ' (Tanpa progres path dan hafalan, jadi tidak dihitung sebagai cadangan terakhir.)'; };
+
+  async function buildZip() {
+    const P = picked(); if (!P.length) throw new Error('Pilih minimal satu isi cadangan.');
+    status('Menyiapkan data…');
+    const local = {};
+    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k) && P.includes(catOf(k))) local[k] = localStorage.getItem(k); } } catch (e) {}
+    const data = { app: APP, version: 2, exportedAt: new Date().toISOString(), parts: P, local, idb: {} };
+    let nrec = 0;
+    if (P.includes('hafalan')) for (const s of ['packs', 'cards', 'revlog']) {
+      const rows = await getAll(s), out = [];
+      for (let i = 0; i < rows.length; i++) { out.push(await encFast(rows[i])); if (i % 500 === 499) await tick(); }
+      data.idb[s] = out; nrec += rows.length;
+    }
+    prog(15);
+    const zip = new ZipWriter();
+    await zip.addText('akun.json', JSON.stringify(data));
+    const files = [];
+    if (P.includes('media')) {
+      const rows = await getAll('media');
+      for (let i = 0; i < rows.length; i++) {
+        const r = rows[i]; if (!r || !(r.blob instanceof Blob)) continue;
+        const f = 'media/' + String(i + 1).padStart(6, '0') + extOf(r.k);
+        await zip.add(f, r.blob);
+        files.push({ k: r.k, f, type: r.blob.type || '', size: r.blob.size });
+        if (i % 5 === 0) { prog(15 + Math.round(i / rows.length * 80)); await tick(); }
+      }
+    }
+    await zip.addText('media.json', JSON.stringify({ app: APP, version: 2, files }));
+    const blob = zip.finish();
+    prog(100);
+    return { blob, P, info: Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan, ' + files.length + ' file media (' + (blob.size / 1048576).toFixed(1) + ' MB).' };
+  }
+
+  /* Zip disiapkan di latar belakang SEBELUM tombol diketuk. Dengan begitu navigator.share()
+     dipanggil langsung di dalam ketukan (izin pengguna masih berlaku), jadi cukup satu ketukan
+     dan menu berbagi langsung terbuka. File dikirim sebagai .zip.txt supaya diterima semua aplikasi. */
+  let pre = null;   // { key, res, err, promise }
+  const keyOf = () => picked().slice().sort().join(',');
+  function paintShare() {
+    const b = $('#bShare'); if (!b) return;
+    const busy = !!(pre && !pre.res && !pre.err);
+    b.disabled = busy; b.textContent = busy ? 'Menyiapkan cadangan…' : 'Bagikan cadangan';
+  }
+  let preTimer = 0;
+  function prepare(delay) {
+    clearTimeout(preTimer);
+    preTimer = setTimeout(() => {
+      if (act() !== 'export') return;
+      const key = keyOf(); if (!key) { pre = null; paintShare(); return; }
+      if (pre && pre.key === key && !pre.err) return;
+      const mine = pre = { key, res: null, err: null, promise: null };
+      paintShare();
+      mine.promise = buildZip().then(r => {
+        mine.res = r;
+        if (pre === mine) { prog(null); status('Cadangan siap. Ketuk "Bagikan cadangan" sekali untuk langsung berbagi. ' + r.info); }
+      }).catch(e => {
+        mine.err = e;
+        if (pre === mine) { prog(null); status('Gagal menyiapkan cadangan: ' + (e && e.message || e), true); }
+      }).finally(() => { if (pre === mine) paintShare(); });
+    }, delay == null ? 0 : delay);
+  }
+  const resetPre = () => { pre = null; paintShare(); prepare(300); };
+
+  const give = (r, name, m) => { dl(r.blob, name); status(m + ' Cadangan diunduh sebagai gantinya; kirim dari folder Unduhan. ' + r.info + markBackup(r.P), true); };
+
+  async function doExport(how) {
+    // sebelum await pertama: bagian ini jalan sinkron di dalam ketukan
+    const name = 'learningfun-akun-' + day(new Date()) + '.zip';
+    if (how === 'share' && pre && pre.res && pre.key === keyOf()) {
+      const r = pre.res, f = new File([r.blob], name + '.txt', { type: 'text/plain' });
+      let ok = false;
+      try { ok = !!(navigator.share && (!navigator.canShare || navigator.canShare({ files: [f] }))); } catch (e) {}
+      if (!ok) { give(r, name, 'Browser ini tidak bisa membagikan file langsung.'); return; }
+      try {
+        await navigator.share({ files: [f], title: 'Cadangan Learning Fun' });
+        status('Cadangan dibagikan: ' + r.info + markBackup(r.P) + ' (Dikirim sebagai .zip.txt; saat impor pilih file itu apa adanya.)');
+      } catch (e) {
+        const n = e && e.name || 'error';
+        if (n === 'AbortError') status('Pembagian dibatalkan. Ketuk "Bagikan cadangan" lagi untuk mengulang.');
+        else give(r, name, 'Berbagi ditolak (' + n + ').');
+      }
+      return;
+    }
+    // belum siap (atau mode unduh): tunggu zip, lalu unduh
+    const bs = [$('#bGo'), $('#bShare')]; bs.forEach(b => b.disabled = true);
     try {
-      status('Menyiapkan data…');
-      const local = {};
-      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) local[k] = localStorage.getItem(k); } } catch (e) {}
-      const data = { app: APP, version: 2, exportedAt: new Date().toISOString(), local, idb: {} };
-      let nrec = 0;
-      for (const s of ['packs', 'cards', 'revlog']) {
-        const rows = await getAll(s), out = [];
-        for (let i = 0; i < rows.length; i++) { out.push(await encFast(rows[i])); if (i % 500 === 499) await tick(); }
-        data.idb[s] = out; nrec += rows.length;
-      }
-      prog(15);
-      const zip = new ZipWriter();
-      await zip.addText('akun.json', JSON.stringify(data));
-      const files = [];
-      if ($('#inclMedia').checked) {
-        const rows = await getAll('media');
-        for (let i = 0; i < rows.length; i++) {
-          const r = rows[i]; if (!r || !(r.blob instanceof Blob)) continue;
-          const f = 'media/' + String(i + 1).padStart(6, '0') + extOf(r.k);
-          await zip.add(f, r.blob);
-          files.push({ k: r.k, f, type: r.blob.type || '', size: r.blob.size });
-          if (i % 5 === 0) { prog(15 + Math.round(i / rows.length * 80)); await tick(); }
-        }
-      }
-      await zip.addText('media.json', JSON.stringify({ app: APP, version: 2, files }));
-      const blob = zip.finish();
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob); a.download = 'learningfun-akun-' + day(new Date()) + '.zip';
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-      prog(100);
-      status('Ekspor selesai: ' + Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan, ' + files.length + ' file media (' + (blob.size / 1048576).toFixed(1) + ' MB).');
+      if (!pre || pre.key !== keyOf() || pre.err) { pre = null; prepare(0); await new Promise(r => setTimeout(r, 5)); }
+      if (!pre) throw new Error('Pilih minimal satu isi cadangan.');
+      const cur = pre; await cur.promise; if (cur.err) throw cur.err;
+      const r = cur.res;
+      if (how === 'share') give(r, name, 'Cadangan baru selesai disiapkan sehingga izin berbagi sudah kedaluwarsa.');
+      else { dl(r.blob, name); status('Ekspor selesai: ' + r.info + markBackup(r.P)); }
     } catch (e) { status('Ekspor gagal: ' + (e && e.message || e), true); }
-    finally { btn.disabled = false; setTimeout(() => prog(null), 1200); }
+    finally { bs.forEach(b => b.disabled = false); paintShare(); setTimeout(() => prog(null), 1200); }
+  }
+
+  /* ---------- hapus data di perangkat ini ---------- */
+  function openDel() { $('#delOv').hidden = false; setTimeout(() => $('#delConfirm').focus(), 50); }
+  function closeDel() { $('#delOv').hidden = true; $('#delConfirm').value = ''; $('#bDelGo').disabled = true; $('#bDel').focus(); }
+  async function wipe() {
+    $('#bDelGo').disabled = true;
+    try {
+      const del = [];
+      try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k) || /^lf:(backup|remind)$/.test(k)) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch (e) {}
+      for (const s of STORES) await run(s, 'readwrite', st => st.clear());
+      closeDel(); status('Data di perangkat ini sudah dihapus.'); await stats(); paintStorage();
+    } catch (e) { status('Gagal menghapus: ' + (e && e.message || e), true); $('#bDelGo').disabled = false; }
   }
 
   /* ---------- impor ---------- */
@@ -304,32 +437,84 @@ progress{width:100%;height:14px;margin-top:12px}
   const better = (x, y) => ((y.last || 0) > (x.last || 0)) || ((y.last || 0) === (x.last || 0) && (y.reps || 0) > (x.reps || 0));
   const keysOf = s => run(s, 'readonly', st => st.getAllKeys()).then(a => new Set(a || []));
 
-  async function doImport(file) {
-    prog(0);
-    try {
-      status('Membaca file…');
-      const magic = new Uint8Array(await file.slice(0, 2).arrayBuffer());
-      let data, media = [];                       // media: [{k, get()}]
-      if (magic[0] === 0x50 && magic[1] === 0x4B) {          // zip (PK)
-        const z = await zipOpen(file), t = await z.text('akun.json');
-        if (!t) throw new Error('akun.json tidak ada di dalam zip.');
-        data = JSON.parse(t);
-        const mi = z.has('media.json') ? JSON.parse(await z.text('media.json')) : null;
-        media = ((mi && mi.files) || []).map(m => ({ k: m.k, get: () => z.blob(m.f, m.type) }));
-      } else {
-        data = JSON.parse(await file.text());
-        if (data && data.app === 'learningfun-path' && data.progress && data.progress.done) {   // ekspor Path lama
-          mergeLocal('lf:path', JSON.stringify({ done: data.progress.done }), true);
-          status('Impor progres path berhasil.'); await stats(); return;
-        }
-        const old = data && data.idb && Array.isArray(data.idb.media) ? data.idb.media : [];     // json akun versi 1 (media base64)
-        media = old.map(raw => ({ k: raw && raw.k, get: async () => { const r = dec(raw); return r.blob instanceof Blob ? r.blob : null; } }));
-      }
-      if (!data || data.app !== APP || typeof data.local !== 'object') throw new Error('File bukan ekspor akun Learning Fun.');
-      const merge = (document.querySelector('input[name=mode]:checked') || {}).value !== 'replace';
-      if (!merge && !confirm('Timpa semua data di perangkat ini dengan isi file?')) { status('Dibatalkan.'); prog(null); return; }
+  const fmtBytes = n => n >= 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
+  const fmtDate = t => new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  const curMode = () => 'merge';   // impor selalu menggabungkan dan memperbarui otomatis
+  const nKeys = o => Object.keys(o || {}).length;
+  const countDone = () => { const p = parse(lsGet('lf:path'), {}); return nKeys(p && p.done); };
+  let pending = null;   // file yang sudah dibaca, menunggu konfirmasi
 
-      if (!merge) { try { const del = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k)) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch (e) {} }
+  function closePreview() { pending = null; $('#preview').hidden = true; $('#bGo').hidden = false; }
+
+  /* tahap 1: baca file, belum mengubah data apa pun */
+  async function inspect(file) {
+    const magic = new Uint8Array(await file.slice(0, 2).arrayBuffer());
+    const ctx = { file, kind: '', data: null, media: [], z: null };
+    if (magic[0] === 0x50 && magic[1] === 0x4B) {                       // zip (PK)
+      const z = await zipOpen(file), t = await z.text('akun.json');
+      if (!t) throw new Error('akun.json tidak ada di dalam zip.');
+      ctx.data = JSON.parse(t); ctx.z = z; ctx.kind = 'zip';
+      const mi = z.has('media.json') ? JSON.parse(await z.text('media.json')) : null;
+      ctx.media = ((mi && mi.files) || []).map(m => ({ k: m.k, size: m.size || 0, get: () => z.blob(m.f, m.type) }));
+    } else {
+      ctx.data = JSON.parse(await file.text());
+      const d = ctx.data;
+      if (d && d.app === 'learningfun-path' && d.progress && d.progress.done) { ctx.kind = 'path'; return ctx; }   // ekspor Path lama
+      ctx.kind = 'json';                                                                                         // json akun versi 1 (media base64)
+      const old = d && d.idb && Array.isArray(d.idb.media) ? d.idb.media : [];
+      ctx.media = old.map(raw => ({ k: raw && raw.k, size: 0, get: async () => { const r = dec(raw); return r.blob instanceof Blob ? r.blob : null; } }));
+    }
+    if (!ctx.data || ctx.data.app !== APP || typeof ctx.data.local !== 'object') throw new Error('File bukan ekspor akun Learning Fun.');
+    return ctx;
+  }
+
+  async function renderPreview() {
+    const ctx = pending; if (!ctx) return;
+    const d = ctx.data, items = [], merge = ctx.kind === 'path' ? true : curMode() === 'merge';
+    if (ctx.kind === 'path') items.push('Ekspor Path lama: ' + nKeys(d.progress.done) + ' latihan selesai');
+    else {
+      const lp = parse(d.local['lf:path'], {}), subs = parse(d.local['lf:subs'], []), star = parse(d.local['lf:starred'], []), idb = d.idb || {};
+      if (d.exportedAt) items.push('Dibuat: ' + fmtDate(Date.parse(d.exportedAt)));
+      if (Array.isArray(d.parts)) items.push('Isi: ' + d.parts.map(x => GROUPS[x] || x).join(', '));
+      items.push(nKeys(lp && lp.done) + ' latihan selesai');
+      items.push((Array.isArray(subs) ? subs.length : 0) + ' channel diikuti, ' + (Array.isArray(star) ? star.length : 0) + ' kata berbintang');
+      items.push((idb.packs || []).length + ' deck, ' + (idb.cards || []).filter(c => c && c.reps > 0).length + ' kartu dipelajari, ' + (idb.revlog || []).length + ' riwayat review');
+      const ms = ctx.media.reduce((x, m) => x + (m.size || 0), 0);
+      items.push(ctx.media.length ? ctx.media.length + ' file media' + (ms ? ' (' + fmtBytes(ms) + ')' : '') : 'Tanpa media');
+    }
+    items.push('Ukuran file: ' + fmtBytes(ctx.file.size));
+    const ul = $('#pvList'); ul.textContent = '';
+    items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
+    const w = $('#pvWarn');
+    if (merge) { w.className = ''; w.textContent = 'Data digabung otomatis: data di perangkat ini tidak hilang, yang lebih baru diperbarui.'; }
+    else {
+      let packs = 0; try { packs = (await getAll('packs')).length; } catch (e) {}
+      w.className = 'warn';
+      w.textContent = 'Mode Timpa: data di perangkat ini (' + countDone() + ' latihan, ' + packs + ' deck) akan diganti isi file ini.' + (Array.isArray(d.parts) ? ' Hanya bagian yang ada di file yang diganti.' : '');
+    }
+    $('#bOk').textContent = merge ? 'Lanjut impor' : 'Timpa dan impor';
+    $('#bGo').hidden = true; $('#preview').hidden = false;
+  }
+
+  async function previewFile(file) {
+    try { status('Membaca file…'); pending = await inspect(file); status(''); await renderPreview(); }
+    catch (e) { closePreview(); status('Gagal membaca file: ' + (e && e.message || e), true); }
+  }
+
+  /* tahap 2: setelah dikonfirmasi, cek keutuhan lalu terapkan */
+  async function applyImport(ctx) {
+    $('#bOk').disabled = $('#bNo').disabled = true; prog(0);
+    try {
+      const data = ctx.data, media = ctx.media;
+      if (ctx.kind === 'path') {
+        mergeLocal('lf:path', JSON.stringify({ done: data.progress.done }), true);
+        closePreview(); status('Impor progres path berhasil.'); await stats(); return;
+      }
+      const merge = curMode() !== 'replace', has = g => !data.parts || data.parts.includes(g);
+      if (ctx.z) { status('Memeriksa keutuhan file…'); await ctx.z.verify(f => prog(Math.round(f * 100))); prog(0); }
+      status('Mengimpor…');
+
+      if (!merge) { try { const del = []; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k) && has(catOf(k))) del.push(k); } del.forEach(k => localStorage.removeItem(k)); } catch (e) {} }
       let nLocal = 0;
       for (const [k, v] of Object.entries(data.local)) if (wanted(k) && typeof v === 'string') { mergeLocal(k, v, merge); nLocal++; }
       prog(10);
@@ -337,7 +522,7 @@ progress{width:100%;height:14px;margin-top:12px}
       let nIdb = 0;
       const sets = ['packs', 'cards', 'revlog'];
       for (let si = 0; si < sets.length; si++) {
-        const s = sets[si], rows = data.idb && data.idb[s];
+        const s = sets[si], rows = has('hafalan') && data.idb && data.idb[s];
         if (!Array.isArray(rows)) continue;
         const kf = s === 'packs' ? 'id' : 'k';
         if (!merge) await run(s, 'readwrite', st => st.clear());
@@ -362,19 +547,67 @@ progress{width:100%;height:14px;margin-top:12px}
           nMedia += got.length; prog(35 + Math.round(Math.min(i + 20, todo.length) / todo.length * 63)); await tick();
         }
       }
-      prog(100);
+      prog(100); closePreview();
       status('Impor selesai: ' + nLocal + ' pengaturan, ' + nIdb + ' data hafalan, ' + nMedia + ' file media ' + (merge ? 'digabung.' : 'dipulihkan.') + (media.length ? '' : ' (File ini tidak berisi media.)'));
       await stats();
     } catch (e) { status('Impor gagal: ' + (e && e.message || e), true); }
-    finally { setTimeout(() => prog(null), 1200); }
+    finally { $('#bOk').disabled = $('#bNo').disabled = false; setTimeout(() => prog(null), 1200); }
   }
+
+  /* ---------- status cadangan terakhir + perlindungan penyimpanan ---------- */
+  function paintRemind() {
+    const b = parse(lsGet('lf:backup'), null), n = countDone(), el = $('#remind'); let t = '';
+    if (!b || !b.at) { if (n > 0) t = 'Progresmu belum pernah dicadangkan.'; }
+    else { const d = Math.floor((Date.now() - b.at) / 864e5), nw = n - (b.done || 0); if (d > 7) t = 'Progresmu belum dicadangkan ' + d + ' hari.'; else if (nw >= 10) t = nw + ' latihan baru sejak cadangan terakhir. Cadangkan sekarang.'; }
+    el.hidden = !t; el.textContent = t;
+  }
+  function paintBackup() {
+    paintRemind();
+    const b = parse(lsGet('lf:backup'), null), el = $('#lastBk');
+    if (!b || !b.at) { el.textContent = 'Belum pernah dicadangkan di perangkat ini.'; return; }
+    const d = Math.floor((Date.now() - b.at) / 864e5);
+    el.textContent = 'Terakhir dicadangkan: ' + fmtDate(b.at) + (d > 0 ? ' (' + d + ' hari lalu).' : ' (hari ini).');
+  }
+  async function paintStorage() {
+    const el = $('#storeInfo'), btn = $('#bPersist');
+    if (!navigator.storage) { el.textContent = 'Browser ini tidak menyediakan info penyimpanan.'; return; }
+    const txt = [];
+    try { const e = await navigator.storage.estimate(); if (e && e.usage != null) txt.push(fmtBytes(e.usage) + ' terpakai' + (e.quota ? ' dari sekitar ' + fmtBytes(e.quota) : '')); } catch (e) {}
+    let pers = null; try { if (navigator.storage.persisted) pers = await navigator.storage.persisted(); } catch (e) {}
+    if (pers === true) { txt.unshift('✓ Terlindungi dari penghapusan otomatis'); btn.hidden = true; }
+    else if (pers === false) { txt.unshift('Belum dilindungi dari penghapusan otomatis'); btn.hidden = !navigator.storage.persist; }
+    el.textContent = txt.join(' · ') || 'Info penyimpanan tidak tersedia.';
+  }
+  $('#bPersist').addEventListener('click', async () => {
+    try { const ok = await navigator.storage.persist(); status(ok ? 'Data sekarang dilindungi.' : 'Browser belum mengizinkan. Biasanya diizinkan setelah situs sering dipakai atau ditambahkan ke layar utama. Tetap cadangkan secara berkala.', !ok); }
+    catch (e) { status('Gagal meminta perlindungan penyimpanan.', true); }
+    paintStorage();
+  });
 
   /* satu tombol: pilih Ekspor atau Impor */
   const act = () => (document.querySelector('input[name=act]:checked') || {}).value || 'export';
-  function syncAct() { const e = act() === 'export'; $('#optExp').hidden = !e; $('#optImp').hidden = e; $('#bGo').textContent = e ? 'Ekspor akun' : 'Pilih file dan impor'; status(''); }
+  function paint() {
+    document.querySelectorAll('.seg label').forEach(l => { const i = l.querySelector('input'); l.classList.toggle('on', !!(i && i.checked)); });
+    $('#bGo').classList.toggle('imp', act() === 'import');
+  }
+  function syncAct() { const e = act() === 'export'; $('#optExp').hidden = !e; $('#optImp').hidden = e; $('#bShare').hidden = !e; $('#bGo').textContent = e ? 'Ekspor akun' : 'Pilih file dan impor'; status(''); paint(); if (e) prepare(300); }
   document.querySelectorAll('input[name=act]').forEach(r => r.addEventListener('change', syncAct));
-  $('#bGo').addEventListener('click', () => act() === 'export' ? doExport() : $('#file').click());
-  $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) doImport(f); });
+  syncAct();
+  document.querySelectorAll('input[name=part]').forEach(c => c.addEventListener('change', () => prepare(600)));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && act() === 'export') resetPre(); });
+  $('#bGo').addEventListener('click', () => act() === 'export' ? doExport('download') : $('#file').click());
+  $('#bShare').addEventListener('click', () => doExport('share'));
+  $('#bDel').addEventListener('click', openDel);
+  $('#delOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeDel(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#delOv').hidden) closeDel(); });
+  $('#bDelNo').addEventListener('click', closeDel);
+  $('#delConfirm').addEventListener('input', e => { $('#bDelGo').disabled = e.target.value.trim().toUpperCase() !== 'HAPUS'; });
+  $('#bDelGo').addEventListener('click', wipe);
+  $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) previewFile(f); });
+  $('#bOk').addEventListener('click', () => { if (pending) Promise.resolve(applyImport(pending)).finally(() => { pre = null; paintShare(); }); });
+  $('#bNo').addEventListener('click', () => { closePreview(); status(''); });
+  document.querySelectorAll('input[name=act]').forEach(r => r.addEventListener('change', closePreview));
+  paintBackup(); paintStorage();
   addEventListener('pageshow', stats);
   stats();
 })();
