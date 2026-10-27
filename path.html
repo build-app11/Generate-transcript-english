@@ -119,12 +119,10 @@ dialog h2{font:700 1.5rem/1.2 var(--font-display);margin:0 0 6px}
 
 <dialog id="menu">
   <h2>Progres belajar</h2>
-  <p class="meta">Tersimpan di browser ini. Ekspor untuk memindahkannya ke perangkat lain.</p>
-  <button class="btn pri" data-a="exp">Ekspor progres</button>
-  <button class="btn" data-a="imp">Impor progres</button>
+  <p class="meta">Tersimpan di browser ini. Untuk mencadangkan atau memindahkannya ke perangkat lain, pakai Ekspor/Impor di halaman Akun.</p>
+  <a class="btn pri" href="akun.html">Buka halaman Akun</a>
   <button class="btn" data-a="rst">Reset progres</button>
   <button class="btn" data-a="close">Tutup</button>
-  <input type="file" id="file" accept="application/json,.json" hidden>
 </dialog>
 <div id="toast" role="status" hidden></div>
 
@@ -241,40 +239,17 @@ setVh();addEventListener('resize',setVh);addEventListener('orientationchange',()
     if (b.dataset.a === 'close') $('#sheet').close();
   });
 
-  /* ---- menu: ekspor / impor ---- */
+  /* ---- menu: reset progres (ekspor/impor sekarang ada di halaman Akun) ---- */
   const menu = $('#menu');
   $('#menuBtn').onclick = () => menu.showModal();
   menu.addEventListener('click', e => {
     if (e.target === menu) return menu.close();
     const a = e.target.closest('[data-a]')?.dataset.a;
     if (a === 'close') menu.close();
-    if (a === 'imp') $('#file').click();
-    if (a === 'exp') {
-      const out = { app: 'learningfun-path', version: 1, exportedAt: new Date().toISOString(), progress: { done: S.done } };
-      const el = document.createElement('a');
-      el.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' }));
-      el.download = 'jalur-belajar-' + day(new Date()) + '.json'; el.click();
-      setTimeout(() => URL.revokeObjectURL(el.href), 1000);
-      menu.close(); toast('Progres diekspor');
-    }
     if (a === 'rst' && confirm('Hapus semua progres di perangkat ini?')) {
       S.done = {}; save(); render(); menu.close(); toast('Progres direset');
     }
   });
-  $('#file').onchange = async e => {
-    const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-    try {
-      const j = JSON.parse(await f.text()), d = j.progress?.done;
-      if (j.app !== 'learningfun-path' || !d || typeof d !== 'object') throw 0;
-      let added = 0;
-      for (const [slug, v] of Object.entries(d)) {
-        const m = S.done[slug];
-        if (!m) { S.done[slug] = { at: v.at || Date.now() }; added++; }
-        else m.at = Math.max(m.at || 0, v.at || 0);
-      }
-      save(); render(); menu.close(); toast(`Impor berhasil: ${added} latihan baru`);
-    } catch { toast('File progres tidak valid'); }
-  };
 
   /* ---- mulai ---- */
   async function init() {
@@ -303,7 +278,9 @@ setVh();addEventListener('resize',setVh);addEventListener('orientationchange',()
     { id: 'path',     label: 'Path',      href: 'path.html',     match: ['path'],
       icon: '<circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="18" r="2.5"/><path d="M8.5 6H14a3 3 0 0 1 0 6h-4a3 3 0 0 0 0 6h5.5"/>' },
     { id: 'kosakata', label: 'Kosa Kata', href: 'kosakata.html', match: ['kosakata'],
-      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' }
+      icon: '<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v15H5.5A1.5 1.5 0 0 0 4 20.5zM20 5.5A1.5 1.5 0 0 0 18.5 4H13v15h5.5a1.5 1.5 0 0 1 1.5 1.5z"/>' },
+    { id: 'akun',     label: 'Akun',      href: 'akun.html',     match: ['akun'],
+      icon: '<circle cx="12" cy="8" r="3.6"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>' }
   ];
   const file = (location.pathname.split('/').pop() || '').replace(/\.html$/, '');
   const css = document.createElement('style');
@@ -335,6 +312,39 @@ setVh();addEventListener('resize',setVh);addEventListener('orientationchange',()
     fit(); addEventListener('resize', fit); addEventListener('orientationchange', () => setTimeout(fit, 250));
   };
   document.body ? mount() : addEventListener('DOMContentLoaded', mount);
+})();
+</script>
+<script>
+/* Pengingat cadangan (dapat ditutup). Muncul hanya jika:
+   - sudah ada latihan selesai, dan
+   - belum pernah dicadangkan (min. 3 latihan selesai), atau cadangan terakhir >= 7 hari lalu dan ada latihan baru sejak itu.
+   Setelah ditutup, tidak muncul lagi selama 3 hari. Tidak memengaruhi tampilan lain. */
+(() => {
+  try {
+    const g = k => { try { return JSON.parse(localStorage.getItem(k)); } catch (e) { return null; } };
+    const p = g('lf:path'), done = p && p.done && typeof p.done === 'object' ? Object.keys(p.done).length : 0;
+    if (done < 1) return;
+    const D = 864e5, now = Date.now(), b = g('lf:backup'), r = +localStorage.getItem('lf:remind') || 0;
+    if (now - r < 3 * D) return;
+    let msg;
+    if (!b || !b.at) { if (done < 3) return; msg = 'Progresmu belum pernah dicadangkan.'; }
+    else {
+      const d = Math.floor((now - b.at) / D);
+      if (d < 7 || done <= (b.done || 0)) return;
+      msg = 'Terakhir dicadangkan ' + d + ' hari lalu.';
+    }
+    const m = document.querySelector('main'); if (!m || document.getElementById('lfRemind')) return;
+    const st = document.createElement('style');
+    st.textContent = '#lfRemind{display:flex;align-items:center;gap:10px;flex-wrap:wrap;width:min(100% - 28px,40rem);margin:12px auto 0;padding:10px 14px;background:var(--surface,#fff);color:var(--ink,#14162B);border:2.5px solid var(--line,#14162B);border-radius:18px;box-shadow:3px 3px 0 var(--shadow,#14162B);font-size:.95rem}#lfRemind span{flex:1;min-width:10rem}#lfRemind a{padding:6px 14px;border:2.5px solid var(--line,#14162B);border-radius:999px;background:var(--yellow,#FFD23F);color:var(--on,#14162B);font-weight:700;text-decoration:none}#lfRemind button{width:34px;height:34px;border:2.5px solid var(--line,#14162B);border-radius:50%;background:transparent;color:inherit;font:inherit;cursor:pointer}';
+    document.head.appendChild(st);
+    const el = document.createElement('div'); el.id = 'lfRemind'; el.setAttribute('role', 'status');
+    const t = document.createElement('span'); t.textContent = msg + ' Cadangkan agar tidak hilang saat cache dibersihkan.';
+    const a = document.createElement('a'); a.href = 'akun.html'; a.textContent = 'Cadangkan';
+    const x = document.createElement('button'); x.type = 'button'; x.setAttribute('aria-label', 'Tutup pengingat'); x.textContent = '✕';
+    x.onclick = () => { try { localStorage.setItem('lf:remind', String(Date.now())); } catch (e) {} el.remove(); };
+    el.append(t, a, x);
+    m.insertBefore(el, m.firstChild);
+  } catch (e) {}
 })();
 </script>
 </body>
