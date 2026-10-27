@@ -6,6 +6,7 @@
 <title>Akun · Learning Fun</title>
 <meta name="theme-color" content="#EEF2FF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101226" media="(prefers-color-scheme: dark)">
+<script src="/pwa.js" defer></script>
 <script>try{var t=JSON.parse(localStorage.getItem('lf:theme'));if(t==='light'||t==='dark')document.documentElement.dataset.theme=t}catch(e){}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -104,7 +105,7 @@ progress{width:100%;height:14px;margin-top:12px}
 
   <section class="card">
     <h2>Cadangan akun</h2>
-    <p>Cadangan diunduh sebagai satu file .txt berisi data JSON. Jika media deck (gambar dan audio) dipilih, media ikut disimpan dalam teks Base64 sehingga ukuran file bisa lebih besar.</p>
+    <p>Satu file .zip berisi semua data. Media deck (gambar dan audio) disimpan sebagai file terpisah di dalamnya.</p>
     <div class="seg" role="radiogroup" aria-label="Pilih tindakan">
       <label><input type="radio" name="act" value="export" checked> Ekspor</label>
       <label><input type="radio" name="act" value="import"> Impor</label>
@@ -119,7 +120,7 @@ progress{width:100%;height:14px;margin-top:12px}
       </fieldset>
     </div>
     <div id="optImp" hidden>
-      <p class="note">Impor otomatis menggabungkan isi file dengan data di perangkat ini. Data yang lebih baru diperbarui, data yang sudah ada tidak hilang. File .txt cadangan, .zip akun versi lama, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
+      <p class="note">Impor otomatis menggabungkan isi file dengan data di perangkat ini. Data yang lebih baru diperbarui, data yang sudah ada tidak hilang. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
     </div>
     <button class="btn pri" id="bGo" type="button">Ekspor akun</button>
     <button class="btn" id="bShare" type="button" hidden>Bagikan cadangan</button>
@@ -131,7 +132,7 @@ progress{width:100%;height:14px;margin-top:12px}
       <button class="btn pri" id="bOk" type="button">Lanjut impor</button>
       <button class="btn" id="bNo" type="button">Batal</button>
     </div>
-    <input type="file" id="file" accept=".zip,application/zip,.txt,text/plain,application/json,.json" hidden>
+    <input type="file" id="file" accept=".zip,.txt,text/plain,application/zip,application/json,.json" hidden>
   </section>
 
   <section class="card">
@@ -335,61 +336,31 @@ progress{width:100%;height:14px;margin-top:12px}
   }
 
   let ready = null;   // zip siap bagikan, kalau izin berbagi kedaluwarsa saat zip dibuat
-  /* ---------- ekspor TXT: JSON teks, termasuk media dalam Base64 ---------- */
-  async function buildTxt() {
-    const P = picked(); if (!P.length) throw new Error('Pilih minimal satu isi cadangan.');
-    status('Menyiapkan cadangan TXT…');
-    const local = {};
-    try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (wanted(k) && P.includes(catOf(k))) local[k] = localStorage.getItem(k); } } catch (e) {}
-    const data = { app: APP, version: 2, exportedAt: new Date().toISOString(), parts: P, local, idb: {} };
-    let nrec = 0, mediaCount = 0;
-    if (P.includes('hafalan')) for (const s of ['packs', 'cards', 'revlog']) {
-      const rows = await getAll(s), out = [];
-      for (let i = 0; i < rows.length; i++) { out.push(await encFast(rows[i])); if (i % 200 === 199) { prog(Math.min(80, Math.round(i / Math.max(rows.length, 1) * 70))); await tick(); } }
-      data.idb[s] = out; nrec += rows.length;
-    }
-    if (P.includes('media')) {
-      const rows = await getAll('media'), out = [];
-      for (let i = 0; i < rows.length; i++) {
-        const row = rows[i];
-        if (!row || !(row.blob instanceof Blob)) continue;
-        out.push(await encFast(row)); mediaCount++;
-        if (i % 5 === 0) { prog(Math.min(90, Math.round(i / Math.max(rows.length, 1) * 80))); await tick(); }
-      }
-      data.idb.media = out;
-    }
-    const blob = new Blob([JSON.stringify(data)], { type: 'text/plain;charset=utf-8' });
-    prog(100);
-    return { blob, P, info: Object.keys(local).length + ' pengaturan, ' + nrec + ' data hafalan, ' + mediaCount + ' file media (' + (blob.size / 1048576).toFixed(1) + ' MB).' };
-  }
-
-  let ready = null;   // TXT siap dibagikan
   async function doExport(how) {
     const bs = [$('#bGo'), $('#bShare')]; bs.forEach(b => b.disabled = true); prog(0); $('#bShareNow').hidden = true; ready = null;
     try {
-      const r = await buildTxt(), name = 'learningfun-akun-' + day(new Date()) + '.txt';
+      const r = await buildZip(), name = 'learningfun-akun-' + day(new Date()) + '.zip';
       if (how === 'share') {
-        ready = { f: new File([r.blob], name, { type: 'text/plain;charset=utf-8' }), r };
-        $('#bShareNow').hidden = false;
-        status('Cadangan TXT siap. Tekan "Kirim sekarang" untuk memilih aplikasi berbagi. ' + r.info);
-      } else { dl(r.blob, name); status('Ekspor TXT selesai: ' + r.info + markBackup(r.P)); }
+        ready = { f: new File([r.blob], name, { type: 'application/zip' }), txt: new File([r.blob], name + '.txt', { type: 'text/plain' }), r, useTxt: false };
+        await shareReady();
+      } else { dl(r.blob, name); status('Ekspor selesai: ' + r.info + markBackup(r.P)); }
     } catch (e) { status('Ekspor gagal: ' + (e && e.message || e), true); }
     finally { bs.forEach(b => b.disabled = false); setTimeout(() => prog(null), 1200); }
   }
-  async function shareReady() {
+  async function shareReady(retry) {
     if (!ready) return;
-    const f = ready.f, r = ready.r;
-    try {
-      if (!navigator.share || (navigator.canShare && !navigator.canShare({ files: [f] }))) throw new Error('SHARE_UNSUPPORTED');
-      await navigator.share({ files: [f], title: 'Cadangan Learning Fun', text: 'Cadangan akun Learning Fun' });
-      $('#bShareNow').hidden = true; ready = null; status('Menu berbagi selesai. ' + r.info + markBackup(r.P));
-    } catch (e) {
-      if (e && e.name === 'AbortError') {
-        status('Menu berbagi ditutup. Tekan "Kirim sekarang" untuk mencoba lagi.');
-        return;
-      }
-      dl(r.blob, f.name); $('#bShareNow').hidden = true; ready = null;
-      status('Berbagi file TXT tidak tersedia atau gagal. File TXT diunduh; kirim dari folder Unduhan. ' + r.info + markBackup(r.P), true);
+    const r = ready.r, f = ready.useTxt ? ready.txt : ready.f;
+    const fin = () => { $('#bShareNow').hidden = true; ready = null; };
+    const give = m => { dl(r.blob, ready.f.name); fin(); status(m + ' Cadangan diunduh sebagai gantinya; kirim dari folder Unduhan. ' + r.info + markBackup(r.P), true); };
+    const ok = (() => { try { return !!(navigator.share && (!navigator.canShare || navigator.canShare({ files: [f] }))); } catch (e) { return false; } })();
+    if (!ok) { if (!ready.useTxt) { ready.useTxt = true; return shareReady(retry); } give('Browser ini tidak bisa membagikan file langsung.'); return; }
+    try { await navigator.share({ files: [f], title: 'Cadangan Learning Fun' }); const m = r.info + markBackup(r.P) + (ready.useTxt ? ' (Dikirim sebagai .zip.txt; saat impor pilih file itu apa adanya.)' : ''); fin(); status('Cadangan dibagikan: ' + m); }
+    catch (e) {
+      const n = e && e.name || 'error', btn = $('#bShareNow');
+      if (n === 'AbortError') { btn.hidden = false; status('Pembagian dibatalkan. Ketuk "Kirim sekarang" untuk mencoba lagi.'); }
+      else if (n === 'NotAllowedError' && !retry) { btn.hidden = false; status('Cadangan siap. Ketuk "Kirim sekarang" untuk membagikan.'); }
+      else if (!ready.useTxt) { ready.useTxt = true; btn.hidden = false; status('Format zip ditolak (' + n + '). Ketuk "Kirim sekarang" untuk mencoba format lain (.zip.txt).'); }
+      else give('Berbagi ditolak (' + n + ').');
     }
   }
 
@@ -591,7 +562,7 @@ progress{width:100%;height:14px;margin-top:12px}
   syncAct();
   $('#bGo').addEventListener('click', () => act() === 'export' ? doExport('download') : $('#file').click());
   $('#bShare').addEventListener('click', () => doExport('share'));
-  $('#bShareNow').addEventListener('click', () => shareReady().catch(e => status('Gagal membagikan: ' + (e && e.message || e), true)));
+  $('#bShareNow').addEventListener('click', () => shareReady(true).catch(e => status('Gagal membagikan: ' + (e && e.message || e), true)));
   $('#bDel').addEventListener('click', openDel);
   $('#delOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeDel(); });
   addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#delOv').hidden) closeDel(); });
