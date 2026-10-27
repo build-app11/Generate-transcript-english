@@ -73,6 +73,9 @@ progress{width:100%;height:14px;margin-top:12px}
 .note{margin-top:10px;font-size:.88rem;color:var(--muted)}
 .parts{margin:12px 0 0;padding:0;border:0}.parts legend{padding:0;font:700 1rem/1.2 var(--font-display)}.parts .opt{margin-top:8px}
 #remind{margin-top:10px;padding:10px 14px;border:2.5px solid var(--line);border-radius:16px;background:var(--yellow);color:var(--on);font-weight:600}
+.ov{position:fixed;inset:0;z-index:50;display:grid;place-items:center;padding:16px;background:rgba(10,12,30,.6)}
+.dlg{position:relative;width:100%;max-width:26rem;max-height:90vh;overflow:auto;padding:18px 20px;background:var(--surface);border:2.5px solid var(--line);border-radius:22px;box-shadow:6px 6px 0 var(--shadow)}
+.dx{position:absolute;top:12px;right:12px;display:grid;place-items:center;width:38px;height:38px;border:2.5px solid var(--line);border-radius:50%;background:var(--surface);color:var(--ink);font:700 1rem/1 var(--font-display);cursor:pointer}
 .btn.danger{background:var(--coral);color:var(--on)}
 #delConfirm{width:100%;min-height:48px;margin-top:12px;padding:8px 14px;border:2.5px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit}
 </style>
@@ -116,11 +119,7 @@ progress{width:100%;height:14px;margin-top:12px}
       </fieldset>
     </div>
     <div id="optImp" hidden>
-      <div class="seg" role="radiogroup" aria-label="Mode impor">
-        <label><input type="radio" name="mode" value="merge" checked> Gabungkan (aman)</label>
-        <label><input type="radio" name="mode" value="replace"> Timpa semua</label>
-      </div>
-      <p class="note">Gabungkan: data di perangkat ini tidak hilang, progres dan daftar digabung. Timpa: data diganti isi file. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
+      <p class="note">Impor otomatis menggabungkan isi file dengan data di perangkat ini. Data yang lebih baru diperbarui, data yang sudah ada tidak hilang. File .zip akun, .json akun lama, dan ekspor Path lama bisa dipakai.</p>
     </div>
     <button class="btn pri" id="bGo" type="button">Ekspor akun</button>
     <button class="btn" id="bShare" type="button" hidden>Bagikan cadangan</button>
@@ -136,27 +135,22 @@ progress{width:100%;height:14px;margin-top:12px}
   </section>
 
   <section class="card">
-    <h2>Kata berbintang ke CSV</h2>
-    <p>Bisa dibuka di Excel atau diimpor ke Anki. Ini bukan cadangan akun. Baris pertama berisi nama kolom, hapus dulu sebelum impor ke Anki.</p>
-    <button class="btn" id="bCsv" type="button">Unduh kata berbintang (.csv)</button>
-  </section>
-
-  <section class="card">
     <h2>Hapus data di perangkat ini</h2>
     <p>Berguna untuk HP bersama atau saat pindah perangkat. Data di browser ini hilang dan tidak bisa dikembalikan, kecuali dari file cadangan.</p>
     <button class="btn danger" id="bDel" type="button">Hapus data di perangkat ini</button>
-    <div id="delBox" hidden>
-      <p id="delWarn" class="note"></p>
-      <button class="btn pri" id="bDelExp" type="button">Ekspor dulu</button>
-      <input id="delConfirm" type="text" autocomplete="off" autocapitalize="characters" placeholder="Ketik HAPUS untuk melanjutkan" aria-label="Ketik HAPUS untuk mengonfirmasi">
-      <button class="btn danger" id="bDelGo" type="button" disabled>Hapus sekarang</button>
-      <button class="btn" id="bDelNo" type="button">Batal</button>
-    </div>
   </section>
 
   <progress id="prog" max="100" value="0" hidden></progress>
   <div id="status" role="status"></div>
 </main>
+<div class="ov" id="delOv" hidden>
+  <div class="dlg" role="dialog" aria-modal="true" aria-labelledby="delTtl">
+    <button class="dx" id="bDelNo" type="button" aria-label="Tutup">✕</button>
+    <h2 id="delTtl" style="margin:0 40px 0 0;font:700 1.3rem/1.2 var(--font-display)">Hapus data di perangkat ini</h2>
+    <input id="delConfirm" type="text" autocomplete="off" autocapitalize="characters" placeholder="Ketik HAPUS untuk melanjutkan" aria-label="Ketik HAPUS untuk melanjutkan">
+    <button class="btn danger" id="bDelGo" type="button" disabled>Hapus sekarang</button>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -347,40 +341,25 @@ progress{width:100%;height:14px;margin-top:12px}
       const r = await buildZip(), name = 'learningfun-akun-' + day(new Date()) + '.zip';
       if (how === 'share') {
         ready = { f: new File([r.blob], name, { type: 'application/zip' }), r };
-        try { await shareReady(); }
-        catch (e) {
-          if (e && e.name === 'NotAllowedError') { $('#bShareNow').hidden = false; status('Cadangan siap. Ketuk "Kirim sekarang" untuk membagikan.'); }
-          else throw e;
-        }
+        await shareReady();
       } else { dl(r.blob, name); status('Ekspor selesai: ' + r.info + markBackup(r.P)); }
     } catch (e) { status('Ekspor gagal: ' + (e && e.message || e), true); }
     finally { bs.forEach(b => b.disabled = false); setTimeout(() => prog(null), 1200); }
   }
   async function shareReady() {
     if (!ready) return;
-    try { await navigator.share({ files: [ready.f], title: 'Cadangan Learning Fun' }); $('#bShareNow').hidden = true; status('Cadangan dibagikan: ' + ready.r.info + markBackup(ready.r.P)); ready = null; }
-    catch (e) { if (e && e.name === 'AbortError') { $('#bShareNow').hidden = false; status('Pembagian dibatalkan. Ketuk "Kirim sekarang" untuk mencoba lagi.'); } else throw e; }
-  }
-
-  /* ---------- kata berbintang ke CSV ---------- */
-  function exportCsv() {
-    const star = parse(lsGet('lf:starred'), []);
-    if (!Array.isArray(star) || !star.length) { status('Belum ada kata berbintang.', true); return; }
-    const rows = star.map(x => x && typeof x === 'object' ? x : { w: x }), cols = ['w'];
-    rows.forEach(r => Object.keys(r).forEach(k => { if (!cols.includes(k)) cols.push(k); }));
-    const q = v => { v = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v); return /[",\r\n]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
-    const csv = '\ufeff' + [cols.map(c => q(c === 'w' ? 'kata' : c)).join(',')].concat(rows.map(r => cols.map(c => q(r[c])).join(','))).join('\r\n');
-    dl(new Blob([csv], { type: 'text/csv;charset=utf-8' }), 'kata-berbintang-' + day(new Date()) + '.csv');
-    status(rows.length + ' kata berbintang diekspor ke CSV.');
+    const f = ready.f, r = ready.r, ok = (() => { try { return !!(navigator.share && (!navigator.canShare || navigator.canShare({ files: [f] }))); } catch (e) { return false; } })();
+    if (!ok) { dl(r.blob, f.name); $('#bShareNow').hidden = true; ready = null; status('Browser ini tidak bisa membagikan file langsung, jadi cadangan diunduh. Buka dari folder Unduhan untuk mengirimnya. ' + r.info + markBackup(r.P)); return; }
+    try { await navigator.share({ files: [f], title: 'Cadangan Learning Fun' }); $('#bShareNow').hidden = true; status('Cadangan dibagikan: ' + r.info + markBackup(r.P)); ready = null; }
+    catch (e) {
+      if (e && (e.name === 'AbortError' || e.name === 'NotAllowedError')) { $('#bShareNow').hidden = false; status(e.name === 'AbortError' ? 'Pembagian dibatalkan. Ketuk "Kirim sekarang" untuk mencoba lagi.' : 'Cadangan siap. Ketuk "Kirim sekarang" untuk membagikan.'); }
+      else { dl(r.blob, f.name); $('#bShareNow').hidden = true; ready = null; status('Berbagi gagal (' + (e && e.name || 'error') + '), jadi cadangan diunduh. ' + r.info + markBackup(r.P), true); }
+    }
   }
 
   /* ---------- hapus data di perangkat ini ---------- */
-  function paintDel() {
-    const b = parse(lsGet('lf:backup'), null), safe = b && b.at && (b.done || 0) >= countDone(), w = $('#delWarn');
-    w.className = 'note' + (safe ? '' : ' warn');
-    w.textContent = safe ? 'Cadangan terakhir: ' + fmtDate(b.at) + '. Pastikan file-nya tersimpan di tempat aman sebelum menghapus.' : 'Datamu belum dicadangkan atau ada progres baru sejak cadangan terakhir. Ekspor dulu supaya tidak hilang.';
-  }
-  function closeDel() { $('#delBox').hidden = true; $('#bDel').hidden = false; $('#delConfirm').value = ''; $('#bDelGo').disabled = true; }
+  function openDel() { $('#delOv').hidden = false; setTimeout(() => $('#delConfirm').focus(), 50); }
+  function closeDel() { $('#delOv').hidden = true; $('#delConfirm').value = ''; $('#bDelGo').disabled = true; $('#bDel').focus(); }
   async function wipe() {
     $('#bDelGo').disabled = true;
     try {
@@ -420,7 +399,7 @@ progress{width:100%;height:14px;margin-top:12px}
 
   const fmtBytes = n => n >= 1073741824 ? (n / 1073741824).toFixed(1) + ' GB' : n >= 1048576 ? (n / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1024)) + ' KB';
   const fmtDate = t => new Date(t).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
-  const curMode = () => (document.querySelector('input[name=mode]:checked') || {}).value === 'replace' ? 'replace' : 'merge';
+  const curMode = () => 'merge';   // impor selalu menggabungkan dan memperbarui otomatis
   const nKeys = o => Object.keys(o || {}).length;
   const countDone = () => { const p = parse(lsGet('lf:path'), {}); return nKeys(p && p.done); };
   let pending = null;   // file yang sudah dibaca, menunggu konfirmasi
@@ -467,7 +446,7 @@ progress{width:100%;height:14px;margin-top:12px}
     const ul = $('#pvList'); ul.textContent = '';
     items.forEach(t => { const li = document.createElement('li'); li.textContent = t; ul.appendChild(li); });
     const w = $('#pvWarn');
-    if (merge) { w.className = ''; w.textContent = 'Mode Gabungkan: data di perangkat ini tidak hilang.'; }
+    if (merge) { w.className = ''; w.textContent = 'Data digabung otomatis: data di perangkat ini tidak hilang, yang lebih baru diperbarui.'; }
     else {
       let packs = 0; try { packs = (await getAll('packs')).length; } catch (e) {}
       w.className = 'warn';
@@ -571,23 +550,21 @@ progress{width:100%;height:14px;margin-top:12px}
     document.querySelectorAll('.seg label').forEach(l => { const i = l.querySelector('input'); l.classList.toggle('on', !!(i && i.checked)); });
     $('#bGo').classList.toggle('imp', act() === 'import');
   }
-  function syncAct() { const e = act() === 'export'; $('#optExp').hidden = !e; $('#optImp').hidden = e; $('#bShare').hidden = !(e && canShare); if (!e) $('#bShareNow').hidden = true; $('#bGo').textContent = e ? 'Ekspor akun' : 'Pilih file dan impor'; status(''); paint(); }
-  document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', paint));
+  function syncAct() { const e = act() === 'export'; $('#optExp').hidden = !e; $('#optImp').hidden = e; $('#bShare').hidden = !e; if (!e) $('#bShareNow').hidden = true; $('#bGo').textContent = e ? 'Ekspor akun' : 'Pilih file dan impor'; status(''); paint(); }
   document.querySelectorAll('input[name=act]').forEach(r => r.addEventListener('change', syncAct));
   syncAct();
   $('#bGo').addEventListener('click', () => act() === 'export' ? doExport('download') : $('#file').click());
   $('#bShare').addEventListener('click', () => doExport('share'));
   $('#bShareNow').addEventListener('click', () => shareReady().catch(e => status('Gagal membagikan: ' + (e && e.message || e), true)));
-  $('#bCsv').addEventListener('click', exportCsv);
-  $('#bDel').addEventListener('click', () => { $('#delBox').hidden = false; $('#bDel').hidden = true; paintDel(); });
+  $('#bDel').addEventListener('click', openDel);
+  $('#delOv').addEventListener('click', e => { if (e.target === e.currentTarget) closeDel(); });
+  addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#delOv').hidden) closeDel(); });
   $('#bDelNo').addEventListener('click', closeDel);
-  $('#bDelExp').addEventListener('click', () => { const r = document.querySelector('input[name=act][value=export]'); r.checked = true; r.dispatchEvent(new Event('change')); r.scrollIntoView({ behavior: 'smooth', block: 'center' }); status('Ekspor dulu, lalu kembali ke bagian hapus data.'); });
   $('#delConfirm').addEventListener('input', e => { $('#bDelGo').disabled = e.target.value.trim().toUpperCase() !== 'HAPUS'; });
   $('#bDelGo').addEventListener('click', wipe);
   $('#file').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) previewFile(f); });
   $('#bOk').addEventListener('click', () => { if (pending) applyImport(pending); });
   $('#bNo').addEventListener('click', () => { closePreview(); status(''); });
-  document.querySelectorAll('input[name=mode]').forEach(r => r.addEventListener('change', () => { if (pending) renderPreview(); }));
   document.querySelectorAll('input[name=act]').forEach(r => r.addEventListener('change', closePreview));
   paintBackup(); paintStorage();
   addEventListener('pageshow', stats);
