@@ -380,6 +380,11 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
   ready(function () {
     $b('bootFile').addEventListener('change', function () { var f = this.files[0]; if (f) f.text().then(fromText); });
     var sp = new URLSearchParams(location.search), v = sp.get('q') || sp.get('v');
+    if (sp.get('preview')) {
+      var pj = null; try { pj = sessionStorage.getItem('lf:preview'); } catch (e) {}
+      if (pj) fromText(pj); else show('Data preview tidak ditemukan', 'Kembali ke generator lalu tekan Sinkronisasi lagi.', true);
+      return;
+    }
     if (!v) { show('Pilih pelajaran', 'Buka halaman ini dengan alamat ...?q=nama-pelajaran, atau pilih file JSON dari perangkatmu.', true); return; }
     if (v.indexOf('..') >= 0 || !/^[A-Za-z0-9_][A-Za-z0-9_.\-]*(\/[A-Za-z0-9_][A-Za-z0-9_.\-]*)*$/.test(v)) {
       show('Nama pelajaran tidak valid', 'Pakai huruf, angka, tanda minus, atau garis bawah.', true); return;
