@@ -94,6 +94,17 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 
 .line.looping .tm::after { content: ' ↻'; }
 .noipa .w i { display: none; }
+.pitem[hidden] { display: none; }
+/* Jepang: furigana (ruby) di atas kanji, romaji di bawahnya */
+.ws.jpl { align-items: flex-end; }
+.w.jp { align-items: center; text-align: center; }
+.w.jp b { line-height: 1.9; }
+.w rt { font-family: var(--font-en); font-size: 0.48em; font-weight: 500; letter-spacing: 0; line-height: 1; color: var(--muted); }
+.w .ro { font-style: normal; font-size: calc(clamp(0.8rem, 0.72rem + 0.4vw, 1rem) * var(--fs, 1)); line-height: 1.2; color: var(--muted); }
+.w.pn { margin-left: -10px; }
+.nofuri .w rt { display: none; }
+.nofuri .w.jp b { line-height: 1.3; }
+.noromaji .w .ro { display: none; }
 .only-pinned .line:not(.pinned) { display: none; }
 .empty { padding: 28px 12px; color: var(--muted); font-size: 0.9rem; text-align: center; }
 .empty[hidden] { display: none; }
@@ -312,6 +323,26 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .line.drilled:not(.reveal) .tr{filter:blur(9px)}
 .vpop #bTr{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-en);font-weight:600;font-size:0.85rem}
 .vpop #bTr .g{font-family:var(--font-ipa);font-size:1.2rem}
+.vpop #bTrAuto{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-en);font-weight:600;font-size:0.85rem}
+.vpop #bTrAuto .g{font-size:1.2rem}
+.vpop #trLang{width:100%;min-height:44px;padding:0 10px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:600 0.85rem var(--font-en)}
+.vpop #trLang[hidden]{display:none}
+.line .tr.wait{opacity:.45}
+.vpop .trl{display:flex;flex-direction:column;gap:4px;font-size:0.8rem;font-weight:600;color:var(--muted)}
+.vpop #mainLang{width:100%;min-height:44px;padding:0 10px;border:2.5px solid var(--line);border-radius:12px;background:var(--surface);color:var(--ink);font:600 0.85rem var(--font-en)}
+.line .mtx{margin:0;font-size:calc(1.15rem * var(--fs, 1));line-height:1.45;font-weight:600}
+.line .mtx.wait{opacity:.45}
+.mtx .w{display:inline;padding:0 .06em}
+.sw{cursor:pointer;border-radius:4px}
+.sw:hover{text-decoration:underline;text-decoration-color:var(--rule);text-underline-offset:3px}
+.sw.sel{text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
+.mtx .w b{font-weight:inherit;font-size:inherit}
+.line:not(.mainTr) .mtx{display:none}
+.line.mainTr .body > .ws{display:none}
+.line.drilled:not(.reveal) .mtx{filter:blur(9px)}
+.vpop #bFuri,.vpop #bRomaji,.vpop #bScript{width:100%;min-height:44px;display:flex;align-items:center;justify-content:center;gap:8px;font-family:var(--font-en);font-weight:600;font-size:0.85rem}
+.vpop #bFuri[hidden],.vpop #bRomaji[hidden],.vpop #bIpa[hidden],.vpop #bScript[hidden]{display:none}
+.vpop #bFuri .g,.vpop #bRomaji .g,.vpop #bScript .g{font-size:1.1rem}
 /* skor shadowing: badge persen per baris, kata yang kurang jelas berwarna merah */
 .sc{flex:none;align-self:flex-start;min-width:46px;margin-top:2px;padding:1px 8px;text-align:center;border:2px solid var(--line);border-radius:999px;background:var(--surface);font:600 0.78rem var(--font-mono);font-variant-numeric:tabular-nums}
 .sc.good{color:var(--ok)}.sc.mid{color:var(--warn)}.sc.low{color:var(--bad)}
@@ -352,6 +383,9 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
       if (!l || typeof l.text !== 'string' || !isFinite(l.start) || l.start < 0) return;
       var ts = stamp(l.start);
       out.push(ts + ' ' + l.text.replace(/[\r\n]+/g, ' '), ts + ' ' + String(l.ipa == null ? '' : l.ipa).replace(/[\r\n]+/g, ' '));
+      if (l.furi) out.push(ts + ' §F ' + String(l.furi).replace(/[\r\n]+/g, ' '));
+      if (l.romaji) out.push(ts + ' §R ' + String(l.romaji).replace(/[\r\n]+/g, ' '));
+      if (l.alt) out.push(ts + ' §A ' + String(l.alt).replace(/[\r\n]+/g, ' '));
       if (l.tr) out.push(ts + ' ≫ ' + String(l.tr).replace(/[\r\n]+/g, ' '));
     });
     if (!out.length) throw new Error('Tidak ada baris yang valid di JSON.');
@@ -362,6 +396,7 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     TRANSKRIP = convert(j);
     VIDEO_ID = /^[\w-]{11}$/.test(j.videoId || '') ? j.videoId : '';
     JUDUL = String(j.title || 'Shadowing').slice(0, 200);
+    window.LESSON_LANG = j.lang || 'en'; window.LESSON_ZH = j.zhScript || 'simp';
     [['category', j.category], ['keywords', Array.isArray(j.tags) ? j.tags.join(', ') : '']].forEach(function (p) {
       if (!p[1]) return;
       var mt = document.createElement('meta'); mt.name = p[0]; mt.content = String(p[1]).slice(0, 300); document.head.appendChild(mt);
@@ -437,7 +472,13 @@ let VIDEO_ID = '', JUDUL = '', TRANSKRIP = '';
     <div class="pop" id="lpop" hidden role="group" aria-label="Jumlah pengulangan"></div>
     <div class="pop vpop" id="vpop" hidden>
       <button id="bIpa" aria-pressed="true"><span class="g">ə</span>Fonetik</button>
+      <button id="bScript" aria-pressed="false" hidden><span class="g">繁</span>Tradisional</button>
+      <button id="bFuri" aria-pressed="true" hidden><span class="g">あ</span>Furigana</button>
+      <button id="bRomaji" aria-pressed="true" hidden><span class="g">Aa</span>Romaji</button>
       <button id="bTr" aria-pressed="true" hidden><span class="g">≫</span>Terjemahan</button>
+      <label class="trl">Subtitle utama<select id="mainLang" aria-label="Bahasa subtitle utama"></select></label>
+      <button id="bTrAuto" aria-pressed="false"><span class="g">⇄</span>Terjemahan otomatis</button>
+      <select id="trLang" aria-label="Bahasa subtitle kedua" hidden></select>
       <div class="szrow"><span>Ukuran font</span><button id="fsVal" aria-label="Ukuran font, tekan untuk kembali ke awal">100%</button></div>
       <div class="szslide">
         <button id="fsDown" aria-label="Perkecil font">A−</button>
@@ -493,6 +534,13 @@ function splitTs(raw) {
   return parts.slice(1).map((p) => p.replace(/\s+/g, ' ').trim()).join('\n');
 }
 
+const LCODE = /^[a-z]{2,3}(-[a-z0-9]{2,8})?$/i.test(window.LESSON_LANG || '') ? String(window.LESSON_LANG).toLowerCase() : 'en';
+const WORDLANG = !['ja', 'zh', 'ko', 'th'].includes(LCODE); /* bahasa berspasi: kata dipisah spasi, fonetik opsional */
+const RTL = ['ar', 'he', 'fa', 'ur', 'yi', 'ps', 'sd', 'ug', 'dv'].includes(LCODE);
+const ZH_MAIN = window.LESSON_ZH === 'trad' ? 'trad' : 'simp';
+const lcode = () => LCODE;
+const PUNCT = /^[^\p{L}\p{N}]*$/u;
+const KANJI = /[\u3400-\u9FFF\uF900-\uFAFF々〆ヶ]/;
 function parseTranskrip(raw) {
   const ent = [];
   splitTs(raw).split('\n').forEach((l) => {
@@ -507,14 +555,54 @@ function parseTranskrip(raw) {
     let t = ent[i][0];
     const en = tidy(ent[i][1]), ip = tidy(ent[i + 1][1]);
     i += 2;
-    let tr = '';
-    if (i < ent.length && ent[i][0] === ent[i - 1][0] && /^≫/.test(ent[i][1])) { tr = ent[i][1].replace(/^≫\s*/, '').replace(/\s+/g, ' ').trim(); i++; }
+    let tr = '', fu = '', ro = '', alt = '';
+    while (i < ent.length && ent[i][0] === ent[i - 1][0]) {
+      const x = ent[i][1];
+      if (/^≫/.test(x)) tr = x.replace(/^≫\s*/, '').replace(/\s+/g, ' ').trim();
+      else if (/^§F/.test(x)) fu = x.replace(/^§F\s*/, '').replace(/\s+/g, ' ').trim();
+      else if (/^§R/.test(x)) ro = x.replace(/^§R\s*/, '').replace(/\s+/g, ' ').trim();
+      else if (/^§A/.test(x)) alt = x.replace(/^§A\s*/, '').replace(/\s+/g, ' ').trim();
+      else break;
+      i++;
+    }
     if (t <= prev) t = Math.round((prev + 0.6) * 100) / 100;
     prev = t;
-    const a = en.split(' '), b = ip.split(' ');
-    const d = { t, en, ip };
+    /* "_" menyambung beberapa suku kata/kata jadi satu kata yang bisa diklik (mis. học_sinh); tampil sebagai spasi */
+    const US = (x) => (WORDLANG ? x.replace(/_/g, ' ') : x);
+    const a = en.split(' ').map(US);
+    const d = { t, en: US(en), ip: US(ip) };
     if (tr) d.tr = tr;
-    if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);
+    if (fu) d.fu = fu;
+    if (ro) d.ro = ro;
+    if (alt) d.alt = alt;
+    if (fu || ro || alt) {
+      /* Bahasa Asia: kolom bacaan dipasangkan per kata. Tanda baca boleh ikut dihitung atau dilewati. */
+      const han = a.map((x) => (PUNCT.test(x) ? 0 : [...x].filter((c) => KANJI.test(c)).length));
+      const al = (s, zh) => {
+        if (!s) return null;
+        const q = s.split(' ');
+        if (q.length === a.length) return q;
+        const c = a.filter((x) => !PUNCT.test(x));
+        if (q.length === c.length) { let n = 0; return a.map((x) => (PUNCT.test(x) ? '' : q[n++])); }
+        /* pinyin per suku kata: satu suku kata per karakter Han */
+        if (zh && q.length === han.reduce((x, y) => x + y, 0)) { let n = 0; return a.map((x, k) => { if (!han[k]) return ''; const r = q.slice(n, n + han[k]).join(''); n += han[k]; return r; }); }
+        return false;
+      };
+      /* versi karakter lain (sederhana/tradisional): boleh per kata atau tanpa spasi, asal jumlah karakternya sama */
+      const altTok = (s) => {
+        if (!s) return null;
+        const q = s.split(' ');
+        if (q.length === a.length) return q;
+        const fa = [...a.join('')], fs = [...s.replace(/\s+/g, '')];
+        if (fa.length !== fs.length) return null;
+        let n = 0; return a.map((x) => { const L = [...x].length; const r = fs.slice(n, n + L).join(''); n += L; return r; });
+      };
+      const I = al(ip), F = al(fu, lcode() === 'zh'), R = al(ro), A = altTok(alt);
+      if (I !== false && F !== false && R !== false) d.w = a.map((x, k) => [x, I ? I[k] : '', F ? F[k] : '', R ? R[k] : '', A ? A[k] : '']);
+    } else {
+      const b = ip.split(' ').map(US);
+      if (a.length === b.length) d.w = a.map((x, k) => [x, b[k]]);
+    }
     if (/^\[\s*music\s*\]/i.test(en)) d.m = 1;
     out.push(d);
   }
@@ -543,6 +631,21 @@ const RATES = [0.5, 0.75, 1, 1.25, 1.5];
 const $ = (s) => document.querySelector(s);
 const fmt = (s) => { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+/* Prancis/Italia: kata berapostrof (l'homme, c'est, dell'arte) tetap satu kata dengan satu fonetik, tapi tiap bagian bisa diklik sendiri. Bagian elisi dicari sebagai bentuk lengkapnya (l' → le). */
+const ELI = {
+  fr: { l: 'le', d: 'de', j: 'je', m: 'me', t: 'te', s: 'se', n: 'ne', c: 'ce', qu: 'que', jusqu: 'jusque', lorsqu: 'lorsque', puisqu: 'puisque' },
+  it: { l: 'lo', d: 'di', c: 'ci', m: 'mi', t: 'ti', s: 'si', v: 'vi', n: 'ne', un: 'una', dell: 'dello', all: 'allo', dall: 'dallo', nell: 'nello', sull: 'sullo', quest: 'questo', quell: 'quello', com: 'come', dov: 'dove', cos: 'cosa', anch: 'anche' }
+};
+const LEXAP = new Set(["aujourd'hui", "quelqu'un", "quelqu'une", "presqu'île", "presqu'îles", "prud'homme", "prud'hommes", "entr'acte", "entr'actes"]);
+function aposParts(tok, lc) {
+  const map = ELI[lc]; if (!map) return null;
+  const m = String(tok).match(/^([^\p{L}\p{N}]*)(\p{L}+)(['’])(\p{L}[\p{L}\p{N}'’-]*)([^\p{L}\p{N}]*)$/u);
+  if (!m) return null;
+  const left = m[2].toLowerCase(), whole = (m[2] + "'" + m[4]).toLowerCase().replace(/’/g, "'");
+  if (!map[left] || LEXAP.has(whole)) return null;
+  return [[m[1] + m[2] + m[3], map[left]], [m[4] + m[5], m[4]]];
+}
+const wordB = (w, lc) => { const ps = aposParts(w, lc); return ps ? ps.map((q) => '<span class="sw" data-w="' + esc(q[1]) + '">' + esc(q[0]) + '</span>').join('') : esc(w); };
 
 /* segment ends: highlight runs until the next line, a loop stops a little after the speech ends */
 DATA.forEach((d, i) => {
@@ -573,6 +676,43 @@ try { if (localStorage.getItem('uk-ipa') === '0') { app.classList.add('noipa'); 
 
 /* ---------- render ---------- */
 const eyeSvg = '<svg viewBox="0 0 24 24"><path d="M3 3l18 18M10.6 6.1A9.8 9.8 0 0112 6c5 0 8.5 4.5 9.5 6a15 15 0 01-3.2 3.7M6.5 7.6C4.4 9 2.9 11 2.5 12c1 1.5 4.5 6 9.5 6 1.5 0 2.8-.4 4-1M9.9 9.9a3 3 0 004.2 4.2"/></svg>';
+let showAlt = false;
+const HAS_ALT = DATA.some((d) => d.w && d.w.some((x) => x[4]));
+try { const pf = localStorage.getItem('uk-zhscript'); if (HAS_ALT && (pf === 'trad' || pf === 'simp') && pf !== ZH_MAIN) showAlt = true; } catch (e) {}
+const zhTrad = () => (ZH_MAIN === 'trad') !== showAlt;
+const hl = () => (LCODE === 'zh' ? (zhTrad() ? 'zh-Hant' : 'zh-Hans') : LCODE);
+const SPK = { de: 'de-DE', nl: 'nl-NL', fr: 'fr-FR', es: 'es-ES', it: 'it-IT', pt: 'pt-PT', ja: 'ja-JP', ko: 'ko-KR', th: 'th-TH', ru: 'ru-RU', ar: 'ar-SA', tr: 'tr-TR', vi: 'vi-VN', hi: 'hi-IN', id: 'id-ID', pl: 'pl-PL', sv: 'sv-SE' };
+const speechLang = (rec) => (LCODE === 'en' ? (rec ? 'en-US' : 'en-GB') : LCODE === 'zh' ? (zhTrad() ? 'zh-TW' : 'zh-CN') : SPK[LCODE] || LCODE);
+const MT_SL = LCODE === 'zh' ? 'zh-CN' : LCODE;
+const toHira = (s) => String(s).replace(/[\u30A1-\u30F6]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60));
+const RUNCLS = '\u3400-\u9FFF\uF900-\uFAFF々〆ヶ0-9０-９';
+const RUN_RE = new RegExp('[' + RUNCLS + ']+|[^' + RUNCLS + ']+', 'g');
+const RUN_START = new RegExp('^[' + RUNCLS + ']');
+/* furigana tepat di atas rangkaian kanji; kana di antaranya tetap polos (持ち帰り -> 持[も]ち帰[かえ]り) */
+function rubyHtml(w, f) {
+  if (f && f.indexOf('|') > -1) {
+    /* pinyin per suku kata: satu suku kata di atas tiap karakter Han */
+    const sy = f.split('|'), cs = [...w];
+    if (cs.every((c) => KANJI.test(c)) && cs.length === sy.length) return '<ruby>' + esc(w) + '<rt>' + esc(sy.join(' ')) + '</rt></ruby>';
+    if (cs.filter((c) => KANJI.test(c)).length === sy.length) { let k = 0; return cs.map((c) => (KANJI.test(c) ? '<ruby>' + esc(c) + '<rt>' + esc(sy[k++]) + '</rt></ruby>' : esc(c))).join(''); }
+    f = sy.join('');
+  }
+  if (!f || f === w || !KANJI.test(w)) return esc(w);
+  const parts = w.match(RUN_RE) || [w];
+  const rx = '^' + parts.map((p) => (RUN_START.test(p) ? '(.+?)' : toHira(p).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))).join('') + '$';
+  const m = new RegExp(rx).exec(toHira(f));
+  if (!m) return '<ruby>' + esc(w) + '<rt>' + esc(f) + '</rt></ruby>';
+  let n = 1;
+  return parts.map((p) => {
+    if (!RUN_START.test(p)) return esc(p);
+    const r = m[n++];
+    return KANJI.test(p) && r !== p ? '<ruby>' + esc(p) + '<rt>' + esc(r) + '</rt></ruby>' : esc(p);
+  }).join('');
+}
+function jpWord([w, ip, fu, ro, al], hasRo) {
+  const pn = PUNCT.test(w), cur = showAlt && al ? al : w;
+  return '<span class="w jp' + (pn ? ' pn' : '') + '" data-w="' + esc(w) + '" data-a="' + esc(al || '') + '" data-f="' + esc(fu || '') + '"><b>' + (pn ? esc(cur) : rubyHtml(cur, fu)) + '</b>' + (ip ? '<i>' + esc(ip) + '</i>' : '') + (pn ? (hasRo ? '<em class="ro">&nbsp;</em>' : '') : ro ? '<em class="ro">' + esc(ro) + '</em>' : '') + '</span>';
+}
 const lines = [];
 DATA.forEach((d, i) => {
   const el = document.createElement('div');
@@ -580,9 +720,11 @@ DATA.forEach((d, i) => {
   el.dataset.i = i;
   el.tabIndex = 0;
   el.setAttribute('role', 'button');
+  const jp = !!(d.fu || d.ro || d.alt);
+  const wl = (LCODE !== 'en' ? ' lang="' + hl() + '"' : '') + (RTL ? ' dir="rtl"' : '');
   const body = d.w
-    ? '<div class="ws">' + d.w.map(([a, b]) => '<span class="w"><b>' + esc(a) + '</b><i>' + esc(b) + '</i></span>').join('') + '</div>'
-    : '<div class="ws"><span class="w"><b>' + esc(d.en) + '</b><i>' + esc(d.ip) + '</i></span></div>';
+    ? '<div class="ws' + (jp ? ' jpl' : '') + '"' + wl + '>' + d.w.map((x) => jp ? jpWord(x, d.w.some((y) => y[3])) : '<span class="w"><b>' + wordB(x[0], LCODE) + '</b><i>' + esc(x[1]) + '</i></span>').join('') + '</div>'
+    : '<div class="ws"' + wl + '><span class="w"><b>' + esc(d.en) + '</b><i>' + esc(d.ip || d.ro || '') + '</i></span></div>';
   const drb = d.m ? '' : '<button class="drb" aria-label="Drill baris: buram dan ulang" tabindex="-1">' + eyeSvg + '</button>';
   el.innerHTML = '<div class="body">' + body + (d.tr ? '<p class="tr">' + esc(d.tr) + '</p>' : '') + '</div><span class="sc" hidden></span>' + drb + '<button class="pinb" aria-label="Simpan baris" tabindex="-1">' + pinSvg + '</button>';
   list.appendChild(el);
@@ -854,7 +996,7 @@ list.addEventListener('click', (e) => {
   if (e.target.closest('.drb')) { toggleDrill(i); return; }
   if (e.target.closest('.pinb')) { togglePin(i); return; }
   const wEl = e.target.closest('.w');
-  if (wEl && !DATA[i].m && !ln.classList.contains('drilled') && !sh.on) { showTip(wEl); return; }
+  if (wEl && !DATA[i].m && !ln.classList.contains('drilled') && !sh.on) { showTip(wEl, e.target.closest('.sw')); return; }
   if (sh.on) { shRun(i); return; }
   if (loopIdx != null) setLoop(i);
   seek(DATA[i].s);
@@ -884,6 +1026,42 @@ seekEl.addEventListener('change', () => {
 $('#bPlay').addEventListener('click', () => { if (sh.on) { shPress(); return; } if (isPlaying()) pause(); else play(); });
 $('#bLoop').addEventListener('click', (e) => { e.stopPropagation(); if (loopIdx != null) { setLoop(null); return; } closeVpop(); pop.hidden = true; $('#lpop').hidden = !$('#lpop').hidden; });
 $('#bPin').addEventListener('click', () => togglePin(Math.max(activeIdx, 0)));
+const HAS_FURI = DATA.some((d) => d.w && d.w.some((x) => x[2] && x[2] !== x[0]));
+const HAS_RO = DATA.some((d) => d.w && d.w.some((x) => x[3]));
+const HAS_IPA = DATA.some((d) => d.ip);
+if (!HAS_IPA && (HAS_FURI || HAS_RO || HAS_ALT)) $('#bIpa').hidden = true;
+if (LCODE === 'zh') $('#bFuri').innerHTML = '<span class="g">ā</span>Pinyin';
+if (LCODE === 'ko' || LCODE === 'th') $('#bRomaji').innerHTML = '<span class="g">Aa</span>Romanisasi';
+if (!WORDLANG) { const bd = $('#bDict'); if (bd) bd.hidden = true; }
+const bScript = $('#bScript');
+function paintScript() {
+  const tr = zhTrad();
+  bScript.innerHTML = '<span class="g">' + (tr ? '繁' : '简') + '</span>' + (tr ? 'Tradisional' : 'Sederhana');
+  bScript.setAttribute('aria-pressed', String(tr));
+  list.querySelectorAll('.ws').forEach((ws) => { ws.lang = hl(); });
+  list.querySelectorAll('.w.jp').forEach((w) => {
+    const cur = showAlt && w.dataset.a ? w.dataset.a : w.dataset.w;
+    w.querySelector('b').innerHTML = w.classList.contains('pn') ? esc(cur) : rubyHtml(cur, w.dataset.f);
+  });
+}
+if (HAS_ALT) {
+  bScript.hidden = false; paintScript();
+  bScript.addEventListener('click', () => {
+    showAlt = !showAlt;
+    try { localStorage.setItem('uk-zhscript', zhTrad() ? 'trad' : 'simp'); } catch (e) {}
+    paintScript();
+  });
+}
+[['Furi', 'furi', HAS_FURI, 'uk-furi'], ['Romaji', 'romaji', HAS_RO, 'uk-romaji']].forEach(([id, key, has, ls]) => {
+  const b = $('#b' + id);
+  b.hidden = !has;
+  try { if (localStorage.getItem(ls) === '0') { app.classList.add('no' + key); b.setAttribute('aria-pressed', 'false'); } } catch (e) {}
+  b.addEventListener('click', () => {
+    const off = app.classList.toggle('no' + key);
+    b.setAttribute('aria-pressed', String(!off));
+    try { localStorage.setItem(ls, off ? '0' : '1'); } catch (e) {}
+  });
+});
 $('#bIpa').addEventListener('click', () => {
   const off = app.classList.toggle('noipa');
   $('#bIpa').setAttribute('aria-pressed', String(!off));
@@ -944,12 +1122,14 @@ setFs(fsPct, false);
 
 
 /* ---------- kamus: klik kata -> popup arti (FreeDictionaryAPI.com / Wiktionary) + terjemah ke bahasa pilihan, sama dengan Sync Reader ---------- */
-const FD_URL = 'https://freedictionaryapi.com/api/v1/entries/en/';
+const FD_URL = 'https://freedictionaryapi.com/api/v1/entries/' + LCODE + '/';
 const POS = { noun: 'kata benda', verb: 'kata kerja', adjective: 'kata sifat', adverb: 'kata keterangan', pronoun: 'kata ganti', preposition: 'kata depan', conjunction: 'kata sambung', determiner: 'penentu', interjection: 'kata seru', numeral: 'bilangan', article: 'artikel', particle: 'partikel', prefix: 'awalan', suffix: 'akhiran', phrase: 'frasa', proverb: 'peribahasa', contraction: 'kontraksi', symbol: 'simbol', name: 'nama', 'proper noun': 'nama diri', abbreviation: 'singkatan', initialism: 'singkatan', acronym: 'akronim', idiom: 'idiom', 'phrasal verb': 'kata kerja frasal' };
-const LANGS = [['id', 'Indonesia', ['id']], ['ms', 'Melayu', ['ms']], ['jv', 'Jawa', ['jv']], ['su', 'Sunda', ['su']], ['es', 'Spanyol', ['es']], ['fr', 'Prancis', ['fr']], ['de', 'Jerman', ['de']], ['it', 'Italia', ['it']], ['pt', 'Portugis', ['pt']], ['nl', 'Belanda', ['nl']], ['ru', 'Rusia', ['ru']], ['ar', 'Arab', ['ar']], ['hi', 'Hindi', ['hi']], ['ja', 'Jepang', ['ja']], ['ko', 'Korea', ['ko']], ['zh-CN', 'Mandarin', ['cmn', 'zh']], ['th', 'Thai', ['th']], ['vi', 'Vietnam', ['vi']], ['tr', 'Turki', ['tr']]];
+const LANGS = [['id', 'Indonesia', ['id']], ['en', 'Inggris', ['en']], ['ms', 'Melayu', ['ms']], ['jv', 'Jawa', ['jv']], ['su', 'Sunda', ['su']], ['es', 'Spanyol', ['es']], ['fr', 'Prancis', ['fr']], ['de', 'Jerman', ['de']], ['it', 'Italia', ['it']], ['pt', 'Portugis', ['pt']], ['nl', 'Belanda', ['nl']], ['ru', 'Rusia', ['ru']], ['ar', 'Arab', ['ar']], ['hi', 'Hindi', ['hi']], ['ja', 'Jepang', ['ja']], ['ko', 'Korea', ['ko']], ['zh-CN', 'Mandarin', ['cmn', 'zh']], ['th', 'Thai', ['th']], ['vi', 'Vietnam', ['vi']], ['tr', 'Turki', ['tr']]];
 const lsGet = (k, d) => { try { return localStorage.getItem(k) || d; } catch (e) { return d; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
 const langOf = () => LANGS.find((l) => l[0] === lsGet('uk-dlang', 'id')) || LANGS[0];
+/* bahasa tujuan kamus; kalau kata diklik dari subtitle yang sudah diterjemahkan ke bahasa yang sama dengan tujuan, tujuannya jadi bahasa asli video */
+const dLang = () => { const L = langOf(); return dSt && dSt.sl !== MT_SL && L[0] === dSt.sl ? (LANGS.find((l) => l[0] === MT_SL) || L) : L; };
 const canSpeak = 'speechSynthesis' in window;
 const DC = {};
 let dpEl = null, tipEl = null, dTok = 0, dSt = null, prevPl = false;
@@ -957,7 +1137,8 @@ const mk = (t, c, x) => { const n = document.createElement(t); if (c) n.classNam
 function cleanWord(s) {
   return String(s).replace(/[‘’]/g, "'").replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '').toLowerCase();
 }
-function cands(q) {
+function cands(q, lc) {
+  if ((lc || LCODE) !== 'en') return [q];
   const a = [q], add = (x) => { if (x && x.length > 2 && !a.includes(x)) a.push(x); };
   if (/'s$/.test(q)) add(q.slice(0, -2));
   if (/n't$/.test(q)) add(q.slice(0, -3));
@@ -970,12 +1151,14 @@ function cands(q) {
   if (/ly$/.test(q)) add(q.slice(0, -2));
   return a.slice(0, 5);
 }
-function kdFetch(q) {
-  const key = 'e:' + q; if (DC[key]) return DC[key];
-  const c = cands(q);
+const fdCode = (c) => String(c).split('-')[0];
+function kdFetch(q, sl) {
+  const lc = sl && sl !== MT_SL ? fdCode(sl) : LCODE, base = lc === LCODE ? FD_URL : 'https://freedictionaryapi.com/api/v1/entries/' + lc + '/';
+  const key = 'e:' + lc + ':' + q; if (DC[key]) return DC[key];
+  const c = cands(q, lc);
   return DC[key] = (async () => {
     for (const w of c) {
-      const r = await fetch(FD_URL + encodeURIComponent(w) + '?translations=true');
+      const r = await fetch(base + encodeURIComponent(w) + '?translations=true');
       if (r.status === 404) continue;
       if (!r.ok) throw new Error(r.status === 429 ? 'Batas permintaan kamus tercapai. Coba lagi nanti.' : 'Kamus tidak bisa dimuat (' + r.status + ').');
       const j = await r.json();
@@ -984,15 +1167,16 @@ function kdFetch(q) {
     return null;
   })().catch((e) => { delete DC[key]; throw e; });
 }
-function mt(t, tl) {
-  const key = 't:' + tl + ':' + t; if (DC[key]) return DC[key];
+function mt(t, tl, sl) {
+  sl = sl || 'en';
+  const key = 't:' + sl + ':' + tl + ':' + t; if (DC[key]) return DC[key];
   return DC[key] = (async () => {
     try {
-      const r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' + encodeURIComponent(tl) + '&dt=t&q=' + encodeURIComponent(t));
+      const r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=' + encodeURIComponent(sl) + '&tl=' + encodeURIComponent(tl) + '&dt=t&q=' + encodeURIComponent(t));
       if (!r.ok) throw 0; const j = await r.json(); const s = j[0].map((x) => x[0]).join(''); if (!s) throw 0; return s;
     } catch (e) {
       try {
-        const r = await fetch('https://api.mymemory.translated.net/get?langpair=en|' + encodeURIComponent(tl) + '&q=' + encodeURIComponent(t));
+        const r = await fetch('https://api.mymemory.translated.net/get?langpair=' + encodeURIComponent(sl) + '|' + encodeURIComponent(tl) + '&q=' + encodeURIComponent(t));
         const j = await r.json(); const s = j.responseData && j.responseData.translatedText;
         if (!s || /MYMEMORY WARNING/i.test(s)) throw 0; return s;
       } catch (e2) { delete DC[key]; return ''; }
@@ -1008,13 +1192,13 @@ function idWords(entries, codes) {
 const sensesOf = (e) => (e.senses || []).filter((s) => s && s.definition).slice(0, 8);
 function kdArti() {
   const st = dSt; if (!st || !st.res) return;
-  const did = dpEl.querySelector('.did'), L = langOf(), tl = L[0];
+  const did = dpEl.querySelector('.did'), L = dLang(), tl = L[0];
   dpEl.querySelector('.dpid small').textContent = 'ARTI' + (tl === 'id' ? '' : ' · ' + L[1].toUpperCase());
   const w = idWords(st.res.entries, L[2]);
   if (w.length) { did.textContent = w.join(', '); return; }
   const base = 'Belum ada arti ' + L[1] + ' di kamus. Lihat definisi di bawah.';
   did.textContent = base;
-  mt(st.res.word, tl).then((t) => { if (dSt === st && langOf()[0] === tl && t && t.toLowerCase() !== st.res.word.toLowerCase()) did.textContent = 'Terjemahan otomatis: ' + t + '. ' + base; });
+  mt(st.res.word, tl, st.sl).then((t) => { if (dSt === st && dLang()[0] === tl && t && t.toLowerCase() !== st.res.word.toLowerCase()) did.textContent = 'Terjemahan otomatis: ' + t + '. ' + base; });
 }
 function kdRender() {
   const st = dSt; if (!st || !st.res) return;
@@ -1040,10 +1224,10 @@ function kdRender() {
 }
 function kdTranslate() {
   const st = dSt; if (!st || !st.res || st.trStarted) return; st.trStarted = true;
-  const tl = langOf()[0]; st.trLang = tl;
+  const tl = dLang()[0]; st.trLang = tl;
   const defs = []; st.res.entries.forEach((e) => sensesOf(e).forEach((s) => { if (!defs.includes(s.definition)) defs.push(s.definition); }));
   let n = 0;
-  const run = async () => { while (n < defs.length) { const d = defs[n++]; const r = await mt(d, tl); if (dSt !== st || st.trLang !== tl) return; st.tr[d] = r; if (st.tab === 'tr') kdRender(); } };
+  const run = async () => { while (n < defs.length) { const d = defs[n++]; const r = await mt(d, tl, 'en'); if (dSt !== st || st.trLang !== tl) return; st.tr[d] = r; if (st.tab === 'tr') kdRender(); } };
   run(); run(); run();
 }
 function kdTab(t) {
@@ -1065,8 +1249,9 @@ function closeTip() {
   if (tipEl) { tipEl.classList.remove('sel'); tipEl = null; }
   if (dpEl && !dpEl.hidden) dpEl.hidden = true;
 }
-function openDict(q, wEl) {
-  const my = ++dTok, d = dpEl, st = dSt = { q, tab: 'en', tr: {}, res: null, trStarted: false, trLang: '' };
+function openDict(q, wEl, sl) {
+  const my = ++dTok, d = dpEl, st = dSt = { q, sl: sl || MT_SL, tab: 'en', tr: {}, res: null, trStarted: false, trLang: '' };
+  if (typeof dsel !== 'undefined') dsel.value = dLang()[0];
   const did = d.querySelector('.did'), dl = d.querySelector('.dlist');
   closeStMenu(); d.hidden = false; placeDp();
   d.querySelector('.dwd').textContent = q; d.querySelector('.dip').textContent = '';
@@ -1080,13 +1265,13 @@ function openDict(q, wEl) {
     const r = tipEl.getBoundingClientRect(), pt = d.getBoundingClientRect().top;
     if (r.bottom > pt - 12) list.scrollBy({ top: r.bottom - (pt - 12), behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   });
-  kdFetch(q).then((res) => {
+  kdFetch(q, st.sl).then((res) => {
     if (my !== dTok) return;
     if (!res) {
       did.textContent = 'Kata tidak ditemukan di kamus.';
       dl.textContent = ''; dl.appendChild(mk('div', 'kmsg', 'Tidak ada definisi untuk kata ini.'));
-      const tl = langOf()[0];
-      mt(q, tl).then((t) => { if (my === dTok && t && t.toLowerCase() !== q) did.textContent = 'Terjemahan otomatis: ' + t + '. Kata tidak ditemukan di kamus.'; });
+      const tl = dLang()[0];
+      mt(q, tl, st.sl).then((t) => { if (my === dTok && t && t.toLowerCase() !== q) did.textContent = 'Terjemahan otomatis: ' + t + '. Kata tidak ditemukan di kamus.'; });
       return;
     }
     st.res = res;
@@ -1101,14 +1286,16 @@ function openDict(q, wEl) {
     did.textContent = '-'; dl.textContent = ''; dl.appendChild(mk('div', 'kmsg', m));
   });
 }
-function showTip(wEl) {
-  const word = cleanWord(wEl.querySelector('b').textContent);
+function showTip(wEl, sw) {
+  const el = sw || wEl;
+  const word = cleanWord(sw ? sw.dataset.w : ((showAlt && wEl.dataset.a) || wEl.dataset.w || wEl.querySelector('b').textContent));
   if (!word) return;
-  if (tipEl === wEl && dpEl && !dpEl.hidden) { closeTip(); return; }
+  if (tipEl === el && dpEl && !dpEl.hidden) { closeTip(); return; }
   if (isPlaying()) pause();
   if (tipEl) tipEl.classList.remove('sel');
-  tipEl = wEl; wEl.classList.add('sel');
-  openDict(word, wEl);
+  tipEl = el; el.classList.add('sel');
+  const mx = wEl.closest('.mtx');
+  openDict(word, el, mx ? mx.lang : null);
 }
 dpEl = mk('div', 'dp'); dpEl.id = 'dp'; dpEl.hidden = true; dpEl.setAttribute('role', 'dialog'); dpEl.setAttribute('aria-label', 'Arti kata');
 dpEl.innerHTML = '<div class="dph"><div class="dpw"><b class="dwd"></b><span class="dip"></span></div>'
@@ -1126,6 +1313,7 @@ LANGS.forEach((l) => { const o = document.createElement('option'); o.value = l[0
 dsel.value = langOf()[0];
 dsel.addEventListener('change', () => {
   lsSet('uk-dlang', dsel.value);
+  dsel.value = dLang()[0];
   if (dSt) { dSt.tr = {}; dSt.trStarted = false; kdArti(); if (dSt.tab === 'tr') { kdTranslate(); kdRender(); } }
 });
 dpEl.addEventListener('click', (e) => {
@@ -1136,8 +1324,93 @@ dpEl.addEventListener('click', (e) => {
   if (a === 'x') closeTip();
   else if (a === 'star') stToggle();
   else if (a === 'en' || a === 'tr') kdTab(a);
-  else if (a === 'say' && dSt && canSpeak) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(dSt.q); u.lang = 'en-GB'; u.rate = 0.9; speechSynthesis.speak(u); } catch (_) {} }
+  else if (a === 'say' && dSt && canSpeak) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(dSt.q); u.lang = dSt.sl !== MT_SL ? dSt.sl : speechLang(false); u.rate = 0.9; speechSynthesis.speak(u); } catch (_) {} }
 });
+/* ---------- 2 subtitle otomatis: utama (asli / diterjemahkan) + kedua (terjemahan), tiap bahasa di-cache per video ---------- */
+const TRK = 'uk-mt:' + (_qs.get('q') || _qs.get('v') || JUDUL) + ':';
+const trAutoBtn = $('#bTrAuto'), trSel = $('#trLang'), mainSel = $('#mainLang');
+let trAuto = lsGet('uk-trauto', '0') === '1', trRun = 0;
+const trMaps = {}, trBad = new Set();
+const OPTS = LANGS.filter((l) => l[0] !== MT_SL);
+const okLang = (c) => OPTS.some((l) => l[0] === c);
+const trGet = (tl) => { if (!trMaps[tl]) { try { trMaps[tl] = JSON.parse(lsGet(TRK + tl, '{}')) || {}; } catch (e) { trMaps[tl] = {}; } } return trMaps[tl]; };
+const tl2 = () => { const c = lsGet('uk-trlang', lsGet('uk-dlang', 'id')); return okLang(c) ? c : OPTS[0][0]; };
+const tl1 = () => { const c = lsGet('uk-mainlang', ''); return okLang(c) ? c : ''; };
+const mkOpt = (sel, v, t) => { const o = document.createElement('option'); o.value = v; o.textContent = t; sel.appendChild(o); };
+mkOpt(mainSel, '', 'Asli');
+OPTS.forEach((l) => { mkOpt(mainSel, l[0], l[1]); mkOpt(trSel, l[0], l[1]); });
+mainSel.value = tl1(); trSel.value = tl2();
+function mxWords(el, text, lang) {
+  el.textContent = '';
+  const put = (w) => { const sp = document.createElement('span'); sp.className = 'w'; sp.dataset.w = w; const b = document.createElement('b'), ps = aposParts(w, lang); if (ps) ps.forEach((q) => { const t = document.createElement('span'); t.className = 'sw'; t.dataset.w = q[1]; t.textContent = q[0]; b.appendChild(t); }); else b.textContent = w; sp.appendChild(b); el.appendChild(sp); };
+  let segs = null;
+  try { if (window.Intl && Intl.Segmenter) segs = [...new Intl.Segmenter(lang, { granularity: 'word' }).segment(text)].map((x) => [x.segment, x.isWordLike]); } catch (e) {}
+  if (!segs) segs = text.split(/(\s+)/).map((x) => [x, /[\p{L}\p{N}]/u.test(x)]);
+  segs.forEach(([w, isW]) => { if (isW && /[\p{L}\p{N}]/u.test(w)) put(w); else el.appendChild(document.createTextNode(w)); });
+}
+function trPaint(i) {
+  const d = DATA[i]; if (d.m) return;
+  const ln = lines[i], body = ln.querySelector('.body'); if (!body) return;
+  /* subtitle utama */
+  const m = tl1(); let mx = body.querySelector('.mtx');
+  ln.classList.toggle('mainTr', !!m);
+  if (m) {
+    if (!mx) { mx = document.createElement('p'); mx.className = 'mtx'; const ws = body.querySelector('.ws'); body.insertBefore(mx, ws ? ws.nextSibling : body.firstChild); }
+    const t = trGet(m)[i];
+    mx.lang = m; mx.dir = ['ar', 'he', 'fa', 'ur', 'yi', 'ps', 'sd', 'ug', 'dv'].includes(m) ? 'rtl' : 'ltr'; mx.classList.toggle('wait', !t && !trBad.has(m + i));
+    if (t) { if (mx._t !== m + '|' + t) { mx._t = m + '|' + t; mxWords(mx, t, m); } } else { mx._t = ''; mx.textContent = trBad.has(m + i) ? d.en : '…'; }
+  }
+  /* subtitle kedua */
+  let p = body.querySelector('.tr'), txt = d.tr || '', auto = false, wait = false;
+  if (trAuto) { auto = true; const c = tl2(); txt = trGet(c)[i] || ''; if (!txt && !trBad.has(c + i) && d.en) { txt = '…'; wait = true; } }
+  if (!txt) { if (p) p.remove(); return; }
+  if (!p) { p = document.createElement('p'); body.appendChild(p); }
+  p.className = 'tr' + (auto ? ' auto' : '') + (wait ? ' wait' : '');
+  p.textContent = txt;
+}
+function trSync() {
+  trAutoBtn.setAttribute('aria-pressed', String(trAuto));
+  trSel.hidden = !trAuto;
+  $('#bTr').hidden = !(trAuto || DATA.some((d) => d.tr));
+}
+async function trStart() {
+  const my = ++trRun;
+  trBad.clear();
+  lines.forEach((_, i) => trPaint(i));
+  const tls = [tl1(), trAuto ? tl2() : ''].filter((x, k, a) => x && a.indexOf(x) === k);
+  if (!tls.length) return;
+  const N = DATA.length, from = Math.max(activeIdx, 0);
+  let fail = 0;
+  for (const tl of tls) {
+    const map = trGet(tl);
+    const order = DATA.map((_, i) => i).filter((i) => !DATA[i].m && DATA[i].en && !map[i]);
+    order.sort((a, b) => ((a - from + N) % N) - ((b - from + N) % N));
+    let n = 0, dirty = 0;
+    const save = () => lsSet(TRK + tl, JSON.stringify(map));
+    const worker = async () => {
+      while (n < order.length && my === trRun) {
+        const i = order[n++], r = await mt(DATA[i].en, tl, MT_SL);
+        if (my !== trRun) return;
+        if (r) { map[i] = r; if (++dirty % 10 === 0) save(); } else { trBad.add(tl + i); fail++; }
+        trPaint(i);
+      }
+    };
+    await Promise.all([worker(), worker(), worker()]);
+    if (my !== trRun) return;
+    save();
+  }
+  if (fail) flashStatus(fail + ' baris gagal diterjemahkan');
+}
+trAutoBtn.addEventListener('click', () => {
+  trAuto = !trAuto; lsSet('uk-trauto', trAuto ? '1' : '0');
+  if (trAuto && app.classList.contains('notr')) { app.classList.remove('notr'); $('#bTr').setAttribute('aria-pressed', 'true'); lsSet('uk-tr', '1'); }
+  trSync(); trStart();
+});
+trSel.addEventListener('change', () => { lsSet('uk-trlang', trSel.value); trStart(); });
+mainSel.addEventListener('change', () => { lsSet('uk-mainlang', mainSel.value); trStart(); if (activeIdx >= 0) setTimeout(() => scrollToLine(activeIdx, true), 50); });
+trSync();
+if (trAuto || tl1()) trStart();
+
 /* ---------- bintang: simpan kata untuk direview di Kosakata (localStorage 'lf:starred', dibaca kosakata.html di origin yang sama) ---------- */
 const STAR = 'lf:starred';
 const stGet = () => { try { const a = JSON.parse(localStorage.getItem(STAR) || '[]'); return Array.isArray(a) ? a : []; } catch (e) { return []; } };
@@ -1149,7 +1422,7 @@ function stSnap() {
   const m = id.match(/^Terjemahan otomatis: (.*?)\. (?:Belum ada arti|Kata tidak)/);
   if (m) id = m[1]; else if (!st.res || /^(Memuat|Belum ada arti)/.test(id)) id = '';
   let en = ''; if (st.res) for (const e of st.res.entries) { const s = sensesOf(e)[0]; if (s) { en = s.definition; break; } }
-  return { w: stKey(), ipa: dpEl.querySelector('.dip').textContent, id, en, lg: langOf()[0] };
+  return { w: stKey(), ipa: dpEl.querySelector('.dip').textContent, id, en, lg: dLang()[0] };
 }
 function stPaint() {
   const b = dpEl.querySelector('[data-d="star"]'), on = stFind(stGet()) >= 0;
@@ -1375,27 +1648,74 @@ function clearScores() {
   });
   refreshStatus();
 }
-function scoreLine(i, segs) {
-  const d = DATA[i], toks = d.w ? d.w.map((x) => x[0]) : d.en.split(' ');
-  const flat = [];
-  toks.forEach((tk, k) => normW(tk).forEach((w) => flat.push({ w: numW(w), k })));
-  if (!flat.length) return;
-  const got = segs.filter(Boolean);
-  const nAlt = Math.max(1, ...got.map((s) => s.length));
-  const okAny = new Array(flat.length).fill(false);
-  let heard = false;
-  for (let a = 0; a < nAlt; a++) {
-    const rec = normW(got.map((s) => s[a] || s[0]).join(' ')).map(numW);
-    if (rec.length) heard = true;
-    alignWords(flat.map((x) => x.w), rec).forEach((v, n) => { if (v) okAny[n] = true; });
+function lcsMark(exp, rec) {
+  const n = exp.length, m = rec.length;
+  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = 1; i <= n; i++) for (let j = 1; j <= m; j++) dp[i][j] = exp[i - 1] === rec[j - 1] ? dp[i - 1][j - 1] + 1 : Math.max(dp[i - 1][j], dp[i][j - 1]);
+  const ok = new Array(n).fill(false);
+  let i = n, j = m;
+  while (i > 0 && j > 0) {
+    if (exp[i - 1] === rec[j - 1]) { ok[i - 1] = true; i--; j--; }
+    else if (dp[i - 1][j] >= dp[i][j - 1]) i--; else j--;
   }
-  const badK = new Set(), seenK = new Set();
-  flat.forEach((x, n) => { seenK.add(x.k); if (!okAny[n]) badK.add(x.k); });
+  return ok;
+}
+/* Jepang, Mandarin, Korea, Thai: hasil pengenal suara tidak dipisah per kata, jadi dibandingkan per karakter */
+function scoreCJK(d, got) {
+  const cl = (s) => [...String(s || '').toLowerCase().replace(/[^\p{L}\p{N}]/gu, '')];
+  const toks = d.w ? d.w : d.en.split(' ').map((x) => [x]);
+  const nAlt = Math.max(1, ...got.map((s) => s.length));
+  let heard = false, best = null;
+  const total = toks.reduce((n, x) => n + cl(x[0]).length, 0);
+  if (!total) return null;
+  for (let a = 0; a < nAlt; a++) {
+    const rec = cl(got.map((s) => s[a] || s[0]).join(''));
+    if (!rec.length) continue;
+    heard = true;
+    [0, 4].forEach((vi) => {
+      if (vi === 4 && !toks.some((x) => x[4])) return;
+      const exp = [];
+      toks.forEach((x, k) => cl(vi === 4 && x[4] ? x[4] : x[0]).forEach((c) => exp.push({ c, k })));
+      if (!exp.length) return;
+      const ok = lcsMark(exp.map((e) => e.c), rec);
+      const per = new Map();
+      exp.forEach((e, n) => { const q = per.get(e.k) || [0, 0]; q[1]++; if (ok[n]) q[0]++; per.set(e.k, q); });
+      const r = ok.filter(Boolean).length / exp.length;
+      if (!best || r > best.r) best = { r, per };
+    });
+  }
+  const bad = [], good = [];
+  if (best) best.per.forEach((q, k) => { if (q[0] / q[1] >= 0.6) good.push(k); else bad.push(k); });
+  return { pct: best ? Math.round(100 * best.r) : 0, heard, bad, good: heard ? good : [] };
+}
+function scoreLine(i, segs) {
+  const d = DATA[i];
+  const got = segs.filter(Boolean);
   const text = got.map((s) => s[0] || '').join(' ').replace(/\s+/g, ' ').trim();
-  scores.set(i, {
-    pct: Math.round((100 * okAny.filter(Boolean).length) / flat.length), heard, text,
-    bad: [...badK], good: heard ? [...seenK].filter((k) => !badK.has(k)) : []
-  });
+  let pct, heard, bad, good;
+  if (WORDLANG) {
+    const toks = d.w ? d.w.map((x) => x[0]) : d.en.split(' ');
+    const flat = [];
+    toks.forEach((tk, k) => normW(tk).forEach((w) => flat.push({ w: numW(w), k })));
+    if (!flat.length) return;
+    const nAlt = Math.max(1, ...got.map((s) => s.length));
+    const okAny = new Array(flat.length).fill(false);
+    heard = false;
+    for (let a = 0; a < nAlt; a++) {
+      const rec = normW(got.map((s) => s[a] || s[0]).join(' ')).map(numW);
+      if (rec.length) heard = true;
+      alignWords(flat.map((x) => x.w), rec).forEach((v, n) => { if (v) okAny[n] = true; });
+    }
+    const badK = new Set(), seenK = new Set();
+    flat.forEach((x, n) => { seenK.add(x.k); if (!okAny[n]) badK.add(x.k); });
+    pct = Math.round((100 * okAny.filter(Boolean).length) / flat.length);
+    bad = [...badK]; good = heard ? [...seenK].filter((k) => !badK.has(k)) : [];
+  } else {
+    const r = scoreCJK(d, got);
+    if (!r) return;
+    ({ pct, heard, bad, good } = r);
+  }
+  scores.set(i, { pct, heard, text, bad, good });
   paintScore(i); refreshStatus();
   if (heard) { sh.miss = 0; return; }
   if (!sh.on) return;
@@ -1423,7 +1743,7 @@ function scStart() {
   if (!SR || scBroken) return;
   let r;
   try { r = new SR(); } catch (e) { return; }
-  r.lang = 'en-US'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+  r.lang = speechLang(true); r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
   const o = { r, segs: [], err: '', i: sh.idx, fin: null };
   r.onresult = (ev) => {
     for (let k = ev.resultIndex; k < ev.results.length; k++) {
