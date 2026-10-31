@@ -125,7 +125,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
 
     <section class="step" aria-labelledby="s1">
       <h2 id="s1"><span class="num">1</span>Buka language.json</h2>
-      <p class="hint">Dimuat otomatis dari <code>language.json</code> di folder yang sama. Kalau gagal (mis. dibuka dari file lokal), pilih file atau tempel isinya.</p>
+      <p class="hint">Dimuat otomatis dari <code>data/language.json</code>. Kalau gagal (mis. dibuka dari file lokal), pilih file atau tempel isinya.</p>
       <div class="row">
         <button class="btn" id="loadAuto" type="button">Muat language.json</button>
         <label class="btn" for="srcFile" style="cursor:pointer">Pilih file JSON</label>
@@ -310,7 +310,7 @@ footer { text-align: center; color: var(--muted); font-size: .85rem; padding-bot
   }
   function loadAuto() {
     setStatus('#srcStatus', 'Memuat…');
-    fetch('language.json', { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
+    fetch('data/language.json', { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw 0; return r.json(); })
       .then(function (j) { setSource(j, 'language.json'); })
       .catch(function () { setStatus('#srcStatus', 'language.json tidak bisa dimuat. Pilih file atau tempel isinya.', 'bad'); });
   }
