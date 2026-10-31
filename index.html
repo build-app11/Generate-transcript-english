@@ -406,8 +406,8 @@ h1, h2, h3, p { margin: 0; }
     dataDir: 'data',                     // folder file JSON pelajaran
     viewer: 'player-video.html',         // pemutar video: player-video.html?q=nama
     audioViewer: 'player-audio.html',     // pemutar audio: player-audio.html?q=nama (pelajaran yang punya kolom "audio")
-    manifest: 'posts.json',              // opsional: judul, deskripsi, kategori, urutan, ID video
-    exclude: ['index.html', '404.html', 'player-video.html', 'player-audio.html', 'audiobook-generator.html', 'video-generator.html', 'index-builder.html', 'data/index.json'], // file yang tidak ditampilkan
+    manifest: 'data/card.json',          // daftar kartu halaman (alat, dll.): judul, deskripsi, kategori, urutan, gambar
+    exclude: ['index.html', '404.html', 'player-video.html', 'player-audio.html', 'audiobook-generator.html', 'video-generator.html', 'index-builder.html', 'language-builder.html', 'data/index.json', 'data/card.json'], // file yang tidak ditampilkan
     listTtlMin: 10                       // daftar file di-cache sekian menit
   };
   const GLYPHS = ['ʃ', 'θ', 'ə', 'ŋ', 'ð', 'ʒ', 'æ', 'ɔː', 'ɪ', 'ʊ', 'tʃ', 'dʒ'];
@@ -417,28 +417,7 @@ h1, h2, h3, p { margin: 0; }
   };
   const SPARE_COLORS = ['coral', 'mint', 'yellow'];
 
-  /* Halaman alat bawaan: otomatis muncul di kategori Alat. posts.json (jika ada) boleh menimpa per halaman. */
-  const thumb = svg => 'data:image/svg+xml,' + encodeURIComponent(svg);
-  const TOOL_PAGES = {
-    'audiobook-generator.html': {
-      title: 'Audiobook Generator',
-      description: 'Buat latihan audio sendiri: hasilkan transkrip dengan IPA di setiap kata, lalu simpan sebagai file JSON.',
-      category: 'Alat', youtube: '', tags: ['alat', 'audio'], order: 1001,
-      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#A07CFA"/><circle cx="548" cy="64" r="38" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="48" y="256" width="52" height="52" rx="14" fill="#2ED3A0" stroke="#14162B" stroke-width="5" transform="rotate(-14 74 282)"/><rect x="192" y="162" width="260" height="170" rx="14" fill="#14162B"/><rect x="180" y="150" width="260" height="170" rx="14" fill="#fff" stroke="#14162B" stroke-width="5"/><path d="M310 150v170" stroke="#14162B" stroke-width="5"/><path d="M205 190h85M205 225h85M205 260h60M335 190h85M335 225h85M335 260h60" stroke="#14162B" stroke-width="7" stroke-linecap="round"/><path d="M215 125C215 10 405 10 405 125" fill="none" stroke="#14162B" stroke-width="26" stroke-linecap="round"/><path d="M215 125C215 10 405 10 405 125" fill="none" stroke="#FF6B5E" stroke-width="14" stroke-linecap="round"/><rect x="193" y="105" width="44" height="76" rx="16" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><rect x="383" y="105" width="44" height="76" rx="16" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><g fill="#2ED3A0" stroke="#14162B" stroke-width="5"><rect x="62" y="170" width="24" height="60" rx="12"/><rect x="98" y="146" width="24" height="108" rx="12"/><rect x="134" y="182" width="24" height="36" rx="12"/><rect x="482" y="182" width="24" height="36" rx="12"/><rect x="518" y="146" width="24" height="108" rx="12"/><rect x="554" y="170" width="24" height="60" rx="12"/></g></svg>`)
-    },
-    'video-generator.html': {
-      title: 'Video Generator',
-      description: 'Buat latihan dari video YouTube: ambil transkripnya, tambahkan IPA di setiap kata, lalu simpan sebagai file JSON.',
-      category: 'Alat', youtube: '', tags: ['alat', 'video'], order: 1002,
-      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#4C84FF"/><circle cx="108" cy="82" r="40" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="520" y="240" width="56" height="56" rx="14" fill="#A07CFA" stroke="#14162B" stroke-width="5" transform="rotate(16 548 268)"/><rect x="162" y="102" width="340" height="212" rx="24" fill="#14162B"/><rect x="150" y="90" width="340" height="212" rx="24" fill="#fff" stroke="#14162B" stroke-width="5"/><polygon points="294,134 294,226 376,180" fill="#FFD23F" stroke="#14162B" stroke-width="6" stroke-linejoin="round"/><path d="M186 268h268" stroke="#D3D9F2" stroke-width="12" stroke-linecap="round"/><path d="M186 268h130" stroke="#FF6B5E" stroke-width="12" stroke-linecap="round"/><circle cx="316" cy="268" r="11" fill="#fff" stroke="#14162B" stroke-width="5"/><circle cx="548" cy="104" r="26" fill="#2ED3A0" stroke="#14162B" stroke-width="5"/></svg>`)
-    },
-    'index-builder.html': {
-      title: 'Pembuat index.json',
-      description: 'Gabungkan semua file JSON pelajaran menjadi satu index.json untuk daftar latihan di halaman ini.',
-      category: 'Alat', youtube: '', tags: ['alat', 'indeks'], order: 1003,
-      image: thumb(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360"><rect width="640" height="360" fill="#2ED3A0"/><circle cx="104" cy="84" r="40" fill="#FFD23F" stroke="#14162B" stroke-width="5"/><rect x="522" y="64" width="52" height="52" rx="14" fill="#A07CFA" stroke="#14162B" stroke-width="5" transform="rotate(18 548 90)"/><rect x="222" y="62" width="220" height="262" rx="18" fill="#14162B"/><rect x="210" y="50" width="220" height="262" rx="18" fill="#fff" stroke="#14162B" stroke-width="5"/><text x="320" y="116" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="54" font-weight="700" text-anchor="middle" fill="#14162B">{ }</text><path d="M236 138h168" stroke="#D3D9F2" stroke-width="4"/><g stroke="#14162B" stroke-width="5"><rect x="238" y="160" width="30" height="30" rx="9" fill="#FFD23F"/><rect x="238" y="212" width="30" height="30" rx="9" fill="#FF6B5E"/><rect x="238" y="264" width="30" height="30" rx="9" fill="#4C84FF"/></g><path d="M288 175h112M288 227h112M288 279h76" stroke="#14162B" stroke-width="8" stroke-linecap="round"/><circle cx="446" cy="294" r="40" fill="#FF6B5E" stroke="#14162B" stroke-width="5"/><path d="M446 276v36M430 298l16 16 16-16" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/></svg>`)
-    }
-  };
+  
 
   const $ = (s, r = document) => r.querySelector(s);
   const store = {
@@ -691,7 +670,7 @@ h1, h2, h3, p { margin: 0; }
   /* ---------- Susun daftar ---------- */
   const state = { items: [], q: '', cat: '*', chan: '*', tag: '', view: 'all', loaded: false };
 
-  // Halaman di luar database (mis. alat) didaftarkan lewat posts.json; keduanya digabung.
+  // Halaman di luar database (mis. alat) didaftarkan lewat data/card.json; keduanya digabung.
   function toItems(files, manifest, union) {
     const map = new Map();
     if (files) files.forEach(f => map.set(f.path, { path: f.path, sha: f.sha || null, page: f.page || {}, added: f.added || '', indexed: !!f.page }));
@@ -963,7 +942,7 @@ h1, h2, h3, p { margin: 0; }
     const [posts, idx] = await Promise.all([getManifest(), getIndex()]);
     const files = idx || (CONFIG.github ? await listFiles() : null);
     if (files === null && !Object.keys(posts).length) { renderError(); return; }
-    const manifest = { ...TOOL_PAGES, ...posts };
+    const manifest = posts;
 
     state.items = toItems(files, manifest, !!idx || !CONFIG.github);
     state.loaded = true;
@@ -971,7 +950,7 @@ h1, h2, h3, p { margin: 0; }
     render();
     resolveFeeds();
 
-    // Halaman yang belum lengkap datanya di posts.json dibaca dari file-nya.
+    // Halaman yang belum lengkap datanya di card.json dibaca dari file-nya.
     const need = state.items.filter(it => !it.indexed && (!(it.m.title && it.m.description && it.m.category) || typeof it.m.youtube !== 'string' || it.m.tags === undefined));
     if (need.length) {
       const metas = await Promise.all(need.map(it => pageMeta(it.path, it.sha)));
