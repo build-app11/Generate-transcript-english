@@ -1,6 +1,6 @@
 /* i18n Learning Fun: lapisan terjemahan terpisah. Kode dan markup halaman TIDAK diubah.
    - Bahasa asli: Indonesia (id). Di bahasa id, skrip ini tidak melakukan apa-apa selain menyediakan menu bahasa.
-   - Bahasa lain dibaca dari language.json  { "languages": [[kode, nama]], "strings": { kode: { key: teks } } }.
+   - Bahasa lain dibaca dari data/language.json  { "languages": [[kode, nama]], "strings": { kode: { key: teks } } }.
      Teks Indonesia (strings.id) dicocokkan dengan teks yang tampil di halaman, lalu diganti dengan teks bahasa terpilih
      pada teks di halaman, atribut (placeholder, aria-label, title, alt), judul, serta alert/confirm/prompt.
      Teks yang mengandung {n}, {a}, {b}, {q} dicocokkan sebagai pola. Teks tanpa terjemahan tetap Indonesia.
@@ -14,7 +14,7 @@
 
   function loadSync() {
     try {
-      var x = new XMLHttpRequest(); x.open('GET', 'language.json', false); x.send();
+      var x = new XMLHttpRequest(); x.open('GET', 'data/language.json', false); x.send();
       if (x.status === 200 || (x.status === 0 && x.responseText)) return JSON.parse(x.responseText);
     } catch (e) {}
     return null;
@@ -135,7 +135,7 @@
       if (!pop.hidden) return open(false);
       if (!loaded) {
         loaded = true;
-        fetch('language.json').then(function (r) { return r.json(); }).then(function (j) { DATA = j; }).catch(function () {}).then(function () { build2(); if (!pop.hidden) open(true); });
+        fetch('data/language.json').then(function (r) { return r.json(); }).then(function (j) { DATA = j; }).catch(function () {}).then(function () { build2(); if (!pop.hidden) open(true); });
       }
       build2(); open(true);
     });
