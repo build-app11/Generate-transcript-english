@@ -705,7 +705,7 @@ $('f-book').addEventListener('change',autoTitle);
 /* Terima URL apa saja. Google Drive dan Dropbox diubah jadi link unduhan langsung supaya bisa diputar oleh <audio>. */
 /* Alamat relay Cloudflare Worker (wajib https://, tanpa garis miring di akhir). Ganti NAMAMU dengan alamat Worker-mu,
    mis. https://gdrive-relay.akunmu.workers.dev. Selama masih berisi NAMAMU (atau dikosongkan), link Drive memakai unduhan langsung seperti semula. */
-const GDRIVE_RELAY='https://NAMAMU.workers.dev';
+const GDRIVE_RELAY='https://gdriverelay.shopeeakunsaya01.workers.dev';
 function parseAudioUrl(raw){
   raw=String(raw||'').trim();
   if(!/^https?:\/\/\S+$/i.test(raw))return null;
